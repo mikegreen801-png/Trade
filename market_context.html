@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Context - Day Trader OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/daytrader-os.css?v=20260504-vercel1">
+<style>
+  * { box-sizing: border-box; }
+  :root {
+    --bg:#05070c; --panel:#0c111a; --panel2:#101827; --line:#223047;
+    --text:#d8e2ef; --muted:#8190a8; --cyan:#00d7ff; --green:#00e08a;
+    --gold:#f2b84b; --red:#ff5b6e;
+  }
+  body {
+    margin:0;
+    min-height:100vh;
+    background:
+      linear-gradient(rgba(0,215,255,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,215,255,.035) 1px, transparent 1px),
+      radial-gradient(circle at 82% 8%, rgba(0,224,138,.11), transparent 32%),
+      var(--bg);
+    background-size:72px 72px,72px 72px,auto,auto;
+    color:var(--text);
+    font-family:"JetBrains Mono",monospace;
+    padding:86px 28px 110px;
+  }
+  main { width:min(1480px, calc(100vw - 56px)); margin:auto; }
+  .kicker { color:var(--cyan); font-size:12px; font-weight:800; letter-spacing:.2em; text-transform:uppercase; }
+  h1 { font-family:"Barlow Condensed",sans-serif; font-size:clamp(64px,10vw,142px); line-height:.84; margin:10px 0 20px; color:#fff; text-transform:uppercase; }
+  .sub { max-width:820px; color:#9eb0c9; font-size:16px; line-height:1.7; margin:0 0 24px; }
+  .layout { display:grid; grid-template-columns:minmax(0,1fr) 390px; gap:18px; align-items:start; }
+  .panel { border:1px solid rgba(127,141,163,.24); border-radius:10px; background:linear-gradient(145deg, rgba(16,24,39,.98), rgba(7,11,18,.98)); padding:22px; margin-top:18px; }
+  .panel h2 { color:#fff; font-family:"Barlow Condensed",sans-serif; font-size:32px; letter-spacing:.06em; line-height:1; margin:8px 0 14px; text-transform:uppercase; }
+  .context-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; }
+  .asset-card { border:1px solid rgba(127,141,163,.2); border-radius:9px; background:#070c14; padding:15px; }
+  .asset-top { display:flex; justify-content:space-between; gap:10px; align-items:center; }
+  .asset-top strong { color:#fff; font-size:20px; }
+  .asset-card select,.asset-card input,.field input,.field select,.field textarea {
+    width:100%; min-height:44px; border:1px solid rgba(127,141,163,.3); border-radius:7px;
+    background:#070c14; color:#f4f8ff; font:600 13px/1.4 "JetBrains Mono",monospace;
+    padding:10px 11px; outline:none;
+  }
+  .asset-card select { margin-top:12px; }
+  .asset-card input { margin-top:8px; }
+  .asset-card small { display:block; color:var(--muted); font-size:11px; line-height:1.45; margin-top:9px; }
+  .form-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+  .field { display:flex; flex-direction:column; gap:8px; min-width:0; }
+  .field.wide { grid-column:span 2; }
+  .field.full { grid-column:1/-1; }
+  label { color:var(--muted); font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
+  textarea { min-height:116px; resize:vertical; }
+  input:focus,select:focus,textarea:focus { border-color:var(--cyan); box-shadow:0 0 0 3px rgba(0,215,255,.09); }
+  .check-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:14px; }
+  .check { display:flex; gap:10px; align-items:flex-start; border:1px solid rgba(127,141,163,.18); border-radius:8px; background:#080d15; padding:12px; color:#cbd8e9; font-size:12px; line-height:1.45; }
+  .check input { margin-top:2px; }
+  .actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:16px; }
+  .btn,.actions a,.actions button { border:1px solid rgba(0,215,255,.32); border-radius:7px; background:rgba(0,215,255,.07); color:#e9fbff; cursor:pointer; font:900 11px/1 "JetBrains Mono",monospace; letter-spacing:.08em; padding:12px 13px; text-decoration:none; text-transform:uppercase; }
+  .btn.primary,.actions button.primary { border-color:transparent; background:var(--green); color:#03110a; }
+  .btn.gold { border-color:transparent; background:var(--gold); color:#120d02; }
+  .score-panel { position:sticky; top:72px; }
+  .score-ring { --score:50; width:136px; aspect-ratio:1; border-radius:50%; display:grid; place-items:center; margin:4px 0 16px; background:radial-gradient(circle at center,#0c111a 0 56%,transparent 57%),conic-gradient(var(--green) calc(var(--score)*1%),rgba(127,141,163,.2) 0); }
+  .score-ring strong { color:#fff; display:block; font-size:36px; line-height:1; text-align:center; }
+  .score-ring span { color:var(--muted); display:block; font-size:10px; font-weight:800; letter-spacing:.1em; margin-top:5px; text-align:center; text-transform:uppercase; }
+  .bias { color:#fff; font-family:"Barlow Condensed",sans-serif; font-size:42px; line-height:.95; margin:0 0 8px; text-transform:uppercase; }
+  .readout { color:var(--muted); font-size:12px; line-height:1.6; margin:0; }
+  .rule-list { display:grid; gap:10px; margin-top:16px; }
+  .rule { border:1px solid rgba(242,184,75,.28); border-radius:8px; background:rgba(242,184,75,.07); color:#eed7a4; font-size:12px; line-height:1.45; padding:12px; }
+  .rule.good { border-color:rgba(0,224,138,.28); background:rgba(0,224,138,.07); color:#bdf6d8; }
+  .saved-list { display:grid; gap:10px; }
+  .saved-row { border:1px solid rgba(127,141,163,.18); border-radius:8px; background:#080d15; padding:12px; }
+  .saved-row strong { color:#fff; display:block; font-size:14px; margin-bottom:5px; }
+  .saved-row span { color:var(--muted); display:block; font-size:12px; line-height:1.45; }
+  .link-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-top:14px; }
+  .link-grid a { border:1px solid rgba(0,215,255,.26); border-radius:8px; background:#080d15; color:#e9fbff; padding:12px; text-decoration:none; font-size:12px; line-height:1.35; }
+  .link-grid a strong { display:block; color:#fff; margin-bottom:5px; }
+  @media(max-width:1100px){ .layout{grid-template-columns:1fr}.score-panel{position:static}.context-grid{grid-template-columns:repeat(2,1fr)} }
+  @media(max-width:760px){ body{padding-inline:16px}main{width:100%}.context-grid,.form-grid,.check-grid,.link-grid{grid-template-columns:1fr}.field.wide{grid-column:auto} }
+</style>
+</head>
+<body><a class="dto-home-link" href="index.html"><span class="dto-home-mark" aria-hidden="true">&larr;</span><span>Return Home</span></a>
+<main>
+  <div class="kicker">SPY / QQQ / VIX / BTC / Catalysts</div>
+  <h1>Market Context</h1>
+  <p class="sub">Build the day’s bias before you size a trade. This page turns index direction, volatility, crypto flow, catalysts, and session rules into a saved context packet.</p>
+
+  <section class="layout">
+    <div>
+      <section class="panel">
+        <div class="kicker">Market Dashboard</div>
+        <h2>Bias Inputs</h2>
+        <div class="context-grid" id="assetGrid"></div>
+      </section>
+
+      <section class="panel">
+        <div class="kicker">Catalyst Board</div>
+        <h2>What Can Move Price Today</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label for="earnings">Earnings Risk</label>
+            <select id="earnings"><option value="none">No major earnings</option><option value="watch">Watchlist earnings</option><option value="major">Major ticker earnings</option></select>
+          </div>
+          <div class="field">
+            <label for="macro">Macro Risk</label>
+            <select id="macro"><option value="none">No known macro event</option><option value="medium">Fed / data later</option><option value="high">Fed / CPI / jobs today</option></select>
+          </div>
+          <div class="field">
+            <label for="headlineRisk">Headline Risk</label>
+            <select id="headlineRisk"><option value="normal">Normal</option><option value="elevated">Elevated</option><option value="extreme">Extreme</option></select>
+          </div>
+          <div class="field wide">
+            <label for="headlineNotes">Key Headlines / Ground News Notes</label>
+            <textarea id="headlineNotes" placeholder="What is the market reacting to? What could change the thesis?"></textarea>
+          </div>
+          <div class="field">
+            <label for="sessionMode">Session Mode</label>
+            <select id="sessionMode"><option value="normal">Normal risk</option><option value="half">Half size</option><option value="paper">Paper only</option><option value="noTrade">No trade unless A+ setup</option></select>
+          </div>
+        </div>
+        <div class="link-grid">
+          <a href="https://ground.news/search" target="_blank" rel="noopener"><strong>Ground News</strong>Compare center/left/right coverage.</a>
+          <a href="https://www.nasdaq.com/market-activity/earnings" target="_blank" rel="noopener"><strong>Earnings</strong>Check same-day reports.</a>
+          <a href="https://www.marketwatch.com/economy-politics/calendar" target="_blank" rel="noopener"><strong>Economic Calendar</strong>Fed, CPI, jobs, macro data.</a>
+          <a href="https://www.sec.gov/edgar/search/" target="_blank" rel="noopener"><strong>SEC EDGAR</strong>Company filings and releases.</a>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="kicker">Execution Filters</div>
+        <h2>Rules Before Any Trade</h2>
+        <div class="check-grid">
+          <label class="check"><input id="ruleTrend" type="checkbox"> Index direction supports the trade direction or I am reducing size.</label>
+          <label class="check"><input id="ruleVix" type="checkbox"> VIX/volatility is understood, so stops are not unrealistically tight.</label>
+          <label class="check"><input id="ruleCatalyst" type="checkbox"> I checked catalysts/news before trusting the setup.</label>
+          <label class="check"><input id="ruleLevels" type="checkbox"> I know the key support/resistance levels before entering.</label>
+          <label class="check"><input id="ruleCrypto" type="checkbox"> For crypto/altcoins, BTC/ETH direction and liquidity are checked.</label>
+          <label class="check"><input id="ruleSize" type="checkbox"> I know whether today is normal size, half size, paper only, or no-trade mode.</label>
+        </div>
+        <div class="actions">
+          <button class="primary" type="button" id="saveContext">Save Market Context</button>
+          <a href="scanner_hub.html">Open Scanner</a>
+          <a href="guided_trade_builder.html">Trade Builder</a>
+          <a href="premarket_prep.html">Pre-Market Prep</a>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="kicker">Saved Context</div>
+        <h2>Recent Market Reads</h2>
+        <div class="saved-list" id="savedContexts"></div>
+      </section>
+    </div>
+
+    <aside class="panel score-panel">
+      <div class="kicker">Live Read</div>
+      <h2>Context Score</h2>
+      <div id="scoreBox"></div>
+      <div class="actions">
+        <button class="btn primary" type="button" id="copyToSetup">Attach To Current Setup</button>
+        <a class="btn gold" href="risk_calculator.html">Risk Calculator</a>
+      </div>
+    </aside>
+  </section>
+
+  <section class="panel" id="missionControl"></section>
+</main>
+
+<script src="assets/daytrader-os.js?v=20260504-vercel1"></script>
+<script>
+const ASSETS = [
+  { symbol:"SPY", label:"S&P 500", role:"Broad market direction" },
+  { symbol:"QQQ", label:"Nasdaq", role:"Growth / tech risk appetite" },
+  { symbol:"IWM", label:"Small Caps", role:"Breadth / speculation" },
+  { symbol:"VIX", label:"Volatility", role:"Risk and stop-width pressure" },
+  { symbol:"BTC", label:"Bitcoin", role:"Crypto market direction" },
+  { symbol:"ETH", label:"Ethereum", role:"Altcoin liquidity tone" },
+  { symbol:"DXY", label:"Dollar", role:"Macro pressure check" },
+  { symbol:"GLD", label:"Gold", role:"Safety / inflation tone" }
+];
+const STORAGE_KEY = "dtoMarketContexts";
+const fieldIds = ["earnings","macro","headlineRisk","headlineNotes","sessionMode","ruleTrend","ruleVix","ruleCatalyst","ruleLevels","ruleCrypto","ruleSize"];
+
+function readJson(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
+  catch (error) { return fallback; }
+}
+function writeJson(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+  return value;
+}
+function dto() {
+  return window.DTO || {
+    escapeHtml: value => String(value ?? "").replace(/[&<>"']/g, ch => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[ch])),
+    getSetup: () => readJson("dtoSetupPacket", null),
+    saveSetup: setup => (localStorage.setItem("dtoSetupPacket", JSON.stringify(setup)), setup),
+    renderMissionControl: () => {}
+  };
+}
+function assetId(symbol, suffix) { return `${symbol}_${suffix}`; }
+function renderAssets() {
+  const saved = readJson("dtoMarketContextDraft", {});
+  document.getElementById("assetGrid").innerHTML = ASSETS.map(asset => `
+    <article class="asset-card">
+      <div class="asset-top"><strong>${asset.symbol}</strong><span>${asset.label}</span></div>
+      <select id="${assetId(asset.symbol,"bias")}">
+        <option value="neutral">Neutral / unclear</option>
+        <option value="bullish">Bullish</option>
+        <option value="bearish">Bearish</option>
+        <option value="riskOff">Risk-off warning</option>
+      </select>
+      <input id="${assetId(asset.symbol,"level")}" placeholder="Key level / note">
+      <small>${asset.role}</small>
+    </article>`).join("");
+  ASSETS.forEach(asset => {
+    const bias = document.getElementById(assetId(asset.symbol,"bias"));
+    const level = document.getElementById(assetId(asset.symbol,"level"));
+    if (saved.assets?.[asset.symbol]?.bias) bias.value = saved.assets[asset.symbol].bias;
+    if (saved.assets?.[asset.symbol]?.level) level.value = saved.assets[asset.symbol].level;
+    bias.addEventListener("change", renderScore);
+    level.addEventListener("input", renderScore);
+  });
+}
+function currentContext() {
+  const assets = {};
+  ASSETS.forEach(asset => {
+    assets[asset.symbol] = {
+      bias: document.getElementById(assetId(asset.symbol,"bias")).value,
+      level: document.getElementById(assetId(asset.symbol,"level")).value.trim()
+    };
+  });
+  return {
+    id: `context-${Date.now()}`,
+    createdAt: new Date().toISOString(),
+    assets,
+    earnings: document.getElementById("earnings").value,
+    macro: document.getElementById("macro").value,
+    headlineRisk: document.getElementById("headlineRisk").value,
+    headlineNotes: document.getElementById("headlineNotes").value.trim(),
+    sessionMode: document.getElementById("sessionMode").value,
+    rules: {
+      trend: ruleTrend.checked,
+      vix: ruleVix.checked,
+      catalyst: ruleCatalyst.checked,
+      levels: ruleLevels.checked,
+      crypto: ruleCrypto.checked,
+      size: ruleSize.checked
+    }
+  };
+}
+function scoreContext(ctx = currentContext()) {
+  let score = 50;
+  const rules = [];
+  const spy = ctx.assets.SPY.bias;
+  const qqq = ctx.assets.QQQ.bias;
+  const iwm = ctx.assets.IWM.bias;
+  const vix = ctx.assets.VIX.bias;
+  const btc = ctx.assets.BTC.bias;
+  const eth = ctx.assets.ETH.bias;
+  const bullishCount = [spy, qqq, iwm].filter(v => v === "bullish").length;
+  const bearishCount = [spy, qqq, iwm].filter(v => v === "bearish" || v === "riskOff").length;
+
+  if (bullishCount >= 2) { score += 15; rules.push({ good:true, text:"Index alignment supports selective long setups." }); }
+  if (bearishCount >= 2) { score -= 14; rules.push({ text:"Index alignment is weak. Favor smaller size, shorts, or paper trades." }); }
+  if (vix === "riskOff" || vix === "bullish") { score -= 12; rules.push({ text:"Volatility is elevated. Widen stops or reduce size." }); }
+  if (btc === "bullish" && eth === "bullish") { score += 8; rules.push({ good:true, text:"BTC/ETH tone supports crypto risk appetite." }); }
+  if (btc === "bearish" || btc === "riskOff" || eth === "bearish" || eth === "riskOff") { score -= 8; rules.push({ text:"Crypto tone is weak. Altcoin momentum needs extra confirmation." }); }
+  if (ctx.earnings === "major") { score -= 7; rules.push({ text:"Major earnings risk is active. Avoid holding through surprise reports." }); }
+  if (ctx.macro === "high") { score -= 10; rules.push({ text:"High macro risk. Wait for data/Fed reaction before pressing size." }); }
+  if (ctx.headlineRisk === "extreme") { score -= 10; rules.push({ text:"Extreme headline risk. Paper-only or A+ setups." }); }
+  if (ctx.sessionMode === "half") { score -= 4; rules.push({ text:"Session mode is half size. Respect reduced exposure." }); }
+  if (ctx.sessionMode === "paper" || ctx.sessionMode === "noTrade") { score -= 15; rules.push({ text:"Session mode blocks normal live risk." }); }
+  const checked = Object.values(ctx.rules).filter(Boolean).length;
+  score += checked * 3;
+  if (checked < 4) rules.push({ text:"Execution checklist is incomplete. Finish rules before trading." });
+  if (ctx.headlineNotes.length > 20) { score += 4; rules.push({ good:true, text:"Headline/catalyst notes are specific enough to review later." }); }
+
+  score = Math.max(0, Math.min(100, Math.round(score)));
+  const bias = score >= 72 ? "Risk-On" : score >= 55 ? "Selective" : score >= 40 ? "Defensive" : "Paper Only";
+  return { score, bias, rules };
+}
+function renderScore() {
+  const ctx = currentContext();
+  writeJson("dtoMarketContextDraft", ctx);
+  const result = scoreContext(ctx);
+  document.getElementById("scoreBox").innerHTML = `
+    <div class="score-ring" style="--score:${result.score}"><div><strong>${result.score}</strong><span>${result.bias}</span></div></div>
+    <div class="bias">${result.bias}</div>
+    <p class="readout">${summaryLine(ctx, result)}</p>
+    <div class="rule-list">${result.rules.slice(0, 7).map(rule => `<div class="rule ${rule.good ? "good" : ""}">${escapeText(rule.text)}</div>`).join("")}</div>`;
+}
+function summaryLine(ctx, result) {
+  if (result.bias === "Risk-On") return "Market context supports planned trades, but each setup still needs levels, catalyst, and R:R.";
+  if (result.bias === "Selective") return "There is enough context to trade selectively. Avoid forcing weak setups.";
+  if (result.bias === "Defensive") return "Risk is mixed or elevated. Reduce size and demand cleaner confirmation.";
+  return "This context is not friendly for live risk. Paper trade, observe, or wait for clarity.";
+}
+function escapeText(value) {
+  return dto().escapeHtml ? dto().escapeHtml(value) : String(value ?? "");
+}
+function saveContext() {
+  const ctx = currentContext();
+  const result = scoreContext(ctx);
+  const saved = [{ ...ctx, score: result.score, bias: result.bias }, ...readJson(STORAGE_KEY, [])].slice(0, 20);
+  writeJson(STORAGE_KEY, saved);
+  renderSaved();
+  renderScore();
+}
+function renderSaved() {
+  const list = readJson(STORAGE_KEY, []);
+  document.getElementById("savedContexts").innerHTML = list.length ? list.slice(0, 8).map(item => `
+    <div class="saved-row">
+      <strong>${new Date(item.createdAt).toLocaleString()} / ${escapeText(item.bias)} / ${item.score}/100</strong>
+      <span>SPY ${escapeText(item.assets?.SPY?.bias || "--")} / QQQ ${escapeText(item.assets?.QQQ?.bias || "--")} / VIX ${escapeText(item.assets?.VIX?.bias || "--")} / BTC ${escapeText(item.assets?.BTC?.bias || "--")}</span>
+      <span>${escapeText(item.headlineNotes || "No catalyst notes saved.")}</span>
+    </div>`).join("") : `<p class="readout">No saved market reads yet. Build the context above and save it before trading.</p>`;
+}
+function attachToSetup() {
+  const api = dto();
+  const setup = api.getSetup?.() || {};
+  const ctx = currentContext();
+  const result = scoreContext(ctx);
+  const note = `Market context: ${result.bias} ${result.score}/100. ${summaryLine(ctx, result)} Headlines: ${ctx.headlineNotes || "none logged"}`;
+  api.saveSetup({ ...setup, riskNotes: [...(setup.riskNotes || []), note], catalysts: [...(setup.catalysts || []), ctx.headlineNotes].filter(Boolean), sourcePage:"market_context.html" });
+  api.renderMissionControl?.();
+}
+function restoreDraft() {
+  const draft = readJson("dtoMarketContextDraft", null);
+  if (!draft) return;
+  ["earnings","macro","headlineRisk","headlineNotes","sessionMode"].forEach(id => {
+    if (draft[id] !== undefined) document.getElementById(id).value = draft[id];
+  });
+  if (draft.rules) {
+    ruleTrend.checked = !!draft.rules.trend;
+    ruleVix.checked = !!draft.rules.vix;
+    ruleCatalyst.checked = !!draft.rules.catalyst;
+    ruleLevels.checked = !!draft.rules.levels;
+    ruleCrypto.checked = !!draft.rules.crypto;
+    ruleSize.checked = !!draft.rules.size;
+  }
+}
+renderAssets();
+restoreDraft();
+fieldIds.forEach(id => document.getElementById(id).addEventListener("input", renderScore));
+fieldIds.forEach(id => document.getElementById(id).addEventListener("change", renderScore));
+document.getElementById("saveContext").addEventListener("click", saveContext);
+document.getElementById("copyToSetup").addEventListener("click", attachToSetup);
+renderScore();
+renderSaved();
+dto().renderMissionControl?.();
+</script>
+</body>
+</html>
+

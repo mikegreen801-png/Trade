@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Review Room - Day Trader OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=JetBrains+Mono:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/daytrader-os.css?v=20260504-vercel1">
+<link rel="stylesheet" href="assets/ultra-tools.css?v=20260504-vercel1">
+</head>
+<body>
+<a class="dto-home-link" href="index.html"><span class="dto-home-mark" aria-hidden="true">&larr;</span><span>Return Home</span></a>
+<main class="ultra-shell">
+  <header class="ultra-top">
+    <div>
+      <div class="kicker">Journal / Coach / Accountability</div>
+      <h1>Review Room</h1>
+      <p class="sub">Trade journal, review coach, and accountability merged into one improvement loop. Log the trade, tag the mistake, score discipline, and set the next-session rule.</p>
+    </div>
+    <nav class="ultra-flow">
+      <a href="index.html">Home</a>
+      <a href="practice_workbench.html">Practice</a>
+      <a href="trade_journal.html">Full Journal</a>
+      <a href="accountability.html">Rules</a>
+    </nav>
+  </header>
+
+  <section class="ultra-grid">
+    <article class="panel span-7">
+      <div class="panel-head"><div><div class="kicker">Journal merged</div><h2>Log Trade</h2></div></div>
+      <form class="form-grid" id="journalForm">
+        <div class="field"><label for="symbol">Symbol</label><input id="symbol" value="AAPL"></div>
+        <div class="field"><label for="side">Side</label><select id="side"><option>long</option><option>short</option></select></div>
+        <div class="field"><label for="qty">Qty</label><input id="qty" type="number" step="0.000001" value="1"></div>
+        <div class="field"><label for="setup">Setup</label><select id="setup"><option>Breakout</option><option>Pullback</option><option>VWAP</option><option>Reversal</option><option>Other</option></select></div>
+        <div class="field"><label for="entry">Entry</label><input id="entry" type="number" step="0.0001"></div>
+        <div class="field"><label for="exit">Exit</label><input id="exit" type="number" step="0.0001"></div>
+        <div class="field"><label for="discipline">Discipline 1-10</label><input id="discipline" type="number" min="1" max="10" value="7"></div>
+        <div class="field"><label for="mistake">Mistake</label><select id="mistake"><option>None</option><option>Chased</option><option>Oversized</option><option>No Stop</option><option>Ignored Plan</option><option>Exited Early</option><option>Revenge Trade</option></select></div>
+        <div class="field full"><label for="notes">What happened?</label><textarea id="notes"></textarea></div>
+        <button class="primary" type="submit">Save Review</button>
+        <button type="button" id="loadSetup">Load Active Setup</button>
+      </form>
+    </article>
+
+    <aside class="panel span-5">
+      <div class="panel-head"><div><div class="kicker">Edge stats</div><h2>Improvement Score</h2></div></div>
+      <div class="metric-grid" style="grid-template-columns:1fr 1fr">
+        <div class="metric"><span>Trades</span><strong id="tradeCount">0</strong></div>
+        <div class="metric"><span>Net P&L</span><strong id="netPnl">$0</strong></div>
+        <div class="metric"><span>Win Rate</span><strong id="winRate">--</strong></div>
+        <div class="metric"><span>Avg Discipline</span><strong id="avgDiscipline">--</strong></div>
+      </div>
+      <div class="note" id="coachNote" style="margin-top:14px">Log trades to reveal repeat mistakes and next-session rules.</div>
+    </aside>
+
+    <article class="panel span-6">
+      <div class="panel-head"><div><div class="kicker">Recent reviews</div><h2>Trade Memory</h2></div></div>
+      <div class="list" id="reviewList"></div>
+    </article>
+
+    <article class="panel span-6">
+      <div class="panel-head"><div><div class="kicker">Accountability merged</div><h2>Tomorrow's Rule</h2></div></div>
+      <form class="form-grid" id="ruleForm">
+        <div class="field"><label for="maxLoss">Max Loss</label><input id="maxLoss" type="number" value="300"></div>
+        <div class="field"><label for="emotion">State</label><select id="emotion"><option>Calm</option><option>Focused</option><option>Tired</option><option>FOMO</option><option>Revenge-risk</option></select></div>
+        <div class="field two"><label for="rule">Rule</label><input id="rule" placeholder="Example: no trades under 2R"></div>
+        <button class="primary" type="submit">Save Rule</button>
+      </form>
+      <div class="list" id="ruleList" style="margin-top:14px"></div>
+      <div class="action-row">
+        <a class="btn" href="trade_journal.html">Full Journal</a>
+        <a class="btn" href="trade_review_coach.html">Review Coach</a>
+        <a class="btn" href="accountability.html">Accountability</a>
+      </div>
+    </article>
+  </section>
+</main>
+<script src="assets/daytrader-os.js?v=20260504-vercel1"></script>
+<script>
+const $ = id => document.getElementById(id);
+const read = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch { return fallback; } };
+const write = (key, value) => { localStorage.setItem(key, JSON.stringify(value)); return value; };
+const clean = value => String(value || "").trim().toUpperCase().replace(/[^A-Z0-9.-]/g, "");
+const money = value => "$" + Number(value || 0).toFixed(2);
+function reviews() { return read("dtoReviewRoomTrades", []); }
+function pnl(t) { const mult = t.side === "short" ? -1 : 1; return (t.exit - t.entry) * t.qty * mult; }
+function renderStats() {
+  const list = reviews();
+  const net = list.reduce((sum, t) => sum + pnl(t), 0);
+  const wins = list.filter(t => pnl(t) > 0).length;
+  const avgDisc = list.length ? list.reduce((sum, t) => sum + Number(t.discipline || 0), 0) / list.length : null;
+  $("tradeCount").textContent = list.length;
+  $("netPnl").textContent = money(net);
+  $("winRate").textContent = list.length ? Math.round(wins / list.length * 100) + "%" : "--";
+  $("avgDiscipline").textContent = avgDisc ? avgDisc.toFixed(1) : "--";
+  const mistakes = list.filter(t => t.mistake && t.mistake !== "None").map(t => t.mistake);
+  const topMistake = mistakes.sort((a, b) => mistakes.filter(x => x === b).length - mistakes.filter(x => x === a).length)[0];
+  $("coachNote").textContent = topMistake ? `Repeat mistake to attack next: ${topMistake}. Build tomorrow's rule around that.` : "No repeat mistake detected yet. Keep logging.";
+  $("reviewList").innerHTML = list.length ? list.slice(0, 8).map(t => `<div class="row"><div><strong>${t.symbol}</strong><span>${t.setup} / ${t.mistake} / discipline ${t.discipline}/10</span></div><span>${money(pnl(t))}</span></div>`).join("") : `<div class="note">No reviewed trades yet.</div>`;
+}
+function renderRules() {
+  const list = read("dtoAccountabilityRules", []);
+  $("ruleList").innerHTML = list.length ? list.slice(0, 5).map(r => `<div class="row"><div><strong>${r.rule}</strong><span>Max loss ${money(r.maxLoss)} / state ${r.emotion}</span></div><span>${new Date(r.savedAt).toLocaleDateString()}</span></div>`).join("") : `<div class="note">No daily rule saved yet.</div>`;
+}
+function loadSetup() {
+  const setup = window.DTO?.getSetup?.() || {};
+  if (setup.symbol) $("symbol").value = setup.symbol;
+  if (setup.side) $("side").value = setup.side;
+  if (setup.entry) $("entry").value = setup.entry;
+  if (setup.target) $("exit").value = setup.target;
+  if (setup.setupType) $("setup").value = setup.setupType;
+}
+$("journalForm").addEventListener("submit", event => {
+  event.preventDefault();
+  const trade = { symbol: clean($("symbol").value), side: $("side").value, qty: Number($("qty").value), setup: $("setup").value, entry: Number($("entry").value), exit: Number($("exit").value), discipline: Number($("discipline").value), mistake: $("mistake").value, notes: $("notes").value, savedAt: new Date().toISOString() };
+  if (!trade.symbol || !trade.qty || !trade.entry || !trade.exit) { $("coachNote").textContent = "Add symbol, qty, entry, and exit first."; return; }
+  write("dtoReviewRoomTrades", [trade, ...reviews()].slice(0, 100));
+  window.DTO?.recordTrade?.({ symbol: trade.symbol, side: trade.side, qty: trade.qty, entry: trade.entry, exit: trade.exit, pnl: pnl(trade), setupType: trade.setup, mistake: trade.mistake, notes: trade.notes });
+  renderStats();
+});
+$("ruleForm").addEventListener("submit", event => {
+  event.preventDefault();
+  const item = { maxLoss: Number($("maxLoss").value), emotion: $("emotion").value, rule: $("rule").value || "Trade only the plan", savedAt: new Date().toISOString() };
+  write("dtoAccountabilityRules", [item, ...read("dtoAccountabilityRules", [])].slice(0, 20));
+  renderRules();
+});
+$("loadSetup").addEventListener("click", loadSetup);
+loadSetup();
+renderStats();
+renderRules();
+</script>
+</body>
+</html>

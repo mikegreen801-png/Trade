@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Execution Desk - Day Trader OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=JetBrains+Mono:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/daytrader-os.css?v=20260504-vercel1">
+<link rel="stylesheet" href="assets/ultra-tools.css?v=20260504-vercel1">
+</head>
+<body>
+<a class="dto-home-link" href="index.html"><span class="dto-home-mark" aria-hidden="true">&larr;</span><span>Return Home</span></a>
+<main class="ultra-shell">
+  <header class="ultra-top">
+    <div>
+      <div class="kicker">Risk / Options / Broker Preview</div>
+      <h1>Execution Desk</h1>
+      <p class="sub">Risk calculator, options hedge builder, and Alpaca execution plan combined. This is the decision desk before anything becomes a paper order or future live order.</p>
+    </div>
+    <nav class="ultra-flow">
+      <a href="index.html">Home</a>
+      <a href="trade_planner.html">Plan</a>
+      <a href="practice_workbench.html">Paper</a>
+      <a href="broker_execution_plan.html">Broker Detail</a>
+    </nav>
+  </header>
+
+  <section class="ultra-grid">
+    <article class="panel span-8">
+      <div class="panel-head"><div><div class="kicker">Auto multi-asset sizing</div><h2>Position Sizer</h2></div><span class="tag" id="assetMode">Auto</span></div>
+      <form class="form-grid" id="riskForm">
+        <div class="field"><label for="symbol">Symbol</label><input id="symbol" value="AAPL"></div>
+        <div class="field"><label for="side">Side</label><select id="side"><option>long</option><option>short</option></select></div>
+        <div class="field"><label for="account">Account</label><input id="account" type="number" value="10000"></div>
+        <div class="field"><label for="riskPct">Risk %</label><input id="riskPct" type="number" min="0.1" max="5" step="0.1" value="1"></div>
+        <div class="field"><label for="entry">Entry</label><input id="entry" type="number" step="0.0001"></div>
+        <div class="field"><label for="stop">Stop</label><input id="stop" type="number" step="0.0001"></div>
+        <div class="field"><label for="target">Target</label><input id="target" type="number" step="0.0001"></div>
+        <button class="primary" type="button" id="loadSetup">Load Setup</button>
+      </form>
+      <div class="metric-grid" style="margin-top:14px">
+        <div class="metric"><span>Units / Shares</span><strong id="qtyOut">--</strong></div>
+        <div class="metric"><span>Actual Risk</span><strong id="riskOut">--</strong></div>
+        <div class="metric"><span>Position Value</span><strong id="notionalOut">--</strong></div>
+        <div class="metric"><span>R:R</span><strong id="rrOut">--</strong></div>
+      </div>
+      <div class="note" id="riskTip" style="margin-top:14px">Add entry, stop, target, account size, and risk percent.</div>
+      <div class="action-row">
+        <a class="btn" id="openRisk" href="risk_calculator.html">Full Risk Calculator</a>
+        <a class="btn primary" id="openPaper" href="paper_trading_simulator.html">Paper Trade</a>
+      </div>
+    </article>
+
+    <aside class="panel span-4">
+      <div class="panel-head"><div><div class="kicker">Alpaca connection</div><h2>Broker Mode</h2></div><span class="tag">Paper first</span></div>
+      <div class="list">
+        <div class="row"><div><strong>Market data</strong><span>https://data.alpaca.markets</span></div><span>Public feed</span></div>
+        <div class="row"><div><strong>Paper trading</strong><span>https://paper-api.alpaca.markets</span></div><span>Default</span></div>
+        <div class="row"><div><strong>Live trading</strong><span>https://api.alpaca.markets</span></div><span>Locked</span></div>
+      </div>
+      <div class="action-row">
+        <button type="button" id="testStatus">Test Status</button>
+        <a class="btn" href="broker_execution_plan.html">Broker Console</a>
+      </div>
+      <div class="note" id="brokerNote" style="margin-top:14px">Live submit remains locked until auth, buying power checks, preview, logging, and confirmation exist.</div>
+    </aside>
+
+    <article class="panel span-6">
+      <div class="panel-head"><div><div class="kicker">Options hedge merged</div><h2>Spread Preview</h2></div></div>
+      <form class="form-grid" id="spreadForm">
+        <div class="field"><label for="strategy">Strategy</label><select id="strategy"><option value="debit_call">Call Debit</option><option value="debit_put">Put Debit</option><option value="credit_call">Call Credit</option><option value="credit_put">Put Credit</option><option value="protective_put">Protective Put</option></select></div>
+        <div class="field"><label for="longStrike">Long Strike</label><input id="longStrike" type="number" step="0.01"></div>
+        <div class="field"><label for="shortStrike">Short Strike</label><input id="shortStrike" type="number" step="0.01"></div>
+        <div class="field"><label for="contracts">Contracts</label><input id="contracts" type="number" value="1"></div>
+        <div class="field"><label for="longAsk">Long Ask</label><input id="longAsk" type="number" step="0.01" value="3.2"></div>
+        <div class="field"><label for="shortBid">Short Bid</label><input id="shortBid" type="number" step="0.01" value="1.8"></div>
+        <button class="primary" type="button" id="savePreview">Save Preview</button>
+      </form>
+      <div class="metric-grid" style="margin-top:14px">
+        <div class="metric"><span>Net</span><strong id="netOut">--</strong></div>
+        <div class="metric"><span>Max Loss</span><strong id="lossOut">--</strong></div>
+        <div class="metric"><span>Max Profit</span><strong id="profitOut">--</strong></div>
+        <div class="metric"><span>Breakeven</span><strong id="beOut">--</strong></div>
+      </div>
+      <div class="note" id="spreadTip" style="margin-top:14px">Preview only. Use limit orders and check liquidity before using any real broker later.</div>
+    </article>
+
+    <article class="panel span-6">
+      <div class="panel-head"><div><div class="kicker">Specialist modules</div><h2>Deep Dives</h2></div></div>
+      <div class="list">
+        <a class="row" href="risk_calculator.html"><div><strong>Risk Calculator</strong><span>Full slider, crypto fractional units, and scenario table.</span></div><span>Open</span></a>
+        <a class="row" href="options_hedge_builder.html"><div><strong>Options Hedge Builder</strong><span>Standalone hedge preview surface.</span></div><span>Open</span></a>
+        <a class="row" href="broker_execution_plan.html"><div><strong>Broker Execution Plan</strong><span>Connection console, endpoints, and locked Alpaca path.</span></div><span>Open</span></a>
+      </div>
+    </article>
+  </section>
+</main>
+<script src="assets/daytrader-os.js?v=20260504-vercel1"></script>
+<script>
+const $ = id => document.getElementById(id);
+const n = id => Number($(id).value);
+const money = value => Number.isFinite(Number(value)) ? "$" + Number(value).toFixed(2) : "--";
+const clean = value => String(value || "").trim().toUpperCase().replace(/[^A-Z0-9.-]/g, "");
+const isCrypto = sym => /^(BTC|ETH|SOL|DOGE|XRP|BNB|ADA|AVAX|LINK|SUI|PEPE|SHIB|[A-Z0-9]{2,12}(USDT|USD))$/.test(clean(sym));
+
+function riskCalc() {
+  const symbol = clean($("symbol").value);
+  const crypto = isCrypto(symbol);
+  $("assetMode").textContent = crypto ? "Crypto fractional" : "Stock whole shares";
+  const account = n("account"), riskPct = n("riskPct") / 100, entry = n("entry"), stop = n("stop"), target = n("target");
+  const perUnitRisk = Math.abs(entry - stop);
+  const intendedRisk = account * riskPct;
+  if (!account || !riskPct || !entry || !stop || !target || perUnitRisk <= 0) {
+    $("qtyOut").textContent = "--"; $("riskOut").textContent = "--"; $("notionalOut").textContent = "--"; $("rrOut").textContent = "--";
+    $("riskTip").textContent = "Fix setup: entry, stop, target, and account risk must be valid.";
+    return;
+  }
+  const rawQty = intendedRisk / perUnitRisk;
+  const qty = crypto ? Number(rawQty.toFixed(8)) : Math.floor(rawQty);
+  const actualRisk = qty * perUnitRisk;
+  const notional = qty * entry;
+  const rr = Math.abs(target - entry) / perUnitRisk;
+  $("qtyOut").textContent = crypto ? qty.toLocaleString(undefined, { maximumFractionDigits: 8 }) : qty.toLocaleString();
+  $("riskOut").textContent = money(actualRisk);
+  $("notionalOut").textContent = `${money(notional)} / ${account ? (notional / account * 100).toFixed(1) : "--"}%`;
+  $("rrOut").textContent = `${rr.toFixed(2)}R`;
+  const tips = [];
+  if (rr < 2) tips.push("R:R is under 2R. Tighten stop, improve target, or skip.");
+  if (riskPct > 0.02) tips.push("Risk is above 2%; this is aggressive.");
+  if (notional > account) tips.push("Risk size requires leverage or more buying power.");
+  if (!crypto && actualRisk < intendedRisk * 0.75) tips.push("Whole-share rounding under-risks this trade.");
+  if (crypto) tips.push(`Fractional ${symbol} sizing keeps risk close to intended risk.`);
+  $("riskTip").textContent = tips.join(" ") || "Sizing is clean enough to paper trade after chart confirmation.";
+  const params = new URLSearchParams({ symbol, side: $("side").value, entry, stop, target });
+  $("openRisk").href = `risk_calculator.html?${params}`;
+  $("openPaper").href = `paper_trading_simulator.html?${params}`;
+}
+
+function spreadCalc() {
+  const strategy = $("strategy").value, longStrike = n("longStrike"), shortStrike = n("shortStrike"), contracts = Math.max(1, Math.floor(n("contracts") || 1));
+  const longAsk = n("longAsk"), shortBid = n("shortBid"), width = Math.abs(shortStrike - longStrike), isCredit = strategy.includes("credit"), isProtective = strategy.includes("protective"), side = strategy.includes("put") ? "put" : "call";
+  const netDebit = Math.max(0, longAsk - shortBid), netCredit = Math.max(0, shortBid - longAsk);
+  let net = isCredit ? netCredit : longAsk - shortBid, loss, profit, breakeven;
+  if (isProtective) { net = longAsk; loss = longAsk * 100 * contracts; profit = Infinity; breakeven = side === "put" ? longStrike + longAsk : longStrike - longAsk; }
+  else if (isCredit) { profit = netCredit * 100 * contracts; loss = Math.max(0, (width - netCredit) * 100 * contracts); breakeven = side === "put" ? shortStrike - netCredit : shortStrike + netCredit; }
+  else { loss = netDebit * 100 * contracts; profit = Math.max(0, (width - netDebit) * 100 * contracts); breakeven = side === "put" ? longStrike - netDebit : longStrike + netDebit; }
+  $("netOut").textContent = `${isCredit ? "Credit" : "Debit"} ${money(net * 100 * contracts)}`;
+  $("lossOut").textContent = money(loss);
+  $("profitOut").textContent = Number.isFinite(profit) ? money(profit) : "Open";
+  $("beOut").textContent = money(breakeven);
+  $("spreadTip").textContent = Math.abs(longAsk - shortBid) > 0.35 ? "Bid/ask width is wide. Use limit orders and consider skipping." : "Spread preview is reasonable for planning. Confirm chain liquidity before acting.";
+}
+
+function loadSetup() {
+  const setup = window.DTO?.getSetup?.() || {};
+  ["symbol","side","entry","stop","target"].forEach(key => { if (setup[key] !== undefined && $(key)) $(key).value = setup[key]; });
+  if (setup.entry) { $("longStrike").value = setup.entry; $("shortStrike").value = setup.target || setup.entry; }
+  riskCalc(); spreadCalc();
+}
+
+async function testStatus() {
+  if (!/^https?:$/.test(location.protocol)) { $("brokerNote").textContent = "Deploy to Vercel first, then test /api/site-status."; return; }
+  try {
+    const res = await fetch("/api/site-status");
+    const data = await res.json();
+    $("brokerNote").textContent = `Server OK. Data endpoint: ${data.alpaca?.marketDataBaseUrl || "unknown"}. Trading endpoint: ${data.alpaca?.tradingBaseUrl || "unknown"}.`;
+  } catch (error) {
+    $("brokerNote").textContent = "Server status failed. Check Vercel API functions and environment variables.";
+  }
+}
+
+document.querySelectorAll("input,select").forEach(el => el.addEventListener("input", () => { riskCalc(); spreadCalc(); }));
+$("loadSetup").addEventListener("click", loadSetup);
+$("testStatus").addEventListener("click", testStatus);
+$("savePreview").addEventListener("click", () => {
+  localStorage.setItem("dtoOptionsPreview", JSON.stringify({ strategy: $("strategy").value, longStrike: n("longStrike"), shortStrike: n("shortStrike"), contracts: n("contracts"), savedAt: new Date().toISOString() }));
+  $("spreadTip").textContent = "Options preview saved locally.";
+});
+loadSetup();
+</script>
+</body>
+</html>

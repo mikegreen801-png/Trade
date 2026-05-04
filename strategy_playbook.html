@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strategy Playbook — Day Trader OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/daytrader-os.css?v=20260504-vercel1">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #05070c; color: #dce7f5; font-family: "Barlow Condensed", system-ui, sans-serif; }
+  body::before { content: ""; position: fixed; inset: 0; pointer-events: none; background-image: linear-gradient(rgba(220,231,245,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(220,231,245,.035) 1px, transparent 1px); background-size: 42px 42px; }
+  .shell { position: relative; width: min(1320px, calc(100% - 32px)); margin: 0 auto; padding: 32px 0; }
+  header { border: 1px solid #24334a; border-radius: 8px; padding: 28px; background: linear-gradient(180deg, rgba(17,25,39,.96), rgba(8,13,21,.96)); }
+  .eyebrow, .kicker, .tag, button, .rule li { font-family: "JetBrains Mono", monospace; }
+  .eyebrow { color: #00d7ff; font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+  h1 { margin: 12px 0 8px; color: #fff; font-size: clamp(50px, 8vw, 92px); line-height: .88; text-transform: uppercase; }
+  .sub { max-width: 820px; color: #aebdd0; font: 15px/1.7 "JetBrains Mono", monospace; }
+  .grid { display: grid; grid-template-columns: 280px 1fr; gap: 18px; margin-top: 18px; }
+  .side, .panel { border: 1px solid #24334a; border-radius: 8px; background: #0b111b; }
+  .side { padding: 14px; position: sticky; top: 18px; height: max-content; }
+  .nav-btn { display: block; width: 100%; margin-bottom: 8px; border: 1px solid rgba(0,215,255,.28); border-radius: 6px; background: transparent; color: #dce7f5; padding: 12px; text-align: left; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; cursor: pointer; }
+  .nav-btn.active { background: #00d7ff; color: #041018; }
+  .content { display: grid; gap: 14px; }
+  .panel { padding: 22px; }
+  h2 { margin: 0 0 12px; color: #fff; font-size: 34px; line-height: .95; text-transform: uppercase; }
+  .setup-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
+  .stat { border: 1px solid rgba(220,231,245,.1); border-radius: 6px; padding: 12px; background: #070c14; }
+  .stat span { display: block; color: #71839b; font: 10px/1 "JetBrains Mono", monospace; letter-spacing: .12em; text-transform: uppercase; }
+  .stat strong { display: block; margin-top: 8px; color: #fff; font: 800 16px/1 "JetBrains Mono", monospace; }
+  .cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .rule { border: 1px solid rgba(220,231,245,.1); border-radius: 6px; padding: 14px; background: #070c14; }
+  .rule h3 { margin: 0 0 10px; color: #00d7ff; font: 800 12px/1 "JetBrains Mono", monospace; letter-spacing: .12em; text-transform: uppercase; }
+  .rule ul { margin: 0; padding-left: 18px; }
+  .rule li { color: #aebdd0; font-size: 12px; line-height: 1.65; margin: 4px 0; }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  .action { border: 1px solid rgba(0,215,255,.35); border-radius: 6px; color: #eaf9ff; background: rgba(0,215,255,.08); padding: 11px 13px; font: 800 11px/1 "JetBrains Mono", monospace; letter-spacing: .12em; text-transform: uppercase; text-decoration: none; }
+  .action.primary { background: #00e08a; color: #03120c; border-color: #00e08a; }
+  .setup-import { margin-top: 16px; border: 1px solid rgba(0,215,255,.24); border-radius: 8px; background: rgba(0,215,255,.045); padding: 16px; }
+  .setup-import.hidden { display: none; }
+  .setup-import h2 { font-size: 24px; margin-bottom: 8px; }
+  .import-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+  .import-stat { border: 1px solid rgba(220,231,245,.1); border-radius: 6px; background: #070c14; padding: 10px; }
+  .import-stat span { display:block; color:#71839b; font: 10px/1 "JetBrains Mono", monospace; letter-spacing:.12em; text-transform:uppercase; }
+  .import-stat strong { display:block; margin-top:7px; color:#fff; font: 800 14px/1 "JetBrains Mono", monospace; }
+  .hidden { display: none; }
+  @media (max-width: 900px) { .grid, .cols, .setup-grid, .import-grid { grid-template-columns: 1fr; } .side { position: static; } }
+</style>
+</head>
+<body>
+<a class="dto-home-link" href="index.html"><span class="dto-home-mark" aria-hidden="true">&larr;</span><span>Return Home</span></a>
+<main class="shell">
+  <header>
+    <div class="eyebrow">Interactive resource</div>
+    <h1>Strategy Playbook</h1>
+    <p class="sub">A practical setup guide built for execution: conditions, entries, invalidation, risk rules, and review prompts. Use it before the trade, not after.</p>
+  </header>
+  <section class="setup-import hidden" id="setupImport"></section>
+  <div class="grid">
+    <aside class="side">
+      <button class="nav-btn active" data-setup="orb">Opening Range Break</button>
+      <button class="nav-btn" data-setup="vwap">VWAP Reclaim</button>
+      <button class="nav-btn" data-setup="pullback">Trend Pullback</button>
+      <button class="nav-btn" data-setup="reversal">Exhaustion Reversal</button>
+      <button class="nav-btn" data-setup="gap">Gap Continuation</button>
+    </aside>
+    <section class="content" id="content"></section>
+  </div>
+</main>
+<script>
+const setups = {
+  orb: {
+    title: "Opening Range Break",
+    best: "9:35-10:15 ET",
+    bias: "Momentum",
+    stop: "Other side of range",
+    avoid: "Chop after failed breakout",
+    thesis: "Trade the first clean expansion out of the opening range when volume confirms and market context agrees.",
+    conditions: ["Clear premarket level or opening range boundary", "Relative volume expanding", "Market index not fighting your direction", "No major news surprise against the setup"],
+    entry: ["Mark first 5/15 minute high and low", "Enter on break and hold above range high for longs, below range low for shorts", "Prefer retest confirmation if spread is wide"],
+    risk: ["Stop goes inside or beyond opposite side of range", "Target at least 2R before entry", "No adding after 1R unless stop is moved to reduce risk"],
+    review: ["Did volume confirm?", "Did you chase too far from the level?", "Was the index aligned?"]
+  },
+  vwap: {
+    title: "VWAP Reclaim",
+    best: "10:00-14:30 ET",
+    bias: "Mean-to-trend shift",
+    stop: "Below reclaimed VWAP",
+    avoid: "Low volume reclaim",
+    thesis: "A failed breakdown that reclaims VWAP can trap shorts and create a clean push into prior liquidity.",
+    conditions: ["Ticker loses VWAP then reclaims with volume", "Higher low forms after reclaim", "Price holds above VWAP for at least one candle", "Prior high or liquidity target is visible"],
+    entry: ["Enter on reclaim hold or first pullback into VWAP", "Use confirmation candle, not first touch", "Target prior high, premarket high, or measured move"],
+    risk: ["Stop below reclaim candle or VWAP shelf", "Avoid if entry is more than 1R away from VWAP", "Reduce size if market index is weak"],
+    review: ["Was reclaim real or a wick?", "Did you wait for hold?", "Was target realistic?"]
+  },
+  pullback: {
+    title: "Trend Pullback",
+    best: "All session after trend established",
+    bias: "Continuation",
+    stop: "Below pullback low",
+    avoid: "Late third/fourth extension",
+    thesis: "Enter with the dominant trend after a controlled pullback into support, VWAP, or moving average structure.",
+    conditions: ["Trend has higher highs/higher lows for longs or lower lows/lower highs for shorts", "Pullback volume is lower than impulse volume", "Support or moving average confluence nearby", "No parabolic extension immediately before entry"],
+    entry: ["Wait for pullback to slow", "Enter on higher-low confirmation or break of pullback trendline", "Scale only after initial confirmation"],
+    risk: ["Stop below pullback low for long, above pullback high for short", "Target previous high then extension", "Skip if R:R is below 2"],
+    review: ["Was this trend continuation or chop?", "Did you enter at support or in the middle?", "Did volume support continuation?"]
+  },
+  reversal: {
+    title: "Exhaustion Reversal",
+    best: "After large extension",
+    bias: "Countertrend",
+    stop: "Beyond exhaustion extreme",
+    avoid: "Strong trend days",
+    thesis: "Trade the first controlled reversal after a climactic move, failed continuation, and reclaim/loss of a key level.",
+    conditions: ["Large move into prior level", "Volume climax or failed breakout/breakdown", "Clear reversal candle or divergence", "Market context supports fading the move"],
+    entry: ["Wait for failed continuation", "Enter on reclaim/loss of key level", "Do not short strength or buy weakness without confirmation"],
+    risk: ["Stop beyond exhaustion high/low", "Take partials quickly at VWAP or midpoint", "Smaller size than trend setups"],
+    review: ["Was there actual exhaustion?", "Did you fight a trend day?", "Did you take profits fast enough?"]
+  },
+  gap: {
+    title: "Gap Continuation",
+    best: "Premarket through first hour",
+    bias: "Catalyst momentum",
+    stop: "Gap support or premarket level",
+    avoid: "No catalyst gap",
+    thesis: "A strong catalyst gap can continue when price holds premarket structure and early sellers fail to fill the gap.",
+    conditions: ["Real catalyst: earnings, guidance, FDA, macro, sector news", "Premarket volume is meaningful", "Gap holds above key support", "Float/liquidity profile supports movement"],
+    entry: ["Plan levels before open", "Enter on hold above premarket support or break of premarket high", "Avoid entering into immediate resistance"],
+    risk: ["Stop below premarket support or opening range low", "Target first liquidity level, then measured extension", "Avoid if spread is wide or halt risk is high"],
+    review: ["Was the catalyst strong enough?", "Did the gap hold?", "Did you chase the open?"]
+  }
+};
+
+function readImportedSetup() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem("dtoLastSetup") || "null"); }
+  catch(e) { saved = null; }
+  const params = new URLSearchParams(location.search);
+  const setup = { ...(saved || {}) };
+  ["symbol","side","rating","entry","stop","target","support","resistance","rr","thesis"].forEach(key => {
+    if (params.has(key)) setup[key] = params.get(key);
+  });
+  return setup.symbol ? setup : null;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[char]));
+}
+
+function setupParams(setup) {
+  const params = new URLSearchParams();
+  ["symbol","side","rating","entry","stop","target","support","resistance","rr","thesis"].forEach(key => {
+    if (setup?.[key] !== undefined && setup?.[key] !== null) params.set(key, setup[key]);
+  });
+  return params.toString();
+}
+
+function renderImportedSetup() {
+  const setup = readImportedSetup();
+  const el = document.getElementById("setupImport");
+  if (!setup || !el) return;
+  el.classList.remove("hidden");
+  const params = setupParams(setup);
+  el.innerHTML = `
+    <div class="eyebrow">Loaded from Command Center</div>
+    <h2>${escapeHtml(setup.symbol)} ${escapeHtml(setup.rating || "Setup")}</h2>
+    <p class="sub">${escapeHtml(setup.thesis || "Use the playbook below to match this signal to a repeatable setup before sizing risk.")}</p>
+    <div class="import-grid">
+      <div class="import-stat"><span>Side</span><strong>${escapeHtml(String(setup.side || "long").toUpperCase())}</strong></div>
+      <div class="import-stat"><span>Entry</span><strong>${escapeHtml(setup.entry ? "$" + Number(setup.entry).toFixed(2) : "--")}</strong></div>
+      <div class="import-stat"><span>Stop</span><strong>${escapeHtml(setup.stop ? "$" + Number(setup.stop).toFixed(2) : "--")}</strong></div>
+      <div class="import-stat"><span>Target</span><strong>${escapeHtml(setup.target ? "$" + Number(setup.target).toFixed(2) : "--")}</strong></div>
+      <div class="import-stat"><span>R:R</span><strong>${escapeHtml(setup.rr ? Number(setup.rr).toFixed(2) + "R" : "--")}</strong></div>
+    </div>
+    <div class="actions">
+      <a class="action primary" href="risk_calculator.html?${params}">Size This Setup</a>
+      <a class="action" href="paper_trading_simulator.html?${params}">Paper Trade It</a>
+      <a class="action" href="index.html">Back To Command Center</a>
+    </div>`;
+}
+
+function renderSetup(key) {
+  const s = setups[key];
+  const imported = readImportedSetup();
+  const importedParams = imported ? setupParams(imported) : "";
+  document.getElementById("content").innerHTML = `
+    <article class="panel">
+      <div class="eyebrow">Setup module</div>
+      <h2>${s.title}</h2>
+      <p class="sub">${s.thesis}</p>
+      <div class="setup-grid">
+        <div class="stat"><span>Best Window</span><strong>${s.best}</strong></div>
+        <div class="stat"><span>Bias Type</span><strong>${s.bias}</strong></div>
+        <div class="stat"><span>Stop Logic</span><strong>${s.stop}</strong></div>
+        <div class="stat"><span>Avoid When</span><strong>${s.avoid}</strong></div>
+      </div>
+      <div class="cols">
+        ${block("Conditions", s.conditions)}
+        ${block("Entry Plan", s.entry)}
+        ${block("Risk Rules", s.risk)}
+      </div>
+      <div class="cols" style="margin-top:12px;grid-template-columns:1fr;">
+        ${block("Review Prompts", s.review)}
+      </div>
+      <div class="actions">
+        <a class="action primary" href="risk_calculator.html${importedParams ? "?" + importedParams : ""}">Open Risk Calculator</a>
+        <a class="action" href="premarket_prep.html">Open Pre-Market Prep</a>
+        <a class="action" href="trade_journal.html">Open Journal</a>
+      </div>
+    </article>`;
+}
+
+function block(title, items) {
+  return `<div class="rule"><h3>${title}</h3><ul>${items.map(item => `<li>${item}</li>`).join("")}</ul></div>`;
+}
+
+document.querySelectorAll(".nav-btn").forEach(button => {
+  button.addEventListener("click", () => {
+    document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.remove("active"));
+    button.classList.add("active");
+    renderSetup(button.dataset.setup);
+  });
+});
+renderImportedSetup();
+renderSetup("orb");
+</script>
+<script src="assets/daytrader-os.js?v=20260504-vercel1" defer></script>
+</body>
+</html>
+

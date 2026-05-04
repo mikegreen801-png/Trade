@@ -1,0 +1,163 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/health"
+  to = "/.netlify/functions/health"
+  status = 200
+
+[[redirects]]
+  from = "/site-status"
+  to = "/.netlify/functions/site-status"
+  status = 200
+
+[[redirects]]
+  from = "/accountability"
+  to = "/accountability.html"
+  status = 200
+
+[[redirects]]
+  from = "/alert_center"
+  to = "/alert_center.html"
+  status = 200
+
+[[redirects]]
+  from = "/backtest_simulator"
+  to = "/backtest_simulator.html"
+  status = 200
+
+[[redirects]]
+  from = "/broker_execution_plan"
+  to = "/broker_execution_plan.html"
+  status = 200
+
+[[redirects]]
+  from = "/chart_analyzer"
+  to = "/chart_analyzer.html"
+  status = 200
+
+[[redirects]]
+  from = "/guided_trade_builder"
+  to = "/guided_trade_builder.html"
+  status = 200
+
+[[redirects]]
+  from = "/market_context"
+  to = "/market_context.html"
+  status = 200
+
+[[redirects]]
+  from = "/market_workbench"
+  to = "/market_workbench.html"
+  status = 200
+
+[[redirects]]
+  from = "/options_hedge_builder"
+  to = "/options_hedge_builder.html"
+  status = 200
+
+[[redirects]]
+  from = "/paper_trading_simulator"
+  to = "/paper_trading_simulator.html"
+  status = 200
+
+[[redirects]]
+  from = "/practice_workbench"
+  to = "/practice_workbench.html"
+  status = 200
+
+[[redirects]]
+  from = "/pattern_library"
+  to = "/pattern_library.html"
+  status = 200
+
+[[redirects]]
+  from = "/premarket_prep"
+  to = "/premarket_prep.html"
+  status = 200
+
+[[redirects]]
+  from = "/risk_calculator"
+  to = "/risk_calculator.html"
+  status = 200
+
+[[redirects]]
+  from = "/execution_workbench"
+  to = "/execution_workbench.html"
+  status = 200
+
+[[redirects]]
+  from = "/scanner_hub"
+  to = "/scanner_hub.html"
+  status = 200
+
+[[redirects]]
+  from = "/signal_dashboard"
+  to = "/signal_dashboard.html"
+  status = 200
+
+[[redirects]]
+  from = "/strategy_builder"
+  to = "/strategy_builder.html"
+  status = 200
+
+[[redirects]]
+  from = "/strategy_lab"
+  to = "/strategy_lab.html"
+  status = 200
+
+[[redirects]]
+  from = "/strategy_playbook"
+  to = "/strategy_playbook.html"
+  status = 200
+
+[[redirects]]
+  from = "/trade_journal"
+  to = "/trade_journal.html"
+  status = 200
+
+[[redirects]]
+  from = "/trade_planner"
+  to = "/trade_planner.html"
+  status = 200
+
+[[redirects]]
+  from = "/trade_review_coach"
+  to = "/trade_review_coach.html"
+  status = 200
+
+[[redirects]]
+  from = "/review_workbench"
+  to = "/review_workbench.html"
+  status = 200
+
+[[redirects]]
+  from = "/tradingview_course"
+  to = "/tradingview_course.html"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/*.pdf"
+  [headers.values]
+    Content-Disposition = "inline"

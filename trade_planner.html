@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade Planner - Day Trader OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=JetBrains+Mono:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/daytrader-os.css?v=20260504-vercel1">
+<link rel="stylesheet" href="assets/ultra-tools.css?v=20260504-vercel1">
+</head>
+<body>
+<a class="dto-home-link" href="index.html"><span class="dto-home-mark" aria-hidden="true">&larr;</span><span>Return Home</span></a>
+<main class="ultra-shell">
+  <header class="ultra-top">
+    <div>
+      <div class="kicker">Builder / Strategy / Playbook / Grader</div>
+      <h1>Trade Planner</h1>
+      <p class="sub">The old trade builder, strategy builder, strategy lab, pattern library, and playbook are now one planning desk. Build the setup packet once, grade it, then launch sizing or paper trading.</p>
+    </div>
+    <nav class="ultra-flow">
+      <a href="index.html">Home</a>
+      <a href="market_workbench.html">Scan</a>
+      <a href="execution_workbench.html">Size</a>
+      <a href="practice_workbench.html">Paper</a>
+    </nav>
+  </header>
+
+  <section class="ultra-grid">
+    <article class="panel span-8">
+      <div class="panel-head"><div><div class="kicker">Setup packet</div><h2>Build The Trade</h2></div><span class="tag" id="packetState">Live grade</span></div>
+      <form class="form-grid" id="setupForm">
+        <div class="field"><label for="symbol">Symbol</label><input id="symbol" value="AAPL"></div>
+        <div class="field"><label for="assetType">Asset</label><select id="assetType"><option>stock</option><option>crypto</option></select></div>
+        <div class="field"><label for="side">Side</label><select id="side"><option>long</option><option>short</option></select></div>
+        <div class="field"><label for="timeframe">Timeframe</label><select id="timeframe"><option>intraday</option><option>swing</option><option>scalp</option></select></div>
+        <div class="field"><label for="entry">Entry</label><input id="entry" type="number" step="0.0001"></div>
+        <div class="field"><label for="stop">Stop</label><input id="stop" type="number" step="0.0001"></div>
+        <div class="field"><label for="target">Target</label><input id="target" type="number" step="0.0001"></div>
+        <div class="field"><label for="rating">Bias</label><select id="rating"><option>CHECK</option><option>BUY</option><option>HOLD</option><option>SELL</option><option>STRONG BUY</option><option>STRONG SELL</option></select></div>
+        <div class="field"><label for="support">Support</label><input id="support" type="number" step="0.0001"></div>
+        <div class="field"><label for="resistance">Resistance</label><input id="resistance" type="number" step="0.0001"></div>
+        <div class="field"><label for="confidence">Confidence</label><input id="confidence" type="number" min="0" max="100" value="50"></div>
+        <div class="field"><label for="setupType">Setup Type</label><select id="setupType"><option>Breakout</option><option>Pullback</option><option>VWAP reclaim</option><option>Reversal</option><option>Range trade</option><option>News catalyst</option></select></div>
+        <div class="field two"><label for="thesis">Thesis</label><textarea id="thesis" placeholder="Why this trade, why now, what confirms it?"></textarea></div>
+        <div class="field two"><label for="catalysts">Catalysts</label><textarea id="catalysts" placeholder="Earnings, news, sector strength, crypto flow, macro..."></textarea></div>
+        <button class="primary" type="submit">Save Setup Packet</button>
+        <button type="button" id="loadActive">Load Active</button>
+      </form>
+    </article>
+
+    <aside class="panel span-4">
+      <div class="panel-head"><div><div class="kicker">Quality gate</div><h2>Setup Grade</h2></div></div>
+      <div class="metric-grid" style="grid-template-columns:1fr 1fr">
+        <div class="metric"><span>Score</span><strong id="gradeScore">--</strong></div>
+        <div class="metric"><span>Quality</span><strong id="gradeLabel">--</strong></div>
+      </div>
+      <div class="list" id="gradeNotes" style="margin-top:14px"></div>
+      <div class="action-row">
+        <a class="btn primary" id="openRisk" href="risk_calculator.html">Open Risk</a>
+        <a class="btn" id="openPaper" href="paper_trading_simulator.html">Paper Trade</a>
+      </div>
+    </aside>
+
+    <article class="panel span-6">
+      <div class="panel-head"><div><div class="kicker">Playbook presets</div><h2>Strategy Flow</h2></div></div>
+      <div class="list" id="playbookList"></div>
+    </article>
+
+    <article class="panel span-6">
+      <div class="panel-head"><div><div class="kicker">Rule lab merged</div><h2>Save Strategy Rules</h2></div></div>
+      <form class="form-grid" id="rulesForm">
+        <div class="field two"><label for="ruleName">Name</label><input id="ruleName" placeholder="Opening range breakout"></div>
+        <div class="field"><label for="minRr">Min R:R</label><input id="minRr" type="number" step="0.1" value="2"></div>
+        <div class="field"><label for="ruleSide">Allowed Side</label><select id="ruleSide"><option>Both</option><option>Long only</option><option>Short only</option></select></div>
+        <div class="field two"><label for="entryRules">Entry Rules</label><textarea id="entryRules"></textarea></div>
+        <div class="field two"><label for="exitRules">Invalidation</label><textarea id="exitRules"></textarea></div>
+        <button class="primary" type="submit">Save Rules</button>
+      </form>
+      <div class="list" id="rulesList" style="margin-top:14px"></div>
+    </article>
+
+    <article class="panel span-12">
+      <div class="panel-head"><div><div class="kicker">Specialist modules</div><h2>Still Available</h2></div></div>
+      <div class="action-row">
+        <a class="btn" href="guided_trade_builder.html">Old Builder</a>
+        <a class="btn" href="strategy_playbook.html">Playbook</a>
+        <a class="btn" href="strategy_lab.html">Strategy Lab</a>
+        <a class="btn" href="pattern_library.html">Pattern Library</a>
+        <a class="btn" href="strategy_builder.html">Strategy Builder</a>
+      </div>
+    </article>
+  </section>
+</main>
+<script src="assets/daytrader-os.js?v=20260504-vercel1"></script>
+<script>
+const $ = id => document.getElementById(id);
+const read = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch { return fallback; } };
+const write = (key, value) => { localStorage.setItem(key, JSON.stringify(value)); return value; };
+const clean = value => String(value || "").trim().toUpperCase().replace(/[^A-Z0-9.-]/g, "");
+const number = value => value === "" || value === null || value === undefined ? null : Number(value);
+const cryptoRe = /^(BTC|ETH|SOL|DOGE|XRP|BNB|ADA|AVAX|LINK|SUI|PEPE|SHIB|[A-Z0-9]{2,12}(USDT|USD))$/;
+
+function packetFromForm() {
+  const entry = number($("entry").value);
+  const stop = number($("stop").value);
+  const target = number($("target").value);
+  const rr = entry && stop && target && entry !== stop ? Math.abs(target - entry) / Math.abs(entry - stop) : null;
+  const symbol = clean($("symbol").value);
+  return {
+    symbol,
+    assetType: $("assetType").value,
+    side: $("side").value,
+    rating: $("rating").value,
+    entry,
+    stop,
+    target,
+    support: number($("support").value),
+    resistance: number($("resistance").value),
+    rr,
+    confidence: number($("confidence").value),
+    timeframe: $("timeframe").value,
+    thesis: $("thesis").value,
+    catalysts: $("catalysts").value.split(/\n|\|/).map(x => x.trim()).filter(Boolean),
+    setupType: $("setupType").value,
+    sourcePage: "trade_planner.html",
+    createdAt: new Date().toISOString()
+  };
+}
+
+function loadPacket(setup) {
+  if (!setup) return;
+  $("symbol").value = setup.symbol || "AAPL";
+  $("assetType").value = setup.assetType || (cryptoRe.test(clean(setup.symbol)) ? "crypto" : "stock");
+  $("side").value = setup.side || "long";
+  $("rating").value = setup.rating || "CHECK";
+  $("entry").value = setup.entry ?? "";
+  $("stop").value = setup.stop ?? "";
+  $("target").value = setup.target ?? "";
+  $("support").value = setup.support ?? "";
+  $("resistance").value = setup.resistance ?? "";
+  $("confidence").value = setup.confidence ?? 50;
+  $("timeframe").value = setup.timeframe || "intraday";
+  $("thesis").value = setup.thesis || "";
+  $("catalysts").value = Array.isArray(setup.catalysts) ? setup.catalysts.join("\n") : (setup.catalysts || "");
+  grade();
+}
+
+function workflowUrl(page, setup) {
+  const params = new URLSearchParams();
+  Object.entries(setup).forEach(([key, value]) => {
+    if (Array.isArray(value)) value = value.join("|");
+    if (value !== null && value !== undefined && value !== "") params.set(key, value);
+  });
+  return `${page}?${params.toString()}`;
+}
+
+function grade() {
+  const setup = packetFromForm();
+  const grade = window.DTO?.gradeSetup ? window.DTO.gradeSetup(setup) : { score: 0, label: "No Grade", warnings: ["Shared grader unavailable."], notes: [] };
+  $("gradeScore").textContent = `${grade.score}/100`;
+  $("gradeLabel").textContent = grade.label;
+  $("gradeNotes").innerHTML = [...(grade.warnings || []), ...(grade.notes || [])].slice(0, 5).map((note, index) => `<div class="note ${index >= (grade.warnings || []).length ? "good-note" : ""}">${note}</div>`).join("");
+  $("openRisk").href = workflowUrl("risk_calculator.html", setup);
+  $("openPaper").href = workflowUrl("paper_trading_simulator.html", setup);
+}
+
+const presets = [
+  ["Breakout", "Price is pressing against resistance with volume expansion. Confirm break and hold above level before entry.", "Volume expansion | clean resistance break | sector/index confirmation"],
+  ["Pullback", "Trend is intact and price is pulling into support or VWAP. Wait for buyers to defend before entry.", "Support defense | higher low | no major headline conflict"],
+  ["VWAP reclaim", "Price lost VWAP, reclaimed it, and is holding above. Entry needs confirmation candle and defined invalidation.", "VWAP reclaim | volume return | failed breakdown"],
+  ["Reversal", "Trend is extended and momentum is shifting. Use smaller size until reversal confirmation is real.", "Exhaustion candle | RSI stretch | support/resistance rejection"]
+];
+
+function renderPresets() {
+  $("playbookList").innerHTML = presets.map(([name, thesis, catalysts]) => `
+    <button class="row" type="button" data-preset="${name}"><div><strong>${name}</strong><span>${thesis}</span></div><span>Use</span></button>
+  `).join("");
+  document.querySelectorAll("[data-preset]").forEach(button => button.addEventListener("click", () => {
+    const preset = presets.find(item => item[0] === button.dataset.preset);
+    $("setupType").value = preset[0];
+    $("thesis").value = preset[1];
+    $("catalysts").value = preset[2].replaceAll(" | ", "\n");
+    grade();
+  }));
+}
+
+function renderRules() {
+  const list = read("dtoStrategies", []);
+  $("rulesList").innerHTML = list.length ? list.slice(0, 5).map(rule => `<div class="row"><div><strong>${rule.name}</strong><span>${rule.side} / minimum ${rule.minRr}R</span></div><span>${rule.createdAt ? new Date(rule.createdAt).toLocaleDateString() : ""}</span></div>`).join("") : `<div class="note">No saved strategy rules yet.</div>`;
+}
+
+$("setupForm").addEventListener("input", event => {
+  if (event.target.id === "symbol") $("assetType").value = cryptoRe.test(clean(event.target.value)) ? "crypto" : "stock";
+  grade();
+});
+$("setupForm").addEventListener("submit", event => {
+  event.preventDefault();
+  const setup = packetFromForm();
+  const saved = window.DTO?.saveSetup ? window.DTO.saveSetup(setup) : write("dtoLastSetup", setup);
+  write("dtoSetupPacket", saved);
+  $("packetState").textContent = `${saved.symbol} saved`;
+  setTimeout(() => $("packetState").textContent = "Live grade", 1000);
+});
+$("loadActive").addEventListener("click", () => loadPacket(window.DTO?.getSetup?.() || read("dtoLastSetup", null)));
+$("rulesForm").addEventListener("submit", event => {
+  event.preventDefault();
+  const item = { name: $("ruleName").value || "Untitled Strategy", minRr: $("minRr").value, side: $("ruleSide").value, entryRules: $("entryRules").value, exitRules: $("exitRules").value, createdAt: new Date().toISOString() };
+  write("dtoStrategies", [item, ...read("dtoStrategies", [])].slice(0, 30));
+  renderRules();
+});
+renderPresets();
+renderRules();
+loadPacket(window.DTO?.getSetup?.() || read("dtoLastSetup", null) || { symbol: "AAPL" });
+</script>
+</body>
+</html>
+

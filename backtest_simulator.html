@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Backtest Simulator — Day Trader OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #040507;
+    --s1: #090b10;
+    --s2: #0f1218;
+    --border: #181c25;
+    --lime: #b8ff57;
+    --pink: #ff4d9e;
+    --blue: #2979ff;
+    --gold: #ffd740;
+    --text: #b0bcc8;
+    --muted: #3a4555;
+    --bull: #26de81;
+    --bear: #ff5252;
+    --wick: #4a556a;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .topbar {
+    background: var(--s1);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .logo {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 1.1em;
+    color: var(--lime);
+    letter-spacing: 3px;
+  }
+
+  .controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  select, input[type="number"], input[type="text"] {
+    background: var(--s2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8em;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input[type="text"] {
+    width: 96px;
+    text-transform: uppercase;
+  }
+
+  select:focus, input[type="number"]:focus, input[type="text"]:focus { border-color: var(--lime); }
+
+  .btn {
+    padding: 9px 18px;
+    border: none;
+    border-radius: 4px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-lime { background: var(--lime); color: #040507; }
+  .btn-lime:hover { background: #a0e040; transform: translateY(-1px); }
+
+  .btn-pink { background: var(--pink); color: #fff; }
+  .btn-pink:hover { background: #e03588; transform: translateY(-1px); }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .btn-ghost:hover { border-color: var(--lime); color: var(--lime); }
+
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* Main layout */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* Chart area */
+  .chart-area {
+    position: relative;
+    overflow: hidden;
+    background: var(--bg);
+    border-right: 1px solid var(--border);
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+  }
+
+  .chart-area.dragging { cursor: grabbing; }
+
+  #chartSvg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .chart-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+  }
+
+  .current-price-line {
+    position: absolute;
+    right: 0;
+    width: 100%;
+    border-top: 1px dashed var(--lime);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  /* HUD */
+  .hud {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    max-width: calc(100% - 260px);
+  }
+
+  .hud-pill {
+    background: rgba(9,11,16,0.9);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75em;
+  }
+
+  .hud-label { color: var(--muted); margin-right: 6px; }
+  .hud-val { color: var(--lime); font-weight: 700; }
+
+  .chart-status {
+    position: absolute;
+    left: 15px;
+    bottom: 15px;
+    max-width: min(520px, calc(100% - 30px));
+    background: rgba(9,11,16,0.9);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 7px 10px;
+    color: var(--muted);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7em;
+    pointer-events: none;
+  }
+
+  .chart-tools {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    background: rgba(9,11,16,0.9);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 6px;
+    z-index: 2;
+  }
+
+  .chart-tool {
+    min-width: 34px;
+    height: 30px;
+    border: 1px solid rgba(184,255,87,0.22);
+    border-radius: 4px;
+    background: rgba(184,255,87,0.06);
+    color: var(--lime);
+    cursor: pointer;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72em;
+    transition: all 0.18s;
+  }
+
+  .chart-tool:hover {
+    border-color: var(--lime);
+    background: rgba(184,255,87,0.14);
+  }
+
+  .candle-count {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7em;
+    color: var(--muted);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    background: var(--s1);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    overflow-y: auto;
+  }
+
+  .panel {
+    background: var(--s2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .panel-title {
+    background: rgba(184,255,87,0.06);
+    padding: 10px 14px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7em;
+    color: var(--lime);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-body { padding: 14px; }
+
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px solid rgba(24,28,37,0.8);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75em;
+  }
+
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { color: var(--muted); }
+  .stat-val { color: var(--text); }
+  .stat-val.green { color: var(--bull); }
+  .stat-val.red { color: var(--bear); }
+  .stat-val.gold { color: var(--gold); }
+
+  /* Trade log */
+  .trade-log { max-height: 200px; overflow-y: auto; }
+
+  .trade-entry {
+    padding: 8px 14px;
+    border-bottom: 1px solid rgba(24,28,37,0.8);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .trade-entry:last-child { border-bottom: none; }
+  .trade-entry .win { color: var(--bull); }
+  .trade-entry .loss { color: var(--bear); }
+
+  .action-btns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 14px;
+  }
+
+  .action-btn {
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 1em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .buy-btn {
+    background: rgba(38,222,129,0.15);
+    color: var(--bull);
+    border: 1px solid rgba(38,222,129,0.4);
+  }
+
+  .buy-btn:hover { background: rgba(38,222,129,0.25); }
+
+  .sell-btn {
+    background: rgba(255,82,82,0.15);
+    color: var(--bear);
+    border: 1px solid rgba(255,82,82,0.4);
+  }
+
+  .sell-btn:hover { background: rgba(255,82,82,0.25); }
+
+  .next-btn {
+    grid-column: span 2;
+    background: rgba(184,255,87,0.1);
+    color: var(--lime);
+    border: 1px solid rgba(184,255,87,0.3);
+    padding: 10px;
+    border-radius: 4px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .next-btn:hover { background: rgba(184,255,87,0.2); }
+
+  .speed-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+  }
+
+  .speed-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65em;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .speed-btns { display: flex; gap: 5px; }
+
+  .spd {
+    padding: 4px 10px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 3px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.7em;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .spd.active { border-color: var(--lime); color: var(--lime); }
+
+  .position-bar {
+    background: rgba(41,121,255,0.1);
+    border: 1px solid rgba(41,121,255,0.3);
+    border-radius: 4px;
+    padding: 12px;
+    margin: 0 14px 14px;
+    display: none;
+  }
+
+  .position-bar.active { display: block; }
+
+  .pos-ticker {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.8em;
+    color: var(--blue);
+    margin-bottom: 5px;
+  }
+
+  .pos-detail {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.75em;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .instructions {
+    font-size: 0.82em;
+    color: var(--muted);
+    line-height: 1.7;
+    padding: 14px;
+  }
+
+  .instructions strong { color: var(--lime); }
+
+  @media (max-width: 900px) {
+    body { overflow: auto; }
+    .layout { grid-template-columns: 1fr; min-height: 1100px; }
+    .chart-area { min-height: 620px; border-right: 0; border-bottom: 1px solid var(--border); }
+    .hud { max-width: calc(100% - 20px); top: 58px; }
+    .chart-tools { left: 15px; right: auto; }
+  }
+</style>
+<link rel="stylesheet" href="assets/daytrader-os.css?v=20260504-vercel1">
+</head>
+<body>
+<a class="dto-home-link" href="index.html"><span class="dto-home-mark" aria-hidden="true">&larr;</span><span>Return Home</span></a>
+
+<div class="topbar">
+  <div class="logo">BACKTEST_SIM</div>
+  <div class="controls">
+    <input id="symbolInput" type="text" value="AAPL" maxlength="18" title="Stock or crypto symbol" oninput="this.value=this.value.toUpperCase()">
+    <select id="intervalSelect" title="Market candle interval">
+      <option value="5m" selected>5m</option>
+      <option value="15m">15m</option>
+      <option value="1h">1h</option>
+      <option value="1d">1d</option>
+    </select>
+    <button class="btn btn-ghost" id="loadTickerBtn" onclick="loadMarketBacktest()">LOAD TICKER</button>
+    <select id="scenario">
+      <option value="trending_up">Bull Trend</option>
+      <option value="trending_down">Bear Trend</option>
+      <option value="volatile">High Volatility</option>
+      <option value="choppy">Choppy / Sideways</option>
+      <option value="breakout">Breakout Setup</option>
+      <option value="reversal">Reversal Setup</option>
+    </select>
+    <button class="btn btn-lime" onclick="newSession()">NEW SESSION</button>
+    <button class="btn btn-ghost" id="playBtn" onclick="togglePlay()">▶ AUTO</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <div class="chart-area" id="chartArea">
+    <svg id="chartSvg"></svg>
+    <div class="chart-tools" aria-label="Chart view controls">
+      <button class="chart-tool" type="button" onclick="zoomChart(-1)" title="Zoom in">+</button>
+      <button class="chart-tool" type="button" onclick="zoomChart(1)" title="Zoom out">-</button>
+      <button class="chart-tool" type="button" onclick="panChart(8)" title="Move left">&larr;</button>
+      <button class="chart-tool" type="button" onclick="panChart(-8)" title="Move right">&rarr;</button>
+      <button class="chart-tool" type="button" onclick="resetChartView()" title="Reset view">RST</button>
+    </div>
+    <div class="hud">
+      <div class="hud-pill">
+        <span class="hud-label">PRICE</span>
+        <span class="hud-val" id="hudPrice">—</span>
+      </div>
+      <div class="hud-pill">
+        <span class="hud-label">CANDLE</span>
+        <span class="hud-val" id="hudCandle">0 / 0</span>
+      </div>
+      <div class="hud-pill">
+        <span class="hud-label">VOL</span>
+        <span class="hud-val" id="hudVol">—</span>
+      </div>
+      <div class="hud-pill">
+        <span class="hud-label">VIEW</span>
+        <span class="hud-val" id="hudView">LATEST</span>
+      </div>
+    </div>
+    <div class="chart-status" id="chartStatus">Synthetic session loaded. Use LOAD TICKER for real stock/crypto candles.</div>
+  </div>
+
+  <div class="sidebar">
+
+    <div class="panel">
+      <div class="panel-title">Session Stats</div>
+      <div class="panel-body" style="padding:0">
+        <div class="stat-row" style="padding: 7px 14px;">
+          <span class="stat-label">Trades Taken</span>
+          <span class="stat-val" id="sTrades">0</span>
+        </div>
+        <div class="stat-row" style="padding: 7px 14px;">
+          <span class="stat-label">Wins / Losses</span>
+          <span class="stat-val"><span class="green" id="sWins">0</span> / <span class="red" id="sLosses">0</span></span>
+        </div>
+        <div class="stat-row" style="padding: 7px 14px;">
+          <span class="stat-label">Win Rate</span>
+          <span class="stat-val gold" id="sWinRate">—</span>
+        </div>
+        <div class="stat-row" style="padding: 7px 14px;">
+          <span class="stat-label">Net P&L</span>
+          <span class="stat-val" id="sNetPnl">$0.00</span>
+        </div>
+        <div class="stat-row" style="padding: 7px 14px;">
+          <span class="stat-label">Avg R:R</span>
+          <span class="stat-val" id="sAvgRR">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Active Position</div>
+      <div class="position-bar" id="posBar">
+        <div class="pos-ticker" id="posInfo">No open position</div>
+        <div class="pos-detail" id="posDetail"></div>
+      </div>
+      <div class="action-btns">
+        <button class="action-btn buy-btn" id="buyBtn" onclick="enterLong()">▲ LONG</button>
+        <button class="action-btn sell-btn" id="shortBtn" onclick="enterShort()">▼ SHORT</button>
+        <button class="next-btn" onclick="nextCandle()">→ NEXT CANDLE</button>
+      </div>
+      <div class="speed-row">
+        <span class="speed-label">Auto Speed</span>
+        <div class="speed-btns">
+          <button class="spd active" onclick="setSpeed(800,this)">1x</button>
+          <button class="spd" onclick="setSpeed(400,this)">2x</button>
+          <button class="spd" onclick="setSpeed(150,this)">4x</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Trade Log</div>
+      <div class="trade-log" id="tradeLog">
+        <div style="padding:14px;font-family:'Share Tech Mono',monospace;font-size:0.72em;color:var(--muted);">
+          No trades yet. Enter LONG or SHORT to start.
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">How To Use</div>
+      <div class="instructions">
+        <strong>1.</strong> Type a ticker and click LOAD TICKER, or pick a scenario and click NEW SESSION<br>
+        <strong>2.</strong> Real or synthetic candles reveal one at a time<br>
+        <strong>3.</strong> Click LONG or SHORT when you see a setup<br>
+        <strong>4.</strong> Advance candles — your P&L updates live<br>
+        <strong>5.</strong> Close position when target/stop is hit<br>
+        <strong>6.</strong> Drag to move, mousewheel or +/- to zoom, arrows to pan, 0/RST to reset<br>
+        <strong>7.</strong> Review your win rate at the end<br><br>
+        <strong>Goal:</strong> Find setups BEFORE seeing the full chart. This trains your pattern recognition.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let candles = [];
+let visibleCount = 0;
+let position = null;
+let trades = [];
+let autoPlay = false;
+let playInterval = null;
+let autoSpeed = 800;
+let maxVisible = 80;
+let viewSize = 80;
+let viewOffset = 0;
+let dragState = null;
+const minViewSize = 12;
+let sourceLabel = 'Synthetic scenario';
+
+const CRYPTO_DATA = {
+  BTC:'BTCUSDT', XBT:'BTCUSDT', BITCOIN:'BTCUSDT', ETH:'ETHUSDT', ETHEREUM:'ETHUSDT',
+  SOL:'SOLUSDT', SOLANA:'SOLUSDT', DOGE:'DOGEUSDT', XRP:'XRPUSDT', ADA:'ADAUSDT',
+  BNB:'BNBUSDT', AVAX:'AVAXUSDT', LINK:'LINKUSDT', SUI:'SUIUSDT', PEPE:'PEPEUSDT', SHIB:'SHIBUSDT'
+};
+
+const scenarios = {
+  trending_up: { drift: 0.3, vol: 1.5, name: 'Bull Trend' },
+  trending_down: { drift: -0.3, vol: 1.5, name: 'Bear Trend' },
+  volatile: { drift: 0.05, vol: 4, name: 'High Volatility' },
+  choppy: { drift: 0, vol: 1, name: 'Choppy Sideways' },
+  breakout: { drift: 0.1, vol: 1.2, name: 'Breakout Setup', breakout: true },
+  reversal: { drift: -0.2, vol: 1.8, name: 'Reversal Setup', reversal: true },
+};
+
+function cleanSymbol(value) {
+  return String(value || '').trim().toUpperCase().replace(/[^A-Z0-9.-]/g, '') || 'AAPL';
+}
+
+function cryptoPairFor(value) {
+  const clean = cleanSymbol(value).replace(/[.-]/g, '');
+  if (CRYPTO_DATA[clean]) return CRYPTO_DATA[clean];
+  if (/^[A-Z0-9]{2,12}USDT$/.test(clean)) return clean;
+  if (/^[A-Z0-9]{2,12}USD$/.test(clean)) return clean.replace(/USD$/, 'USDT');
+  return null;
+}
+
+function cryptoBaseFor(value) {
+  const pair = cryptoPairFor(value);
+  return pair ? pair.replace(/USDT$/, '') : null;
+}
+
+function yahooRangeFor(interval) {
+  if (interval === '5m') return '5d';
+  if (interval === '15m') return '5d';
+  if (interval === '1h') return '1mo';
+  return '6mo';
+}
+
+async function fetchJson(url, label = 'feed') {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 8500);
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) throw new Error(`${label} returned ${response.status}`);
+    return response.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function fetchPublicApiJson(path, label = 'public API') {
+  const cleanPath = String(path || '').replace(/^\/+/, '');
+  const urls = [`/api/${cleanPath}`, `/.netlify/functions/${cleanPath}`];
+  let lastError = null;
+  for (const url of urls) {
+    try {
+      return await fetchJson(url, label);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error(`${label} unavailable`);
+}
+
+function publicCandleDate(value) {
+  if (!value) return null;
+  const numeric = Number(value);
+  if (Number.isFinite(numeric)) return new Date(numeric > 100000000000 ? numeric : numeric * 1000);
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+async function fetchPublicMarketCandles(symbol) {
+  if (!/^https?:$/.test(location.protocol)) throw new Error('Public server API requires hosted mode');
+  const data = await fetchPublicApiJson(`analyze?symbol=${encodeURIComponent(cleanSymbol(symbol))}`, 'public candle feed');
+  const candles = (data?.candles || []).map(candle => ({
+    time: publicCandleDate(candle.time),
+    open: Number(candle.open),
+    high: Number(candle.high),
+    low: Number(candle.low),
+    close: Number(candle.close),
+    volume: Number(candle.volume)
+  })).filter(c => Number.isFinite(c.open) && Number.isFinite(c.close) && Number.isFinite(c.high) && Number.isFinite(c.low));
+  if (!candles.length) throw new Error(data?.error || 'Public candle feed returned no candles');
+  return { candles, source: data?.candleSource || 'Public server candle feed' };
+}
+
+function parseYahooCandles(data) {
+  const result = data.chart?.result?.[0];
+  const quote = result?.indicators?.quote?.[0];
+  if (!quote?.close?.length) throw new Error('No candles returned');
+  return quote.close.map((close, index) => ({
+    open: Number(quote.open?.[index]),
+    close: Number(close),
+    high: Number(quote.high?.[index]),
+    low: Number(quote.low?.[index]),
+    volume: Number(quote.volume?.[index]) || 0,
+    time: result.timestamp?.[index] ? new Date(result.timestamp[index] * 1000) : null
+  })).filter(c => Number.isFinite(c.open) && Number.isFinite(c.close) && Number.isFinite(c.high) && Number.isFinite(c.low));
+}
+
+async function fetchStockCandles(symbol, interval) {
+  const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${yahooRangeFor(interval)}&interval=${interval}&includePrePost=true`;
+  const urls = [
+    { url: yahooUrl, label: 'Yahoo direct' },
+    { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(yahooUrl)}`, label: 'AllOrigins proxy' },
+    { url: `https://corsproxy.io/?${encodeURIComponent(yahooUrl)}`, label: 'CORS proxy' },
+    { url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(yahooUrl)}`, label: 'CodeTabs proxy' }
+  ];
+  let lastError = null;
+  for (const source of urls) {
+    try {
+      const candles = parseYahooCandles(await fetchJson(source.url, source.label));
+      if (candles.length) return { candles, source: source.label };
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error('Stock candle feed unavailable');
+}
+
+async function fetchCryptoCandles(symbol, interval) {
+  const pair = cryptoPairFor(symbol);
+  const base = cryptoBaseFor(symbol);
+  const binanceInterval = interval === '1d' ? '1d' : interval;
+  const urls = [
+    `https://data-api.binance.vision/api/v3/klines?symbol=${pair}&interval=${binanceInterval}&limit=160`,
+    `https://api.binance.us/api/v3/klines?symbol=${pair}&interval=${binanceInterval}&limit=160`,
+    `https://api.binance.com/api/v3/klines?symbol=${pair}&interval=${binanceInterval}&limit=160`
+  ];
+  for (const url of urls) {
+    try {
+      const rows = await fetchJson(url, 'crypto candles');
+      const candles = rows.map(row => ({
+        time: new Date(Number(row[0])),
+        open: Number(row[1]),
+        high: Number(row[2]),
+        low: Number(row[3]),
+        close: Number(row[4]),
+        volume: Number(row[5])
+      })).filter(c => Number.isFinite(c.open) && Number.isFinite(c.close) && Number.isFinite(c.high) && Number.isFinite(c.low));
+      if (candles.length) return { candles, source: 'Binance candle feed' };
+    } catch (error) {}
+  }
+  if (base) {
+    const granularity = interval === '5m' ? 300 : interval === '15m' ? 900 : interval === '1h' ? 3600 : 86400;
+    const rows = await fetchJson(`https://api.exchange.coinbase.com/products/${base}-USD/candles?granularity=${granularity}`, 'Coinbase candles');
+    const candles = rows.map(row => ({
+      time: new Date(Number(row[0]) * 1000),
+      low: Number(row[1]),
+      high: Number(row[2]),
+      open: Number(row[3]),
+      close: Number(row[4]),
+      volume: Number(row[5])
+    })).filter(c => Number.isFinite(c.open) && Number.isFinite(c.close) && Number.isFinite(c.high) && Number.isFinite(c.low)).sort((a, b) => a.time - b.time);
+    if (candles.length) return { candles, source: 'Coinbase candle feed' };
+  }
+  throw new Error('Crypto candle feed unavailable');
+}
+
+async function fetchMarketCandles(symbol, interval) {
+  try {
+    return await fetchPublicMarketCandles(symbol);
+  } catch (error) {}
+  if (cryptoPairFor(symbol)) return fetchCryptoCandles(symbol, interval);
+  return fetchStockCandles(symbol, interval);
+}
+
+function generateCandles(scenario) {
+  const cfg = scenarios[scenario] || scenarios.trending_up;
+  const result = [];
+  let price = 150 + Math.random() * 50;
+  const total = 100;
+
+  for (let i = 0; i < total; i++) {
+    let drift = cfg.drift;
+
+    if (cfg.breakout && i > 60) drift = 0.8;
+    if (cfg.reversal && i > 50) drift = 0.5;
+    if (cfg.reversal && i < 50) drift = -0.25;
+
+    const change = drift + (Math.random() - 0.5) * cfg.vol * 2;
+    const open = price;
+    const close = price + change;
+    const wm = cfg.vol * 0.5;
+    const high = Math.max(open, close) + Math.random() * wm;
+    const low = Math.min(open, close) - Math.random() * wm;
+    const volume = 50000 + Math.random() * 150000 + (Math.abs(change) > cfg.vol ? 200000 : 0);
+
+    result.push({
+      open: parseFloat(open.toFixed(2)),
+      close: parseFloat(close.toFixed(2)),
+      high: parseFloat(high.toFixed(2)),
+      low: parseFloat(low.toFixed(2)),
+      volume: Math.round(volume)
+    });
+
+    price = close;
+  }
+  return result;
+}
+
+function newSession() {
+  const scenario = document.getElementById('scenario').value;
+  candles = generateCandles(scenario);
+  sourceLabel = scenarios[scenario]?.name || 'Synthetic scenario';
+  visibleCount = 20;
+  viewSize = 80;
+  viewOffset = 0;
+  position = null;
+  trades = [];
+  autoPlay = false;
+  clearInterval(playInterval);
+  document.getElementById('playBtn').textContent = '▶ AUTO';
+  updateStats();
+  updatePositionUI();
+  renderChart();
+  updateHUD();
+  renderTradeLog();
+  const status = document.getElementById('chartStatus');
+  if (status) status.textContent = `${sourceLabel} loaded. Drag chart to pan; wheel or +/- zooms around your cursor.`;
+}
+
+async function loadMarketBacktest() {
+  const symbol = cleanSymbol(document.getElementById('symbolInput').value);
+  const interval = document.getElementById('intervalSelect').value;
+  const status = document.getElementById('chartStatus');
+  const btn = document.getElementById('loadTickerBtn');
+  if (status) status.textContent = `Loading ${symbol} ${interval} candles...`;
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'LOADING';
+  }
+  try {
+    const result = await fetchMarketCandles(symbol, interval);
+    candles = result.candles.slice(-140);
+    sourceLabel = `${symbol} / ${interval} / ${result.source}`;
+    visibleCount = Math.min(Math.max(30, Math.floor(candles.length * 0.35)), candles.length);
+    viewSize = Math.min(80, visibleCount);
+    viewOffset = 0;
+    position = null;
+    trades = [];
+    autoPlay = false;
+    clearInterval(playInterval);
+    document.getElementById('playBtn').textContent = 'â–¶ AUTO';
+    updateStats();
+    updatePositionUI();
+    renderChart();
+    updateHUD();
+    renderTradeLog();
+    if (status) status.textContent = `${sourceLabel} loaded. Backtest reveals only the first ${visibleCount} candles; use NEXT/AUTO to advance.`;
+  } catch (error) {
+    if (status) status.textContent = `Could not load ${symbol}: ${error.message}. Synthetic scenarios still work.`;
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'LOAD TICKER';
+    }
+  }
+}
+
+function nextCandle() {
+  if (visibleCount >= candles.length) return;
+  visibleCount++;
+  if (viewOffset <= 1) viewOffset = 0;
+  updatePositionPnL();
+  renderChart();
+  updateHUD();
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function clampView() {
+  const revealed = Math.max(1, visibleCount);
+  viewSize = clamp(Math.round(viewSize), minViewSize, Math.max(minViewSize, revealed));
+  viewOffset = clamp(Math.round(viewOffset), 0, Math.max(0, revealed - viewSize));
+}
+
+function getViewRange() {
+  clampView();
+  const end = Math.max(1, visibleCount - viewOffset);
+  const start = Math.max(0, end - viewSize);
+  return { start, end };
+}
+
+function zoomChart(direction, anchorRatio = 1) {
+  if (!candles.length) return;
+  const before = getViewRange();
+  const oldSize = before.end - before.start;
+  const anchorIndex = before.start + clamp(anchorRatio, 0, 1) * oldSize;
+  const factor = direction < 0 ? 0.75 : 1.35;
+  viewSize = clamp(Math.round(viewSize * factor), minViewSize, Math.max(minViewSize, visibleCount));
+  const newStart = clamp(Math.round(anchorIndex - clamp(anchorRatio, 0, 1) * viewSize), 0, Math.max(0, visibleCount - viewSize));
+  const newEnd = newStart + viewSize;
+  viewOffset = visibleCount - newEnd;
+  clampView();
+  renderChart();
+  updateHUD();
+}
+
+function panChart(candlesToMove) {
+  if (!candles.length) return;
+  viewOffset += candlesToMove;
+  clampView();
+  renderChart();
+  updateHUD();
+}
+
+function resetChartView() {
+  viewSize = 80;
+  viewOffset = 0;
+  clampView();
+  renderChart();
+  updateHUD();
+}
+
+function togglePlay() {
+  autoPlay = !autoPlay;
+  document.getElementById('playBtn').textContent = autoPlay ? '⏸ PAUSE' : '▶ AUTO';
+  if (autoPlay) {
+    playInterval = setInterval(() => {
+      if (visibleCount < candles.length) {
+        nextCandle();
+      } else {
+        clearInterval(playInterval);
+        autoPlay = false;
+        document.getElementById('playBtn').textContent = '▶ AUTO';
+      }
+    }, autoSpeed);
+  } else {
+    clearInterval(playInterval);
+  }
+}
+
+function setSpeed(ms, btn) {
+  autoSpeed = ms;
+  document.querySelectorAll('.spd').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (autoPlay) {
+    clearInterval(playInterval);
+    togglePlay();
+    togglePlay();
+  }
+}
+
+function enterLong() {
+  if (position) { closePosition(); return; }
+  const price = candles[visibleCount - 1].close;
+  position = { dir: 'LONG', entry: price, shares: 100, candle: visibleCount };
+  updatePositionUI();
+}
+
+function enterShort() {
+  if (position) { closePosition(); return; }
+  const price = candles[visibleCount - 1].close;
+  position = { dir: 'SHORT', entry: price, shares: 100, candle: visibleCount };
+  updatePositionUI();
+}
+
+function closePosition() {
+  if (!position) return;
+  const exit = candles[visibleCount - 1].close;
+  const mult = position.dir === 'LONG' ? 1 : -1;
+  const pnl = (exit - position.entry) * position.shares * mult;
+  const rr = Math.abs(pnl / (position.entry * 0.01 * position.shares)).toFixed(2);
+
+  const closedTrade = {
+    dir: position.dir,
+    entry: position.entry,
+    exit: exit,
+    pnl: pnl,
+    rr: rr,
+    candle: position.candle
+  };
+  trades.push(closedTrade);
+  if (window.DTO) DTO.recordTrade({
+    source: "backtest",
+    symbol: document.getElementById('symbolInput')?.value || sourceLabel || "SIM",
+    side: position.dir,
+    qty: position.shares,
+    entry: position.entry,
+    exit,
+    pnl,
+    rr,
+    setupType: sourceLabel,
+    closedAt: new Date().toISOString()
+  });
+
+  position = null;
+  updateStats();
+  updatePositionUI();
+  renderTradeLog();
+}
+
+function updatePositionPnL() {
+  if (!position) return;
+  updatePositionUI();
+}
+
+function updatePositionUI() {
+  const posBar = document.getElementById('posBar');
+  const buyBtn = document.getElementById('buyBtn');
+  const shortBtn = document.getElementById('shortBtn');
+
+  if (position) {
+    posBar.classList.add('active');
+    const curr = candles[visibleCount - 1].close;
+    const mult = position.dir === 'LONG' ? 1 : -1;
+    const pnl = (curr - position.entry) * position.shares * mult;
+    const pnlStr = pnl >= 0 ? `+$${pnl.toFixed(2)}` : `-$${Math.abs(pnl).toFixed(2)}`;
+    const color = pnl >= 0 ? '#26de81' : '#ff5252';
+
+    document.getElementById('posInfo').textContent = `${position.dir} @ $${position.entry.toFixed(2)}`;
+    document.getElementById('posDetail').innerHTML = `
+      Shares: ${position.shares}<br>
+      Current: $${curr.toFixed(2)}<br>
+      P&L: <span style="color:${color};font-weight:700">${pnlStr}</span>
+    `;
+
+    buyBtn.textContent = '✕ CLOSE';
+    buyBtn.style.gridColumn = 'span 2';
+    shortBtn.style.display = 'none';
+  } else {
+    posBar.classList.remove('active');
+    buyBtn.textContent = '▲ LONG';
+    buyBtn.style.gridColumn = '';
+    shortBtn.style.display = '';
+  }
+}
+
+function updateStats() {
+  const wins = trades.filter(t => t.pnl > 0);
+  const losses = trades.filter(t => t.pnl <= 0);
+  const netPnl = trades.reduce((s, t) => s + t.pnl, 0);
+  const wr = trades.length > 0 ? (wins.length / trades.length * 100).toFixed(0) : null;
+  const avgRR = trades.length > 0 ? (trades.reduce((s,t) => s+parseFloat(t.rr),0)/trades.length).toFixed(2) : null;
+
+  document.getElementById('sTrades').textContent = trades.length;
+  document.getElementById('sWins').textContent = wins.length;
+  document.getElementById('sLosses').textContent = losses.length;
+  document.getElementById('sWinRate').textContent = wr ? `${wr}%` : '—';
+  document.getElementById('sNetPnl').textContent = netPnl >= 0 ? `+$${netPnl.toFixed(2)}` : `-$${Math.abs(netPnl).toFixed(2)}`;
+  document.getElementById('sNetPnl').className = `stat-val ${netPnl >= 0 ? 'green' : 'red'}`;
+  document.getElementById('sAvgRR').textContent = avgRR ? `${avgRR}x` : '—';
+}
+
+function renderTradeLog() {
+  const el = document.getElementById('tradeLog');
+  if (!trades.length) {
+    el.innerHTML = '<div style="padding:14px;font-family:\'Share Tech Mono\',monospace;font-size:0.72em;color:var(--muted);">No trades yet.</div>';
+    return;
+  }
+
+  el.innerHTML = [...trades].reverse().map((t, i) => {
+    const pnlStr = t.pnl >= 0 ? `+$${t.pnl.toFixed(2)}` : `-$${Math.abs(t.pnl).toFixed(2)}`;
+    const cls = t.pnl >= 0 ? 'win' : 'loss';
+    return `<div class="trade-entry">
+      <span>${t.dir}</span>
+      <span>$${t.entry.toFixed(2)} → $${t.exit.toFixed(2)}</span>
+      <span class="${cls}">${pnlStr}</span>
+    </div>`;
+  }).join('');
+}
+
+function updateHUD() {
+  if (!candles.length) return;
+  const c = candles[visibleCount - 1];
+  const range = getViewRange();
+  document.getElementById('hudPrice').textContent = `$${c.close.toFixed(2)}`;
+  document.getElementById('hudCandle').textContent = `${visibleCount} / ${candles.length}`;
+  const volK = (c.volume / 1000).toFixed(0);
+  document.getElementById('hudVol').textContent = `${volK}K`;
+  const viewEl = document.getElementById('hudView');
+  if (viewEl) {
+    viewEl.textContent = viewOffset === 0 ? `${range.end - range.start} latest` : `${range.start + 1}-${range.end}`;
+  }
+  const status = document.getElementById('chartStatus');
+  if (status && sourceLabel) status.textContent = `${sourceLabel} | View ${range.start + 1}-${range.end} of ${visibleCount} revealed. Drag to pan; wheel zooms around cursor.`;
+}
+
+function renderChart() {
+  const svg = document.getElementById('chartSvg');
+  const area = document.getElementById('chartArea');
+  const W = area.clientWidth || 800;
+  const H = area.clientHeight || 500;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+  const range = getViewRange();
+  const visible = candles.slice(range.start, range.end);
+  const n = visible.length;
+  if (!n) return;
+
+  const allHigh = Math.max(...visible.map(c => c.high));
+  const allLow = Math.min(...visible.map(c => c.low));
+  const priceRange = allHigh - allLow || 1;
+  const volMax = Math.max(...visible.map(c => c.volume));
+
+  const padL = 10, padR = 60, padT = 30, padB = 80;
+  const chartH = H - padT - padB;
+  const chartW = W - padL - padR;
+  const volH = 50;
+  const mainH = chartH - volH - 10;
+
+  const candleW = Math.max(2, Math.min(16, chartW / n - 2));
+  const gap = chartW / n;
+
+  const px = (price) => padT + mainH - ((price - allLow) / priceRange) * mainH;
+  const cx = (i) => padL + (i + 0.5) * gap;
+
+  let paths = '';
+
+  // MA line (20 period)
+  const maData = visible.map((_, i) => {
+    const slice = visible.slice(Math.max(0, i - 19), i + 1);
+    return slice.reduce((s, c) => s + c.close, 0) / slice.length;
+  });
+
+  const maPoints = maData.map((v, i) => `${cx(i)},${px(v)}`).join(' ');
+  paths += `<polyline points="${maPoints}" fill="none" stroke="#ff9800" stroke-width="1.5" opacity="0.8"/>`;
+
+  // Support / Resistance (simple)
+  const recentLow = Math.min(...visible.slice(-20).map(c => c.low));
+  const recentHigh = Math.max(...visible.slice(-20).map(c => c.high));
+  paths += `<line x1="${padL}" y1="${px(recentLow)}" x2="${W-padR}" y2="${px(recentLow)}" stroke="#26de81" stroke-width="1" stroke-dasharray="6,4" opacity="0.5"/>`;
+  paths += `<line x1="${padL}" y1="${px(recentHigh)}" x2="${W-padR}" y2="${px(recentHigh)}" stroke="#ff5252" stroke-width="1" stroke-dasharray="6,4" opacity="0.5"/>`;
+  paths += `<text x="${W-padR+4}" y="${px(recentLow)+4}" fill="#26de81" font-size="9" font-family="monospace" opacity="0.7">SUP</text>`;
+  paths += `<text x="${W-padR+4}" y="${px(recentHigh)+4}" fill="#ff5252" font-size="9" font-family="monospace" opacity="0.7">RES</text>`;
+
+  // Position marker
+  if (position) {
+    const entryY = px(position.entry);
+    paths += `<line x1="${padL}" y1="${entryY}" x2="${W-padR}" y2="${entryY}" stroke="#2979ff" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.8"/>`;
+    paths += `<text x="${W-padR+4}" y="${entryY+4}" fill="#2979ff" font-size="9" font-family="monospace">ENTRY</text>`;
+  }
+
+  // Candles
+  visible.forEach((c, i) => {
+    const x = cx(i);
+    const openY = px(c.open);
+    const closeY = px(c.close);
+    const highY = px(c.high);
+    const lowY = px(c.low);
+    const isBull = c.close >= c.open;
+    const color = isBull ? '#26de81' : '#ff5252';
+    const bodyTop = Math.min(openY, closeY);
+    const bodyH = Math.max(1, Math.abs(openY - closeY));
+
+    // Wick
+    paths += `<line x1="${x}" y1="${highY}" x2="${x}" y2="${lowY}" stroke="${color}" stroke-width="1" opacity="0.7"/>`;
+    // Body
+    paths += `<rect x="${x - candleW/2}" y="${bodyTop}" width="${candleW}" height="${bodyH}" fill="${color}" rx="1"/>`;
+
+    // Volume bar
+    const vH = (c.volume / volMax) * volH;
+    const vY = H - padB + 5 + (volH - vH);
+    paths += `<rect x="${x - Math.max(1,candleW/2-1)}" y="${vY}" width="${Math.max(1,candleW-2)}" height="${vH}" fill="${color}" opacity="0.4" rx="1"/>`;
+
+    // Trade markers from log
+    trades.forEach(t => {
+      const idx = t.candle - 1 - range.start;
+      if (idx === i) {
+        const markerY = bodyTop - 8;
+        const markerColor = t.dir === 'LONG' ? '#2979ff' : '#ff4d9e';
+        paths += `<circle cx="${x}" cy="${markerY}" r="5" fill="${markerColor}" opacity="0.9"/>`;
+      }
+    });
+  });
+
+  // Price axis labels
+  const steps = 5;
+  for (let i = 0; i <= steps; i++) {
+    const price = allLow + (i / steps) * priceRange;
+    const y = px(price);
+    paths += `<text x="${W-padR+4}" y="${y+4}" fill="#3a4555" font-size="9" font-family="monospace">$${price.toFixed(0)}</text>`;
+    paths += `<line x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}" stroke="#181c25" stroke-width="0.5"/>`;
+  }
+
+  // Current price line
+  const curr = visible[visible.length-1].close;
+  const currY = px(curr);
+  paths += `<line x1="${padL}" y1="${currY}" x2="${W-padR}" y2="${currY}" stroke="#b8ff57" stroke-width="0.8" stroke-dasharray="3,3" opacity="0.5"/>`;
+  paths += `<rect x="${W-padR}" y="${currY-9}" width="${padR-2}" height="18" fill="#b8ff57" rx="2"/>`;
+  paths += `<text x="${W-padR+4}" y="${currY+4}" fill="#040507" font-size="10" font-family="monospace" font-weight="bold">$${curr.toFixed(2)}</text>`;
+
+  svg.innerHTML = paths;
+}
+
+function bindChartNavigation() {
+  const area = document.getElementById('chartArea');
+  if (!area) return;
+
+  area.addEventListener('wheel', (event) => {
+    if (!candles.length) return;
+    event.preventDefault();
+    const rect = area.getBoundingClientRect();
+    const padL = 10;
+    const padR = 60;
+    const ratio = clamp((event.clientX - rect.left - padL) / Math.max(1, rect.width - padL - padR), 0, 1);
+    zoomChart(event.deltaY > 0 ? 1 : -1, ratio);
+  }, { passive: false });
+
+  area.addEventListener('pointerdown', (event) => {
+    if (!candles.length || event.target.closest('.chart-tools')) return;
+    event.preventDefault();
+    const range = getViewRange();
+    const W = area.clientWidth || 800;
+    dragState = {
+      x: event.clientX,
+      offset: viewOffset,
+      candlesPerPixel: Math.max(0.04, (range.end - range.start) / Math.max(260, W))
+    };
+    area.classList.add('dragging');
+    area.setPointerCapture(event.pointerId);
+    const status = document.getElementById('chartStatus');
+    if (status) status.textContent = `${sourceLabel} | Dragging view. Pull right for older candles, left for newer candles.`;
+  });
+
+  area.addEventListener('pointermove', (event) => {
+    if (!dragState) return;
+    const dx = event.clientX - dragState.x;
+    viewOffset = dragState.offset + Math.round(dx * dragState.candlesPerPixel);
+    clampView();
+    renderChart();
+    updateHUD();
+  });
+
+  function endDrag(event) {
+    if (!dragState) return;
+    dragState = null;
+    area.classList.remove('dragging');
+    try { area.releasePointerCapture(event.pointerId); } catch (error) {}
+  }
+
+  area.addEventListener('pointerup', endDrag);
+  area.addEventListener('pointercancel', endDrag);
+  area.addEventListener('pointerleave', endDrag);
+
+  window.addEventListener('keydown', (event) => {
+    if (!candles.length) return;
+    const target = event.target?.tagName;
+    if (target === 'INPUT' || target === 'SELECT' || target === 'TEXTAREA') return;
+    if (event.key === '+' || event.key === '=') zoomChart(-1);
+    if (event.key === '-' || event.key === '_') zoomChart(1);
+    if (event.key === 'ArrowLeft') panChart(5);
+    if (event.key === 'ArrowRight') panChart(-5);
+    if (event.key === '0') resetChartView();
+  });
+
+  const symbolInput = document.getElementById('symbolInput');
+  if (symbolInput) {
+    symbolInput.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        loadMarketBacktest();
+      }
+    });
+  }
+}
+
+// Initialize
+bindChartNavigation();
+newSession();
+
+// Re-render on resize
+window.addEventListener('resize', () => { if (candles.length) renderChart(); });
+</script>
+<script src="assets/daytrader-os.js?v=20260504-vercel1" defer></script>
+</body>
+</html>
+

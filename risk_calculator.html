@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Risk Calculator — Day Trader OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --panel: #161616;
+    --border: #2a2a2a;
+    --gold: #f0b429;
+    --green: #00e676;
+    --red: #ff1744;
+    --blue: #40c4ff;
+    --text: #e0e0e0;
+    --muted: #555;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .top-bar {
+    background: linear-gradient(135deg, #1a1200 0%, #0f0f0f 100%);
+    border-bottom: 2px solid var(--gold);
+    padding: 18px 40px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .top-title {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 2em;
+    color: var(--gold);
+    letter-spacing: 4px;
+  }
+
+  .top-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7em;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 0;
+    flex: 1;
+  }
+
+  .left-col {
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+  }
+
+  .right-col {
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+  }
+
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65em;
+    color: var(--gold);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .input-group {
+    margin-bottom: 18px;
+  }
+
+  .input-group label {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7em;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+
+  .input-wrapper {
+    position: relative;
+  }
+
+  .input-prefix {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: 'DM Mono', monospace;
+    color: var(--gold);
+    font-size: 0.9em;
+    pointer-events: none;
+  }
+
+  input[type="number"], input[type="range"] {
+    width: 100%;
+  }
+
+  input[type="number"] {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 12px 12px 28px;
+    border-radius: 5px;
+    font-family: 'DM Mono', monospace;
+    font-size: 1em;
+    transition: border-color 0.2s;
+    outline: none;
+    -moz-appearance: textfield;
+  }
+
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  input[type="number"]:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(240,180,41,0.1);
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    margin-top: 10px;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--gold);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(240,180,41,0.5);
+  }
+
+  .range-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65em;
+    color: var(--muted);
+    margin-top: 5px;
+  }
+
+  .risk-meter {
+    height: 8px;
+    background: var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 10px;
+  }
+
+  .risk-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.4s, background 0.4s;
+  }
+
+  /* Output cards */
+  .output-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+  }
+
+  .out-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+
+  .out-card:hover { transform: translateY(-2px); }
+
+  .out-card.primary {
+    border-color: var(--gold);
+    background: linear-gradient(135deg, rgba(240,180,41,0.08) 0%, var(--panel) 100%);
+  }
+
+  .out-card.green {
+    border-color: var(--green);
+    background: linear-gradient(135deg, rgba(0,230,118,0.08) 0%, var(--panel) 100%);
+  }
+
+  .out-card.red {
+    border-color: var(--red);
+    background: linear-gradient(135deg, rgba(255,23,68,0.08) 0%, var(--panel) 100%);
+  }
+
+  .out-card.blue {
+    border-color: var(--blue);
+    background: linear-gradient(135deg, rgba(64,196,255,0.08) 0%, var(--panel) 100%);
+  }
+
+  .out-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65em;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+
+  .out-value {
+    font-family: 'Bebas Neue', cursive;
+    font-size: 2.4em;
+    letter-spacing: 2px;
+    line-height: 1;
+    color: var(--gold);
+  }
+
+  .out-card.green .out-value { color: var(--green); }
+  .out-card.red .out-value { color: var(--red); }
+  .out-card.blue .out-value { color: var(--blue); }
+
+  .out-sub {
+    font-size: 0.75em;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  .mode-note {
+    border: 1px solid rgba(240,180,41,0.28);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 15px;
+    background: rgba(240,180,41,0.06);
+    color: #f7d47b;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.78em;
+    line-height: 1.55;
+  }
+
+  /* Trade breakdown */
+  .breakdown {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 25px;
+  }
+
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(42,42,42,0.5);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .breakdown-row:last-child { border-bottom: none; }
+
+  .breakdown-label { color: var(--muted); font-size: 0.8em; }
+  .breakdown-value { font-size: 0.9em; font-weight: 500; }
+
+  /* Scenario table */
+  .scenario-table {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .scenario-table table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .scenario-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65em;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(240,180,41,0.05);
+  }
+
+  .scenario-table td {
+    padding: 12px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8em;
+    border-bottom: 1px solid rgba(42,42,42,0.5);
+  }
+
+  .scenario-table tr:last-child td { border-bottom: none; }
+  .scenario-table tr:hover td { background: rgba(240,180,41,0.03); }
+
+  .rule-box {
+    background: linear-gradient(135deg, rgba(240,180,41,0.1) 0%, rgba(15,15,15,0) 100%);
+    border: 1px solid rgba(240,180,41,0.3);
+    border-radius: 8px;
+    padding: 20px;
+  }
+
+  .rule-title {
+    font-family: 'Bebas Neue', cursive;
+    color: var(--gold);
+    font-size: 1.2em;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+
+  .rule-line {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8em;
+    color: var(--text);
+    padding: 6px 0;
+    line-height: 1.5;
+    border-bottom: 1px solid rgba(42,42,42,0.4);
+  }
+
+  .rule-line:last-child { border-bottom: none; }
+
+  .rule-line.warn { color: #ffd166; }
+  .rule-line.bad { color: var(--red); }
+  .rule-line.good { color: var(--green); }
+  .rule-box > .rule-line { display: none; }
+  #tipsList .rule-line { display: block; }
+
+  .good { color: var(--green); }
+  .bad { color: var(--red); }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .output-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+<link rel="stylesheet" href="assets/daytrader-os.css?v=20260504-vercel1">
+</head>
+<body>
+<a class="dto-home-link" href="index.html"><span class="dto-home-mark" aria-hidden="true">&larr;</span><span>Return Home</span></a>
+
+<div class="top-bar">
+  <div>
+    <div class="top-title">RISK CALCULATOR</div>
+    <div class="top-sub">Position Size Engine — Protect Your Capital First</div>
+  </div>
+</div>
+
+<div class="layout">
+
+  <div class="left-col">
+    <div>
+      <div class="section-label">Account Settings</div>
+      <div class="input-group">
+        <label>Account Size</label>
+        <div class="input-wrapper">
+          <span class="input-prefix">$</span>
+          <input type="number" id="account" value="10000" oninput="calc()">
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Risk Per Trade — <span id="riskPctLabel">1.0%</span></label>
+        <input type="range" id="riskPct" min="0.25" max="5" step="0.25" value="1" oninput="updateRiskLabel();calc()">
+        <div class="range-labels"><span>0.25%</span><span>Safe: 1%</span><span>Risky: 5%</span></div>
+        <div class="risk-meter"><div class="risk-fill" id="riskFill"></div></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Trade Setup</div>
+      <div class="input-group">
+        <label>Entry Price</label>
+        <div class="input-wrapper">
+          <span class="input-prefix">$</span>
+          <input type="number" id="entry" value="175.00" step="0.01" oninput="calc()">
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Stop Loss Price</label>
+        <div class="input-wrapper">
+          <span class="input-prefix">$</span>
+          <input type="number" id="stop" value="172.50" step="0.01" oninput="calc()">
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Target Price</label>
+        <div class="input-wrapper">
+          <span class="input-prefix">$</span>
+          <input type="number" id="target" value="180.00" step="0.01" oninput="calc()">
+        </div>
+      </div>
+    </div>
+
+    <div class="rule-box">
+      <div class="rule-title">Tips / Trade Notes</div>
+      <div id="tipsList">
+        <div class="rule-line">Enter a setup to see sizing notes, R:R warnings, and cash/buying-power pressure.</div>
+      </div>
+      <div class="rule-line">✓ Risk 1% of account per trade</div>
+      <div class="rule-line">✓ Stop loss must be placed IMMEDIATELY</div>
+      <div class="rule-line">✓ Target must be ≥ 2x your risk</div>
+      <div class="rule-line">✓ Never move stop against you</div>
+      <div class="rule-line">✓ Max 3% account loss per day</div>
+      <div class="rule-line">✓ Daily loss limit hit → stop trading</div>
+    </div>
+  </div>
+
+  <div class="right-col">
+
+    <div>
+      <div class="section-label">Position Size Output</div>
+      <div class="mode-note" id="modeNote">Auto mode: stocks use whole shares; crypto uses fractional units.</div>
+      <div class="output-grid">
+        <div class="out-card primary">
+          <div class="out-label" id="qtyLabel">Units / Shares</div>
+          <div class="out-value" id="outShares">—</div>
+          <div class="out-sub" id="outSharesSub">Based on your risk</div>
+        </div>
+        <div class="out-card red">
+          <div class="out-label">Actual $ Risk</div>
+          <div class="out-value" id="outRisk">—</div>
+          <div class="out-sub" id="outRiskSub">If stop is hit</div>
+        </div>
+        <div class="out-card green">
+          <div class="out-label">$ Profit Target</div>
+          <div class="out-value" id="outProfit">—</div>
+          <div class="out-sub" id="outProfitSub">If target is hit</div>
+        </div>
+        <div class="out-card blue">
+          <div class="out-label">R:R Ratio</div>
+          <div class="out-value" id="outRR">—</div>
+          <div class="out-sub" id="outRRSub">Risk to Reward</div>
+        </div>
+        <div class="out-card">
+          <div class="out-label">Position Value</div>
+          <div class="out-value" id="outPosition">—</div>
+          <div class="out-sub">Total capital deployed</div>
+        </div>
+        <div class="out-card">
+          <div class="out-label">% of Account</div>
+          <div class="out-value" id="outPct">—</div>
+          <div class="out-sub">Position weight</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="breakdown">
+      <div class="section-label">Trade Breakdown</div>
+      <div class="breakdown-row">
+        <span class="breakdown-label">Entry Price</span>
+        <span class="breakdown-value" id="bEntry">—</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="breakdown-label">Stop Loss</span>
+        <span class="breakdown-value bad" id="bStop">—</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="breakdown-label">Price Risk Per Unit</span>
+        <span class="breakdown-value bad" id="bRiskPerShare">—</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="breakdown-label">Target</span>
+        <span class="breakdown-value good" id="bTarget">—</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="breakdown-label">Profit Per Unit</span>
+        <span class="breakdown-value good" id="bProfitPerShare">—</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="breakdown-label">Daily Loss Limit (3%)</span>
+        <span class="breakdown-value bad" id="bDailyLimit">—</span>
+      </div>
+      <div class="breakdown-row">
+        <span class="breakdown-label">Trades Until Daily Limit</span>
+        <span class="breakdown-value" id="bTradesLeft">—</span>
+      </div>
+    </div>
+
+    <div class="scenario-table">
+      <div style="padding:15px 20px; border-bottom: 1px solid var(--border);">
+        <div class="section-label" style="margin-bottom:0">What-If Scenarios — 5 Consecutive Trades</div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Outcome</th>
+            <th>Sequence</th>
+            <th>Net P&L</th>
+            <th>Account After</th>
+          </tr>
+        </thead>
+        <tbody id="scenarioBody"></tbody>
+      </table>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function updateRiskLabel() {
+  const v = document.getElementById('riskPct').value;
+  document.getElementById('riskPctLabel').textContent = `${parseFloat(v).toFixed(2)}%`;
+  // Update risk meter color
+  const fill = document.getElementById('riskFill');
+  const pct = (v - 0.25) / (5 - 0.25) * 100;
+  const color = v <= 1 ? '#00e676' : v <= 2 ? '#f0b429' : '#ff1744';
+  fill.style.width = `${pct}%`;
+  fill.style.background = color;
+}
+
+function calc() {
+  const account = parseFloat(document.getElementById('account').value) || 0;
+  const riskPct = parseFloat(document.getElementById('riskPct').value) / 100;
+  const entry = parseFloat(document.getElementById('entry').value) || 0;
+  const stop = parseFloat(document.getElementById('stop').value) || 0;
+  const target = parseFloat(document.getElementById('target').value) || 0;
+
+  if (!account || !entry || !stop || !target || stop === entry || target === entry) {
+    return;
+  }
+
+  const isShort = stop > entry || target < entry;
+  const dollarRisk = account * riskPct;
+  const riskPerShare = Math.abs(entry - stop);
+  const profitPerShare = isShort ? entry - target : target - entry;
+  if (profitPerShare <= 0) return;
+  const shares = Math.floor(dollarRisk / riskPerShare);
+  const totalRisk = shares * riskPerShare;
+  const totalProfit = shares * profitPerShare;
+  const rr = profitPerShare / riskPerShare;
+  const positionValue = shares * entry;
+  const positionPct = (positionValue / account) * 100;
+  const dailyLimit = account * 0.03;
+  const tradesLeft = Math.floor(dailyLimit / dollarRisk);
+
+  // Outputs
+  document.getElementById('outShares').textContent = shares.toLocaleString();
+  document.getElementById('outRisk').textContent = `$${totalRisk.toFixed(0)}`;
+  document.getElementById('outProfit').textContent = `$${totalProfit.toFixed(0)}`;
+  document.getElementById('outRR').textContent = `${rr.toFixed(2)}x`;
+  document.getElementById('outRRSub').textContent = rr >= 2 ? '✓ Good setup' : '⚠ Below 2:1 target';
+  document.getElementById('outPosition').textContent = `$${positionValue.toFixed(0)}`;
+  document.getElementById('outPct').textContent = `${positionPct.toFixed(1)}%`;
+  document.getElementById('outSharesSub').textContent = `$${dollarRisk.toFixed(0)} risked (${(riskPct*100).toFixed(2)}%)`;
+
+  // Breakdown
+  document.getElementById('bEntry').textContent = `$${entry.toFixed(2)}`;
+  document.getElementById('bStop').textContent = `$${stop.toFixed(2)}`;
+  document.getElementById('bRiskPerShare').textContent = `-$${riskPerShare.toFixed(2)}/share`;
+  document.getElementById('bTarget').textContent = `$${target.toFixed(2)}`;
+  document.getElementById('bProfitPerShare').textContent = `+$${profitPerShare.toFixed(2)}/share`;
+  document.getElementById('bDailyLimit').textContent = `-$${dailyLimit.toFixed(0)}`;
+  document.getElementById('bTradesLeft').textContent = `${tradesLeft} losing trades`;
+
+  // Scenarios
+  const scenarios = [
+    { label: '5 Wins', seq: 'W-W-W-W-W', count: [5, 0] },
+    { label: '4W / 1L', seq: 'W-W-W-W-L', count: [4, 1] },
+    { label: '3W / 2L', seq: 'W-W-W-L-L', count: [3, 2] },
+    { label: '2W / 3L', seq: 'W-W-L-L-L', count: [2, 3] },
+    { label: '1W / 4L', seq: 'W-L-L-L-L', count: [1, 4] },
+    { label: '5 Losses', seq: 'L-L-L-L-L', count: [0, 5] },
+  ];
+
+  const fmt = (n) => n >= 0 ? `<span style="color:var(--green)">+$${n.toFixed(2)}</span>` : `<span style="color:var(--red)">-$${Math.abs(n).toFixed(2)}</span>`;
+  const fmtAcc = (n) => n >= account ? `<span style="color:var(--green)">$${n.toFixed(2)}</span>` : `<span style="color:var(--red)">$${n.toFixed(2)}</span>`;
+
+  document.getElementById('scenarioBody').innerHTML = scenarios.map(s => {
+    const net = (s.count[0] * totalProfit) - (s.count[1] * totalRisk);
+    const newAcc = account + net;
+    return `<tr>
+      <td style="color:var(--gold)">${s.label}</td>
+      <td style="color:var(--muted)">${s.seq}</td>
+      <td>${fmt(net)}</td>
+      <td>${fmtAcc(newAcc)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function readLastSetup() {
+  try { return JSON.parse(localStorage.getItem('dtoLastSetup') || 'null'); }
+  catch(e) { return null; }
+}
+
+function loadSetupPrefill() {
+  const params = new URLSearchParams(location.search);
+  const saved = readLastSetup() || {};
+  const setup = { ...saved };
+  ['symbol','side','rating','entry','stop','target'].forEach(key => {
+    if (params.has(key)) setup[key] = params.get(key);
+  });
+  if (setup.entry) document.getElementById('entry').value = Number(setup.entry);
+  if (setup.stop) document.getElementById('stop').value = Number(setup.stop);
+  if (setup.target) document.getElementById('target').value = Number(setup.target);
+  const title = document.querySelector('.top-title');
+  if (title && setup.symbol) {
+    title.textContent = `RISK CALCULATOR / ${String(setup.symbol).toUpperCase()}`;
+  }
+}
+
+var currentSetup = {};
+
+function cleanSymbol(value) {
+  return String(value || '').trim().toUpperCase().replace(/[^A-Z0-9.-]/g, '');
+}
+
+function detectAssetType(symbol) {
+  const clean = cleanSymbol(symbol).replace(/[.-]/g, '');
+  const crypto = new Set(['BTC','XBT','ETH','SOL','DOGE','XRP','BNB','AVAX','LINK','SUI','PEPE','SHIB','ADA','LTC','BCH','DOT','MATIC','POL','UNI','AAVE','ATOM','NEAR','OP','ARB','FIL','ETC','TRX','XLM','HBAR','ICP','INJ','APT']);
+  if (crypto.has(clean)) return 'crypto';
+  if (/^[A-Z0-9]{2,12}(USD|USDT)$/.test(clean)) return 'crypto';
+  return 'stock';
+}
+
+function money(value, decimals = 2) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return '$--';
+  return '$' + n.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+function qtyPrecision(assetType, price) {
+  if (assetType !== 'crypto') return 0;
+  if (price >= 10000) return 6;
+  if (price >= 1) return 5;
+  return 8;
+}
+
+function fmtQty(value, assetType, price) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return '--';
+  const decimals = qtyPrecision(assetType, price);
+  return n.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
+}
+
+function updateRiskLabel() {
+  const v = Number(document.getElementById('riskPct').value) || 0;
+  setText('riskPctLabel', `${v.toFixed(2)}%`);
+  const fill = document.getElementById('riskFill');
+  const pct = ((v - 0.25) / (5 - 0.25)) * 100;
+  const color = v <= 1 ? '#00e676' : v <= 2 ? '#f0b429' : '#ff1744';
+  fill.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+  fill.style.background = color;
+}
+
+function readSetupFromUrl() {
+  const params = new URLSearchParams(location.search);
+  const saved = readLastSetup() || {};
+  const setup = { ...saved };
+  ['symbol','side','rating','entry','stop','target','support','resistance','rr','thesis'].forEach(key => {
+    if (params.has(key)) setup[key] = params.get(key);
+  });
+  return setup;
+}
+
+function loadSetupPrefill() {
+  currentSetup = readSetupFromUrl();
+  if (currentSetup.entry) document.getElementById('entry').value = Number(currentSetup.entry);
+  if (currentSetup.stop) document.getElementById('stop').value = Number(currentSetup.stop);
+  if (currentSetup.target) document.getElementById('target').value = Number(currentSetup.target);
+  const title = document.querySelector('.top-title');
+  if (title && currentSetup.symbol) {
+    title.textContent = `RISK CALCULATOR / ${cleanSymbol(currentSetup.symbol)}`;
+  }
+}
+
+function clearOutputs(message) {
+  ['outShares','outRisk','outProfit','outRR','outPosition','outPct','bEntry','bStop','bRiskPerShare','bTarget','bProfitPerShare','bDailyLimit','bTradesLeft'].forEach(id => setText(id, '--'));
+  setText('outSharesSub', 'Fix setup inputs first');
+  setText('outRiskSub', 'No valid stop');
+  setText('outProfitSub', 'No valid target');
+  setText('outRRSub', 'Risk to reward');
+  const scenarios = document.getElementById('scenarioBody');
+  if (scenarios) scenarios.innerHTML = '';
+  renderTips([{ text: message || 'Add account size, entry, stop, and a valid target to calculate risk.', type: 'bad' }]);
+}
+
+function buildSizing({ account, riskPct, entry, stop, target, symbol, side }) {
+  const assetType = detectAssetType(symbol);
+  const intendedRisk = account * riskPct;
+  const riskPerUnit = Math.abs(entry - stop);
+  const isShort = side === 'short' || stop > entry || target < entry;
+  const profitPerUnit = isShort ? entry - target : target - entry;
+  if (!account || !entry || !stop || !target || stop === entry) return { error: 'Entry, stop, and target are required, and stop cannot equal entry.' };
+  if (profitPerUnit <= 0) return { error: isShort ? 'For a short setup, target must be below entry.' : 'For a long setup, target must be above entry.' };
+  if (!riskPerUnit || !intendedRisk) return { error: 'Account size and risk percent must be above zero.' };
+
+  const rawQty = intendedRisk / riskPerUnit;
+  const decimals = qtyPrecision(assetType, entry);
+  const qty = assetType === 'crypto' ? Number(rawQty.toFixed(decimals)) : Math.floor(rawQty);
+  const cashLimitedRaw = account / entry;
+  const cashLimitedQty = assetType === 'crypto' ? Number(cashLimitedRaw.toFixed(decimals)) : Math.floor(cashLimitedRaw);
+  const actualRisk = qty * riskPerUnit;
+  const totalProfit = qty * profitPerUnit;
+  const rr = profitPerUnit / riskPerUnit;
+  const positionValue = qty * entry;
+  const positionPct = (positionValue / account) * 100;
+  const riskEfficiency = intendedRisk ? (actualRisk / intendedRisk) * 100 : 0;
+  return { assetType, intendedRisk, riskPerUnit, profitPerUnit, rawQty, qty, cashLimitedQty, actualRisk, totalProfit, rr, positionValue, positionPct, riskEfficiency, isShort };
+}
+
+function renderTips(tips) {
+  const el = document.getElementById('tipsList');
+  if (!el) return;
+  el.innerHTML = tips.map(tip => `<div class="rule-line ${tip.type || ''}">${tip.text}</div>`).join('');
+}
+
+function tipsForSizing(result, inputs) {
+  const tips = [];
+  const symbol = cleanSymbol(inputs.symbol || 'SETUP') || 'SETUP';
+  if (result.assetType === 'crypto') {
+    tips.push({ type: 'good', text: `${symbol} detected as crypto: fractional units enabled, so the risk slider can size below 1 full coin/token.` });
+  } else {
+    tips.push({ text: `${symbol} detected as stock/ETF: whole-share sizing is used, so actual risk can be below intended risk after rounding.` });
+  }
+  if (result.rr < 2) {
+    tips.push({ type: 'bad', text: `R:R is only ${result.rr.toFixed(2)}R. This setup needs a tighter stop, farther target, or a no-trade decision.` });
+  } else {
+    tips.push({ type: 'good', text: `R:R is ${result.rr.toFixed(2)}R, which clears the 2R planning threshold.` });
+  }
+  if ((inputs.riskPct * 100) > 2) {
+    tips.push({ type: 'warn', text: `Risk slider is at ${(inputs.riskPct * 100).toFixed(2)}%, which is aggressive for repeated intraday attempts.` });
+  }
+  if (result.positionValue > inputs.account) {
+    tips.push({ type: 'warn', text: `Risk-sized notional is ${money(result.positionValue)}, above the ${money(inputs.account)} account. That requires leverage, margin, or lower size.` });
+    tips.push({ text: `Cash-limited reference size is ${fmtQty(result.cashLimitedQty, result.assetType, inputs.entry)} ${result.assetType === 'crypto' ? 'units' : 'shares'}.` });
+  }
+  if (result.riskEfficiency < 85) {
+    tips.push({ type: 'warn', text: `Actual risk uses ${result.riskEfficiency.toFixed(0)}% of intended risk because of sizing constraints. The setup is under-risked versus the slider.` });
+  } else if (result.assetType === 'crypto') {
+    tips.push({ type: 'good', text: `Fractional sizing is efficient: actual risk is ${money(result.actualRisk)} vs intended ${money(result.intendedRisk)}.` });
+  }
+  if (inputs.thesis) {
+    tips.push({ text: `Imported thesis: ${String(inputs.thesis).slice(0, 150)}${String(inputs.thesis).length > 150 ? '...' : ''}` });
+  }
+  return tips.slice(0, 6);
+}
+
+function calc() {
+  const account = Number(document.getElementById('account').value) || 0;
+  const riskPct = (Number(document.getElementById('riskPct').value) || 0) / 100;
+  const entry = Number(document.getElementById('entry').value) || 0;
+  const stop = Number(document.getElementById('stop').value) || 0;
+  const target = Number(document.getElementById('target').value) || 0;
+  const symbol = cleanSymbol(currentSetup.symbol || new URLSearchParams(location.search).get('symbol') || 'STOCK');
+  const side = String(currentSetup.side || '').toLowerCase();
+  const result = buildSizing({ account, riskPct, entry, stop, target, symbol, side });
+
+  if (result.error) {
+    clearOutputs(result.error);
+    return;
+  }
+
+  const unitWord = result.assetType === 'crypto' ? 'units' : 'shares';
+  const dailyLimit = account * 0.03;
+  const tradesLeft = result.intendedRisk ? Math.floor(dailyLimit / result.intendedRisk) : 0;
+  const cashPressure = result.positionValue > account;
+
+  setText('qtyLabel', result.assetType === 'crypto' ? 'Crypto Units' : 'Shares to Buy');
+  setText('modeNote', `${symbol} detected as ${result.assetType}. ${result.assetType === 'crypto' ? 'Fractional units enabled.' : 'Whole-share rounding enabled.'} Direction: ${result.isShort ? 'SHORT' : 'LONG'}.`);
+  setText('outShares', fmtQty(result.qty, result.assetType, entry));
+  setText('outRisk', money(result.actualRisk));
+  setText('outProfit', money(result.totalProfit));
+  setText('outRR', `${result.rr.toFixed(2)}x`);
+  setText('outPosition', money(result.positionValue, 0));
+  setText('outPct', `${result.positionPct.toFixed(1)}%`);
+  setText('outSharesSub', `${money(result.intendedRisk)} intended risk / ${fmtQty(result.rawQty, result.assetType, entry)} raw ${unitWord}`);
+  setText('outRiskSub', `${result.riskEfficiency.toFixed(0)}% of slider risk used`);
+  setText('outProfitSub', `If target is hit before fees/slippage`);
+  setText('outRRSub', result.rr >= 2 ? 'Good setup by R:R' : 'Below 2R target');
+  setText('bEntry', money(entry));
+  setText('bStop', money(stop));
+  setText('bRiskPerShare', `-${money(result.riskPerUnit).replace('$','$')}/${unitWord.slice(0, -1) || 'unit'}`);
+  setText('bTarget', money(target));
+  setText('bProfitPerShare', `+${money(result.profitPerUnit).replace('$','$')}/${unitWord.slice(0, -1) || 'unit'}`);
+  setText('bDailyLimit', `-${money(dailyLimit).replace('$','$')}`);
+  setText('bTradesLeft', `${tradesLeft} slider-risk losses`);
+
+  const positionCard = document.getElementById('outPosition')?.closest('.out-card');
+  if (positionCard) positionCard.style.borderColor = cashPressure ? 'var(--red)' : 'var(--border)';
+
+  renderTips(tipsForSizing(result, { account, riskPct, entry, symbol, thesis: currentSetup.thesis }));
+
+  const scenarios = [
+    { label: '5 Wins', seq: 'W-W-W-W-W', count: [5, 0] },
+    { label: '4W / 1L', seq: 'W-W-W-W-L', count: [4, 1] },
+    { label: '3W / 2L', seq: 'W-W-W-L-L', count: [3, 2] },
+    { label: '2W / 3L', seq: 'W-W-L-L-L', count: [2, 3] },
+    { label: '1W / 4L', seq: 'W-L-L-L-L', count: [1, 4] },
+    { label: '5 Losses', seq: 'L-L-L-L-L', count: [0, 5] },
+  ];
+  const fmt = n => n >= 0 ? `<span style="color:var(--green)">+${money(n)}</span>` : `<span style="color:var(--red)">-${money(Math.abs(n)).replace('$','')}</span>`;
+  const fmtAcc = n => n >= account ? `<span style="color:var(--green)">${money(n)}</span>` : `<span style="color:var(--red)">${money(n)}</span>`;
+  document.getElementById('scenarioBody').innerHTML = scenarios.map(s => {
+    const net = (s.count[0] * result.totalProfit) - (s.count[1] * result.actualRisk);
+    const newAcc = account + net;
+    return `<tr>
+      <td style="color:var(--gold)">${s.label}</td>
+      <td style="color:var(--muted)">${s.seq}</td>
+      <td>${fmt(net)}</td>
+      <td>${fmtAcc(newAcc)}</td>
+    </tr>`;
+  }).join('');
+}
+
+loadSetupPrefill();
+updateRiskLabel();
+calc();
+</script>
+<script src="assets/daytrader-os.js?v=20260504-vercel1" defer></script>
+</body>
+</html>
+

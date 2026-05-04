@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day Trader Chart Analyzer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier Prime', monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #e0e0e0;
+            overflow-x: hidden;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #00d4ff;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #00d4ff;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+            margin-bottom: 5px;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1200px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-section {
+            background: rgba(20, 25, 50, 0.8);
+            border: 1px solid #00d4ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.1);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            flex: 1;
+            padding: 12px 15px;
+            background: rgba(40, 50, 80, 0.6);
+            border: 1px solid #00d4ff;
+            color: #e0e0e0;
+            border-radius: 5px;
+            font-family: 'Courier Prime', monospace;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            background: rgba(40, 50, 80, 1);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
+        }
+
+        select {
+            max-width: 170px;
+            cursor: pointer;
+        }
+
+        button {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
+            color: #0a0e27;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Courier Prime', monospace;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .chart-container {
+            background: rgba(20, 25, 50, 0.8);
+            border: 1px solid #00d4ff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.1);
+        }
+
+        #chartCanvas {
+            display: block;
+            max-width: 100%;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-panel {
+            background: rgba(20, 25, 50, 0.8);
+            border: 1px solid #00d4ff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.1);
+        }
+
+        .panel-title {
+            color: #00d4ff;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+            font-size: 0.9em;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: #999;
+        }
+
+        .info-value {
+            color: #00d4ff;
+            font-weight: bold;
+        }
+
+        .checklist {
+            list-style: none;
+        }
+
+        .checklist li {
+            padding: 10px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 0.9em;
+            line-height: 1.4;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .checklist li:last-child {
+            border-bottom: none;
+        }
+
+        .checklist input[type="checkbox"] {
+            position: absolute;
+            left: 0;
+            top: 12px;
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+            accent-color: #00d4ff;
+        }
+
+        .checklist li.checked {
+            color: #666;
+            text-decoration: line-through;
+        }
+
+        .status {
+            padding: 12px;
+            border-radius: 5px;
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .status.ready {
+            background: rgba(0, 212, 100, 0.2);
+            color: #00d464;
+            border: 1px solid #00d464;
+        }
+
+        .status.pending {
+            background: rgba(255, 150, 0, 0.2);
+            color: #ff9600;
+            border: 1px solid #ff9600;
+        }
+
+        .status.error {
+            background: rgba(255, 50, 50, 0.2);
+            color: #ff3232;
+            border: 1px solid #ff3232;
+        }
+
+        .price-display {
+            font-size: 1.4em;
+            color: #00d4ff;
+            margin: 15px 0;
+            font-weight: bold;
+        }
+
+        .support-resistance {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(0, 212, 255, 0.2);
+        }
+
+        .sr-item {
+            padding: 8px;
+            background: rgba(0, 212, 255, 0.1);
+            margin: 8px 0;
+            border-left: 3px solid #00d4ff;
+            font-size: 0.85em;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #00d4ff;
+        }
+
+        .spinner {
+            border: 3px solid rgba(0, 212, 255, 0.2);
+            border-top: 3px solid #00d4ff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background: rgba(255, 50, 50, 0.2);
+            border: 1px solid #ff3232;
+            color: #ff9999;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .info-message {
+            background: rgba(0, 212, 255, 0.15);
+            border: 1px solid #00d4ff;
+            color: #b3e5ff;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .volume-panel {
+            margin-top: 20px;
+            background: rgba(20, 25, 50, 0.86);
+            border: 1px solid rgba(0, 212, 255, 0.7);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.12);
+        }
+
+        .volume-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .volume-score {
+            min-width: 160px;
+            border: 1px solid rgba(0, 212, 255, 0.35);
+            border-radius: 8px;
+            padding: 14px;
+            background: rgba(8, 13, 25, 0.86);
+            text-align: center;
+        }
+
+        .volume-score strong {
+            display: block;
+            color: #fff;
+            font-size: 2.4em;
+            line-height: 1;
+        }
+
+        .volume-score span {
+            display: block;
+            margin-top: 6px;
+            color: #00d4ff;
+            font-size: 0.72em;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .volume-meter {
+            height: 9px;
+            background: rgba(179, 229, 255, 0.12);
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .volume-meter > div {
+            height: 100%;
+            width: 50%;
+            background: #ff9600;
+            transition: width 0.25s ease;
+        }
+
+        .volume-grid,
+        .hedge-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .volume-stat,
+        .hedge-card {
+            border: 1px solid rgba(0, 212, 255, 0.18);
+            border-radius: 6px;
+            background: rgba(8, 13, 25, 0.74);
+            padding: 12px;
+        }
+
+        .volume-stat span,
+        .hedge-card label {
+            display: block;
+            color: #8aa6c7;
+            font-size: 0.72em;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            margin-bottom: 7px;
+        }
+
+        .volume-stat strong,
+        .hedge-card strong {
+            display: block;
+            color: #fff;
+            font-size: 1.05em;
+        }
+
+        .hedge-planner {
+            margin-top: 16px;
+            border-top: 1px solid rgba(0, 212, 255, 0.2);
+            padding-top: 16px;
+        }
+
+        .hedge-inputs {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 10px;
+            margin: 12px 0;
+        }
+
+        .hedge-inputs .field {
+            display: grid;
+            gap: 7px;
+        }
+
+        .hedge-inputs label {
+            color: #8aa6c7;
+            font-size: 0.72em;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .hedge-inputs select,
+        .hedge-inputs input[type="number"] {
+            max-width: none;
+        }
+
+        .hedge-output {
+            margin-top: 12px;
+            color: #b3e5ff;
+            line-height: 1.55;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 900px) {
+            .input-group,
+            .volume-head,
+            .volume-grid,
+            .hedge-grid,
+            .hedge-inputs {
+                grid-template-columns: 1fr;
+                flex-direction: column;
+            }
+
+            select { max-width: none; }
+        }
+</style>
+<link rel="stylesheet" href="assets/daytrader-os.css?v=20260504-vercel1">
+</head>
+<body>
+    <a class="dto-home-link" href="index.html"><span class="dto-home-mark" aria-hidden="true">&larr;</span><span>Return Home</span></a>
+    <div class="container">
+        <header>
+            <h1>📊 DAY TRADER ANALYZER</h1>
+            <p class="subtitle">Enter a ticker • Analyze the chart • Run your checklist • Execute</p>
+        </header>
+
+        <div class="input-section">
+            <div class="input-group">
+                <input 
+                    type="text" 
+                    id="tickerInput" 
+                    placeholder="Enter ticker (e.g., AAPL, TSLA, NVDA)" 
+                    autocomplete="off"
+                >
+                <select id="intervalSelect" aria-label="Candle interval">
+                    <option value="1m">1m intraday</option>
+                    <option value="5m" selected>5m intraday</option>
+                    <option value="15m">15m swing</option>
+                    <option value="1h">1h context</option>
+                </select>
+                <button onclick="loadChart()">LOAD CHART</button>
+            </div>
+            <div id="statusMessage"></div>
+        </div>
+
+        <div class="content">
+            <div>
+                <div class="chart-container">
+                    <canvas id="chartCanvas"></canvas>
+                </div>
+                <div class="volume-panel" id="volumePanel">
+                    <div class="volume-head">
+                        <div>
+                            <div class="panel-title">Intraday Volume Hedge Index</div>
+                            <div style="color:#b3e5ff;font-size:0.9em;line-height:1.5;">Latest candle volume, relative volume, VWAP pressure, and price/volume flow for options hedge planning. This is a planning tool, not an order signal.</div>
+                        </div>
+                        <div class="volume-score">
+                            <strong id="vhiScore">--</strong>
+                            <span id="vhiState">Awaiting ticker</span>
+                            <div class="volume-meter"><div id="vhiFill"></div></div>
+                        </div>
+                    </div>
+                    <div class="volume-grid">
+                        <div class="volume-stat"><span>Relative Volume</span><strong id="relVolume">--</strong></div>
+                        <div class="volume-stat"><span>VWAP Distance</span><strong id="vwapDistance">--</strong></div>
+                        <div class="volume-stat"><span>Flow Bias</span><strong id="flowBias">--</strong></div>
+                        <div class="volume-stat"><span>Range Expansion</span><strong id="rangeExpansion">--</strong></div>
+                        <div class="volume-stat"><span>Latest Volume</span><strong id="latestVolume">--</strong></div>
+                        <div class="volume-stat"><span>5 Candle Volume</span><strong id="volumeTrend">--</strong></div>
+                        <div class="volume-stat"><span>VWAP</span><strong id="vwapLevel">--</strong></div>
+                        <div class="volume-stat"><span>Hedge Bias</span><strong id="hedgeBias">--</strong></div>
+                    </div>
+                    <div class="hedge-planner">
+                        <div class="panel-title">Options Hedge Planner</div>
+                        <div class="hedge-inputs">
+                            <div class="field">
+                                <label>Trade Side</label>
+                                <select id="hedgeSide" onchange="estimateHedge()">
+                                    <option value="long">Long shares/calls</option>
+                                    <option value="short">Short shares/puts</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label>Share Exposure</label>
+                                <input type="number" id="hedgeShares" value="100" min="1" step="1" oninput="estimateHedge()">
+                            </div>
+                            <div class="field">
+                                <label>Hedge Percent</label>
+                                <input type="number" id="hedgePct" value="50" min="1" max="100" step="1" oninput="estimateHedge()">
+                            </div>
+                            <div class="field">
+                                <label>Option Delta</label>
+                                <input type="number" id="optionDelta" value="0.35" min="0.05" max="1" step="0.05" oninput="estimateHedge()">
+                            </div>
+                            <div class="field">
+                                <label>&nbsp;</label>
+                                <button onclick="estimateHedge()">ESTIMATE</button>
+                            </div>
+                        </div>
+                        <div class="hedge-grid">
+                            <div class="hedge-card"><label>Paper Hedge</label><strong id="hedgeInstrument">--</strong></div>
+                            <div class="hedge-card"><label>Contracts</label><strong id="hedgeContracts">--</strong></div>
+                            <div class="hedge-card"><label>Delta Covered</label><strong id="hedgeDelta">--</strong></div>
+                            <div class="hedge-card"><label>Trigger</label><strong id="hedgeTrigger">--</strong></div>
+                        </div>
+                        <div class="hedge-output" id="hedgePlan">Load a ticker to build a volume-aware paper hedge plan.</div>
+                    </div>
+                </div>
+                <div class="info-message" style="margin-top: 20px;">
+                    <strong>💡 Pro Tip:</strong> Look for candles that close near highs (bullish) or lows (bearish). Watch for rejections at support/resistance lines. Volume confirmation matters.
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="sidebar-panel">
+                    <div class="panel-title">📈 Stock Info</div>
+                    <div id="stockInfo">
+                        <div class="info-row">
+                            <span class="info-label">Ticker</span>
+                            <span class="info-value" id="tickerDisplay">—</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Current</span>
+                            <span class="info-value" id="priceDisplay">—</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">High (14d)</span>
+                            <span class="info-value" id="highDisplay">—</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Low (14d)</span>
+                            <span class="info-value" id="lowDisplay">—</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Volatility</span>
+                            <span class="info-value" id="volatilityDisplay">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-panel">
+                    <div class="panel-title">🎯 Setup Checklist</div>
+                    <div id="setupStatus" class="status pending" style="display: none;"></div>
+                    <ul class="checklist" id="checklist">
+                        <li>
+                            <input type="checkbox">
+                            Price above 20-day moving average
+                        </li>
+                        <li>
+                            <input type="checkbox">
+                            Support level identified
+                        </li>
+                        <li>
+                            <input type="checkbox">
+                            Resistance level identified
+                        </li>
+                        <li>
+                            <input type="checkbox">
+                            Clear entry signal (breakout/bounce)
+                        </li>
+                        <li>
+                            <input type="checkbox">
+                            Relative volume confirms the move
+                        </li>
+                        <li>
+                            <input type="checkbox">
+                            Stop loss placement clear
+                        </li>
+                        <li>
+                            <input type="checkbox">
+                            Risk-to-reward ratio 1:2+
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="sidebar-panel">
+                    <div class="panel-title">⚡ Quick Rules</div>
+                    <div style="font-size: 0.85em; line-height: 1.6; color: #b3e5ff;">
+                        <strong style="color: #00d4ff;">Entry:</strong> Price breaks above resistance OR bounces off support<br><br>
+                        <strong style="color: #00d4ff;">Stop Loss:</strong> 1-2% below entry<br><br>
+                        <strong style="color: #00d4ff;">Target:</strong> 2-3% above entry (min)<br><br>
+                        <strong style="color: #00d4ff;">Exit:</strong> Target hit OR stop loss triggered
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let chart = null;
+        let currentVolumeContext = null;
+
+        const CRYPTO_DATA = {
+            BTC: "BTCUSDT", BITCOIN: "BTCUSDT", ETH: "ETHUSDT", ETHEREUM: "ETHUSDT",
+            SOL: "SOLUSDT", SOLANA: "SOLUSDT", DOGE: "DOGEUSDT", XRP: "XRPUSDT",
+            BNB: "BNBUSDT", AVAX: "AVAXUSDT", LINK: "LINKUSDT", SUI: "SUIUSDT",
+            PEPE: "PEPEUSDT", SHIB: "SHIBUSDT", ADA: "ADAUSDT", LTC: "LTCUSDT"
+        };
+
+        function cleanSymbol(value) {
+            return String(value || "").trim().toUpperCase().replace(/[^A-Z0-9.^-]/g, "") || "AAPL";
+        }
+
+        function cryptoPairFor(value) {
+            const key = cleanSymbol(value).replace(/[-^]/g, "");
+            if (CRYPTO_DATA[key]) return CRYPTO_DATA[key];
+            if (/^[A-Z0-9]{2,12}USDT$/.test(key)) return key;
+            if (/^[A-Z0-9]{2,12}USD$/.test(key)) return key.replace(/USD$/, "USDT");
+            return null;
+        }
+
+        function cryptoBaseFor(value) {
+            const pair = cryptoPairFor(value);
+            return pair ? pair.replace(/USDT$/, "") : null;
+        }
+
+        function compactNumber(value) {
+            const n = Number(value);
+            if (!Number.isFinite(n)) return "--";
+            return Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(n);
+        }
+
+        function money(value) {
+            const n = Number(value);
+            if (!Number.isFinite(n)) return "$--";
+            return "$" + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: n >= 1 ? 2 : 6 });
+        }
+
+        function avg(values) {
+            const nums = values.filter(Number.isFinite);
+            return nums.length ? nums.reduce((sum, value) => sum + value, 0) / nums.length : null;
+        }
+
+        function clamp(value, min, max) {
+            return Math.max(min, Math.min(max, value));
+        }
+
+        async function fetchJson(url, label = "feed") {
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 8500);
+            try {
+                const response = await fetch(url, { signal: controller.signal });
+                if (!response.ok) throw new Error(`${label} returned ${response.status}`);
+                return await response.json();
+            } finally {
+                clearTimeout(timeout);
+            }
+        }
+
+        async function fetchPublicApiJson(path, label = "public API") {
+            const cleanPath = String(path || "").replace(/^\/+/, "");
+            const urls = [`/api/${cleanPath}`, `/.netlify/functions/${cleanPath}`];
+            let lastError = null;
+            for (const url of urls) {
+                try {
+                    return await fetchJson(url, label);
+                } catch (error) {
+                    lastError = error;
+                }
+            }
+            throw lastError || new Error(`${label} unavailable`);
+        }
+
+        function publicCandleTime(value) {
+            if (!value) return null;
+            const numeric = Number(value);
+            if (Number.isFinite(numeric)) return new Date(numeric > 100000000000 ? numeric : numeric * 1000);
+            const parsed = new Date(value);
+            return Number.isNaN(parsed.getTime()) ? null : parsed;
+        }
+
+        async function fetchPublicCandles(symbol) {
+            if (!/^https?:$/.test(location.protocol)) throw new Error("Public server API requires hosted mode");
+            const data = await fetchPublicApiJson(`analyze?symbol=${encodeURIComponent(cleanSymbol(symbol))}`, "public candle feed");
+            const candles = (data?.candles || []).map(candle => ({
+                time: publicCandleTime(candle.time),
+                open: Number(candle.open),
+                high: Number(candle.high),
+                low: Number(candle.low),
+                close: Number(candle.close),
+                volume: Number(candle.volume)
+            })).filter(candle => Number.isFinite(candle.close) && Number.isFinite(candle.high) && Number.isFinite(candle.low));
+            if (!candles.length) throw new Error(data?.error || "Public candle feed returned no candles");
+            return { candles, source: data?.candleSource || "Public server candle feed" };
+        }
+
+        function marketProxySources(url, label) {
+            return [
+                { url, label: `${label} direct` },
+                { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`, label: `${label} AllOrigins` },
+                { url: `https://corsproxy.io/?${encodeURIComponent(url)}`, label: `${label} CORS proxy` },
+                { url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`, label: `${label} CodeTabs` }
+            ];
+        }
+
+        function yahooRangeFor(interval) {
+            if (interval === "1m") return "1d";
+            if (interval === "5m") return "5d";
+            if (interval === "15m") return "5d";
+            return "1mo";
+        }
+
+        function parseYahooCandles(data) {
+            const result = data.chart?.result?.[0];
+            const quote = result?.indicators?.quote?.[0];
+            if (!quote?.close?.length) throw new Error("No candles returned");
+            return quote.close.map((close, index) => ({
+                time: result.timestamp?.[index] ? new Date(result.timestamp[index] * 1000) : null,
+                open: Number(quote.open?.[index]),
+                high: Number(quote.high?.[index]),
+                low: Number(quote.low?.[index]),
+                close: Number(close),
+                volume: Number(quote.volume?.[index])
+            })).filter(candle => Number.isFinite(candle.close) && Number.isFinite(candle.high) && Number.isFinite(candle.low));
+        }
+
+        async function fetchStockCandles(symbol, interval) {
+            const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${yahooRangeFor(interval)}&interval=${interval}&includePrePost=true`;
+            let lastError = null;
+            for (const source of marketProxySources(yahooUrl, "Yahoo candles")) {
+                try {
+                    const candles = parseYahooCandles(await fetchJson(source.url, source.label));
+                    if (candles.length) return { candles, source: source.label };
+                } catch (error) {
+                    lastError = error;
+                }
+            }
+            throw lastError || new Error("Stock candle feed unavailable");
+        }
+
+        async function fetchCryptoCandles(symbol, interval) {
+            const pair = cryptoPairFor(symbol);
+            const base = cryptoBaseFor(symbol);
+            const binanceInterval = interval === "1m" ? "1m" : interval === "15m" ? "15m" : interval === "1h" ? "1h" : "5m";
+            const urls = [
+                `https://data-api.binance.vision/api/v3/klines?symbol=${pair}&interval=${binanceInterval}&limit=160`,
+                `https://api.binance.us/api/v3/klines?symbol=${pair}&interval=${binanceInterval}&limit=160`,
+                `https://api.binance.com/api/v3/klines?symbol=${pair}&interval=${binanceInterval}&limit=160`
+            ];
+            for (const url of urls) {
+                try {
+                    const rows = await fetchJson(url, "crypto candles");
+                    const candles = rows.map(row => ({
+                        time: new Date(Number(row[0])),
+                        open: Number(row[1]),
+                        high: Number(row[2]),
+                        low: Number(row[3]),
+                        close: Number(row[4]),
+                        volume: Number(row[5])
+                    })).filter(candle => Number.isFinite(candle.close) && Number.isFinite(candle.high) && Number.isFinite(candle.low));
+                    if (candles.length) return { candles, source: "Binance candle feed" };
+                } catch (error) {}
+            }
+            if (base) {
+                const granularity = interval === "1m" ? 60 : interval === "15m" ? 900 : interval === "1h" ? 3600 : 300;
+                const rows = await fetchJson(`https://api.exchange.coinbase.com/products/${base}-USD/candles?granularity=${granularity}`, "Coinbase candles");
+                const candles = rows.map(row => ({
+                    time: new Date(Number(row[0]) * 1000),
+                    low: Number(row[1]),
+                    high: Number(row[2]),
+                    open: Number(row[3]),
+                    close: Number(row[4]),
+                    volume: Number(row[5])
+                })).filter(candle => Number.isFinite(candle.close) && Number.isFinite(candle.high) && Number.isFinite(candle.low)).sort((a, b) => a.time - b.time).slice(-160);
+                if (candles.length) return { candles, source: "Coinbase candle feed" };
+            }
+            throw new Error("Crypto candle feed unavailable");
+        }
+
+        async function fetchCandles(symbol, interval) {
+            const clean = cleanSymbol(symbol);
+            try {
+                return await fetchPublicCandles(clean);
+            } catch (error) {}
+            if (cryptoPairFor(clean)) return fetchCryptoCandles(clean, interval);
+            return fetchStockCandles(clean, interval);
+        }
+
+        function generateMockData(days = 30) {
+            let data = [];
+            let basePrice = 100 + Math.random() * 100;
+            
+            for (let i = 0; i < days; i++) {
+                const change = (Math.random() - 0.5) * 4;
+                const open = basePrice;
+                const close = basePrice + change;
+                const high = Math.max(open, close) + Math.random() * 2;
+                const low = Math.min(open, close) - Math.random() * 2;
+                
+                data.push({
+                    time: new Date(Date.now() - (days - i) * 5 * 60 * 1000),
+                    open: parseFloat(open.toFixed(2)),
+                    close: parseFloat(close.toFixed(2)),
+                    high: parseFloat(high.toFixed(2)),
+                    low: parseFloat(low.toFixed(2)),
+                    volume: Math.round(800000 + Math.random() * 1800000)
+                });
+                
+                basePrice = close;
+            }
+            return data;
+        }
+
+        function calculateMovingAverage(data, period) {
+            return data.map((_, i) => {
+                if (i < period - 1) return null;
+                const sum = data.slice(i - period + 1, i + 1)
+                    .reduce((acc, candle) => acc + candle.close, 0);
+                return parseFloat((sum / period).toFixed(2));
+            });
+        }
+
+        function findSupportResistance(data) {
+            const closes = data.map(d => d.close);
+            const highs = data.map(d => d.high);
+            const lows = data.map(d => d.low);
+
+            const avgHigh = highs.reduce((a, b) => a + b) / highs.length;
+            const avgLow = lows.reduce((a, b) => a + b) / lows.length;
+            const resistance = Math.max(...highs);
+            const support = Math.min(...lows);
+
+            return { support, resistance };
+        }
+
+        function calculateVwap(data) {
+            const totals = data.reduce((acc, candle) => {
+                const volume = Number(candle.volume) || 0;
+                const typical = ((Number(candle.high) || candle.close) + (Number(candle.low) || candle.close) + candle.close) / 3;
+                acc.priceVolume += typical * volume;
+                acc.volume += volume;
+                return acc;
+            }, { priceVolume: 0, volume: 0 });
+            return totals.volume ? totals.priceVolume / totals.volume : null;
+        }
+
+        function calculateVolumeIndex(data, ticker, source) {
+            const recent = data.slice(-80);
+            const last = recent[recent.length - 1];
+            const prev = recent[recent.length - 2] || last;
+            const volumes = recent.map(c => Number(c.volume)).filter(Number.isFinite);
+            const avgVol20 = avg(volumes.slice(-25, -1)) || avg(volumes) || 0;
+            const avgVol5 = avg(volumes.slice(-5)) || 0;
+            const priorVol20 = avg(volumes.slice(-30, -5)) || avgVol20 || 1;
+            const latestVolume = Number(last.volume) || 0;
+            const relVolume = avgVol20 ? latestVolume / avgVol20 : 1;
+            const volumeTrend = priorVol20 ? avgVol5 / priorVol20 : 1;
+            const upVolume = recent.filter(c => c.close >= c.open).reduce((sum, c) => sum + (Number(c.volume) || 0), 0);
+            const downVolume = recent.filter(c => c.close < c.open).reduce((sum, c) => sum + (Number(c.volume) || 0), 0);
+            const flowRatio = downVolume ? upVolume / downVolume : upVolume ? 3 : 1;
+            const vwap = calculateVwap(recent);
+            const vwapDistance = vwap ? ((last.close - vwap) / vwap) * 100 : 0;
+            const ranges = recent.map(c => Math.abs(c.high - c.low)).filter(Number.isFinite);
+            const rangeExpansion = (avg(ranges.slice(-5)) || 0) / (avg(ranges.slice(-30, -5)) || avg(ranges) || 1);
+            const priceChange = prev.close ? ((last.close - prev.close) / prev.close) * 100 : 0;
+
+            let score = 42;
+            score += clamp((relVolume - 1) * 24, -14, 28);
+            score += clamp((volumeTrend - 1) * 18, -10, 18);
+            score += clamp((rangeExpansion - 1) * 14, -8, 16);
+            score += clamp(Math.abs(vwapDistance) * 1.8, 0, 14);
+            score += Math.abs(priceChange) > 0.35 ? 6 : 0;
+            score = Math.round(clamp(score, 5, 95));
+
+            const flowBias = vwapDistance > 0.15 && flowRatio > 1.1 ? "Bullish volume pressure" : vwapDistance < -0.15 && flowRatio < 0.9 ? "Bearish volume pressure" : "Mixed / two-way flow";
+            const state = score >= 75 ? "Hot volume" : score >= 55 ? "Active" : score >= 35 ? "Normal" : "Quiet";
+            const hedgeBias = score >= 70
+                ? "Hedge active intraday swings"
+                : score >= 50
+                    ? "Use conditional hedge triggers"
+                    : "Hedge only if level breaks";
+
+            return {
+                ticker,
+                source,
+                price: last.close,
+                latestVolume,
+                avgVol20,
+                relVolume,
+                volumeTrend,
+                flowRatio,
+                flowBias,
+                vwap,
+                vwapDistance,
+                rangeExpansion,
+                priceChange,
+                score,
+                state,
+                hedgeBias,
+                updatedAt: new Date()
+            };
+        }
+
+        function renderVolumeIndex(context) {
+            currentVolumeContext = context;
+            const scoreColor = context.score >= 75 ? "#ff3232" : context.score >= 55 ? "#ff9600" : "#00d4ff";
+            document.getElementById("vhiScore").textContent = context.score;
+            document.getElementById("vhiState").textContent = context.state;
+            document.getElementById("vhiFill").style.width = `${context.score}%`;
+            document.getElementById("vhiFill").style.background = scoreColor;
+            document.getElementById("relVolume").textContent = `${context.relVolume.toFixed(2)}x avg`;
+            document.getElementById("vwapDistance").textContent = `${context.vwapDistance >= 0 ? "+" : ""}${context.vwapDistance.toFixed(2)}%`;
+            document.getElementById("flowBias").textContent = context.flowBias;
+            document.getElementById("rangeExpansion").textContent = `${context.rangeExpansion.toFixed(2)}x`;
+            document.getElementById("latestVolume").textContent = compactNumber(context.latestVolume);
+            document.getElementById("volumeTrend").textContent = `${context.volumeTrend.toFixed(2)}x baseline`;
+            document.getElementById("vwapLevel").textContent = money(context.vwap);
+            document.getElementById("hedgeBias").textContent = context.hedgeBias;
+            estimateHedge();
+        }
+
+        function estimateHedge() {
+            const shares = Number(document.getElementById("hedgeShares")?.value) || 0;
+            const hedgePct = clamp(Number(document.getElementById("hedgePct")?.value) || 0, 0, 100);
+            const delta = clamp(Math.abs(Number(document.getElementById("optionDelta")?.value) || 0.35), 0.05, 1);
+            const side = document.getElementById("hedgeSide")?.value || "long";
+            const protectedShares = shares * (hedgePct / 100);
+            const contracts = protectedShares ? Math.ceil(protectedShares / (delta * 100)) : 0;
+            const hedgeType = side === "long" ? "protective put" : "protective call";
+            const deltaCovered = contracts * delta * 100;
+            const context = currentVolumeContext;
+            const trigger = !context ? "--" : context.score >= 70 ? "Immediate review" : context.score >= 50 ? "Level break" : "Wait";
+
+            document.getElementById("hedgeInstrument").textContent = hedgeType.toUpperCase();
+            document.getElementById("hedgeContracts").textContent = contracts ? contracts.toLocaleString() : "--";
+            document.getElementById("hedgeDelta").textContent = contracts ? `${Math.round(deltaCovered)} shares` : "--";
+            document.getElementById("hedgeTrigger").textContent = trigger;
+
+            if (!context) {
+                document.getElementById("hedgePlan").textContent = "Load a ticker to build a volume-aware paper hedge plan.";
+                return;
+            }
+
+            const directionText = side === "long"
+                ? "If you are long the underlying or calls, the paper hedge is downside protection with puts."
+                : "If you are short the underlying or holding puts, the paper hedge is upside protection with calls.";
+            const pressureText = context.flowBias.includes("Bullish")
+                ? "Bullish volume pressure means shorts need faster upside protection, while longs can trail protection below VWAP or support."
+                : context.flowBias.includes("Bearish")
+                    ? "Bearish volume pressure means longs need faster downside protection, while shorts can trail protection above VWAP or resistance."
+                    : "Mixed flow means avoid over-hedging until price accepts above or below VWAP with volume.";
+
+            document.getElementById("hedgePlan").innerHTML =
+                `${directionText} For ${shares.toLocaleString()} shares at ${hedgePct}% coverage and ${delta.toFixed(2)} delta, the paper estimate is <strong>${contracts}</strong> ${hedgeType} contract(s), covering roughly <strong>${Math.round(deltaCovered)}</strong> shares of delta.<br><br>` +
+                `Volume Hedge Index is <strong>${context.score}/100 (${context.state})</strong>. ${pressureText} Check option spread, implied volatility, expiration, and liquidity manually before using any real-money strategy.`;
+        }
+
+        async function loadChart() {
+            const ticker = cleanSymbol(document.getElementById('tickerInput').value);
+            const interval = document.getElementById('intervalSelect').value;
+            
+            if (!ticker) {
+                showError('Please enter a ticker symbol');
+                return;
+            }
+
+            showLoading();
+            try {
+                let data;
+                let source;
+                try {
+                    const result = await fetchCandles(ticker, interval);
+                    data = result.candles.slice(-120);
+                    source = result.source;
+                } catch (error) {
+                    data = generateMockData(80);
+                    source = "local fallback";
+                    showError(`Live candle feed did not respond for ${ticker}; showing fallback structure. Try refresh or a larger ticker.`);
+                }
+
+                const ma20 = calculateMovingAverage(data, 20);
+                const { support, resistance } = findSupportResistance(data);
+                const closes = data.map(d => d.close);
+                const returns = [];
+                for (let i = 1; i < closes.length; i++) {
+                    returns.push((closes[i] - closes[i - 1]) / closes[i - 1] * 100);
+                }
+                const volatility = Math.sqrt(returns.reduce((sum, r) => sum + r * r, 0) / Math.max(returns.length, 1)).toFixed(2);
+                const currentPrice = closes[closes.length - 1];
+                const dayHigh = Math.max(...data.slice(-30).map(d => d.high));
+                const dayLow = Math.min(...data.slice(-30).map(d => d.low));
+                const volumeContext = calculateVolumeIndex(data, ticker, source);
+
+                document.getElementById('tickerDisplay').textContent = ticker;
+                document.getElementById('priceDisplay').textContent = money(currentPrice);
+                document.getElementById('highDisplay').textContent = money(dayHigh);
+                document.getElementById('lowDisplay').textContent = money(dayLow);
+                document.getElementById('volatilityDisplay').textContent = `${volatility}%`;
+
+                renderChart(data, ma20, support, resistance, ticker);
+                renderVolumeIndex(volumeContext);
+                updateChecklist(currentPrice, ma20[ma20.length - 1], support, resistance);
+                if (source !== "local fallback") {
+                    const statusDiv = document.getElementById('statusMessage');
+                    statusDiv.innerHTML = `<div class="info-message">Latest ${interval} candles loaded from ${source}. Volume data is feed-dependent and can be delayed by the provider.</div>`;
+                }
+            } catch (error) {
+                showError(error.message || 'Could not load chart data');
+            }
+        }
+
+        function renderChart(data, ma20, support, resistance, ticker) {
+            const ctx = document.getElementById('chartCanvas').getContext('2d');
+            
+            const labels = data.map((candle, i) => candle.time ? candle.time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : `Bar ${i + 1}`);
+            const closes = data.map(d => d.close);
+            const volumes = data.map(d => Number(d.volume) || 0);
+            const upColor = "rgba(0, 212, 100, 0.28)";
+            const downColor = "rgba(255, 50, 50, 0.28)";
+
+            if (chart) {
+                chart.destroy();
+            }
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Close Price',
+                            data: closes,
+                            borderColor: '#00d4ff',
+                            backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.1,
+                            pointRadius: 0,
+                            pointHoverRadius: 5
+                        },
+                        {
+                            type: 'bar',
+                            label: 'Volume',
+                            data: volumes,
+                            yAxisID: 'y1',
+                            backgroundColor: data.map(candle => candle.close >= candle.open ? upColor : downColor),
+                            borderWidth: 0,
+                            order: 4
+                        },
+                        {
+                            label: '20-Day MA',
+                            data: ma20,
+                            borderColor: '#ff9600',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.1,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Resistance',
+                            data: Array(closes.length).fill(resistance),
+                            borderColor: '#ff3232',
+                            borderDash: [5, 5],
+                            borderWidth: 2,
+                            fill: false,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Support',
+                            data: Array(closes.length).fill(support),
+                            borderColor: '#00d464',
+                            borderDash: [5, 5],
+                            borderWidth: 2,
+                            fill: false,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#b3e5ff',
+                                font: { family: "'Courier Prime', monospace" }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            position: 'left',
+                            grid: {
+                                color: 'rgba(0, 212, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#b3e5ff'
+                            }
+                        },
+                        y1: {
+                            beginAtZero: true,
+                            position: 'right',
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            ticks: {
+                                color: '#8aa6c7',
+                                callback: value => compactNumber(value)
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 212, 255, 0.05)'
+                            },
+                            ticks: {
+                                color: '#b3e5ff'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChecklist(price, ma20, support, resistance) {
+            const checkboxes = document.querySelectorAll('.checklist input[type="checkbox"]');
+            const checklistItems = document.querySelectorAll('.checklist li');
+
+            // Clear all first
+            checklistItems.forEach(li => li.classList.remove('checked'));
+            checkboxes.forEach(cb => cb.checked = false);
+
+            // Auto-check based on conditions
+            if (price > ma20) {
+                checkboxes[0].checked = true;
+                checklistItems[0].classList.add('checked');
+            }
+            
+            checkboxes[1].checked = true;
+            checklistItems[1].classList.add('checked');
+            
+            checkboxes[2].checked = true;
+            checklistItems[2].classList.add('checked');
+
+            if (currentVolumeContext && currentVolumeContext.relVolume >= 1.15) {
+                checkboxes[4].checked = true;
+                checklistItems[4].classList.add('checked');
+            }
+
+            // Allow manual checking for others
+            checkboxes.forEach((cb, i) => {
+                cb.onchange = () => {
+                    checklistItems[i].classList.toggle('checked');
+                    updateSetupStatus();
+                };
+            });
+
+            updateSetupStatus();
+        }
+
+        function updateSetupStatus() {
+            const checkboxes = document.querySelectorAll('.checklist input[type="checkbox"]');
+            const checked = Array.from(checkboxes).filter(cb => cb.checked).length;
+            const total = checkboxes.length;
+
+            const statusDiv = document.getElementById('setupStatus');
+            if (checked === total) {
+                statusDiv.textContent = '✅ READY TO TRADE';
+                statusDiv.className = 'status ready';
+            } else {
+                statusDiv.textContent = `${checked}/${total} conditions met`;
+                statusDiv.className = 'status pending';
+            }
+            statusDiv.style.display = 'block';
+        }
+
+        function showLoading() {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.innerHTML = '<div class="loading"><div class="spinner"></div>Loading latest candle and volume data...</div>';
+        }
+
+        function showError(message) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.innerHTML = `<div class="error-message">⚠️ ${message}</div>`;
+        }
+
+        function clearStatus() {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.innerHTML = '';
+        }
+
+        // Allow Enter key to load chart
+        document.getElementById('tickerInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') loadChart();
+        });
+    </script>
+<script src="assets/daytrader-os.js?v=20260504-vercel1" defer></script>
+</body>
+</html>
+

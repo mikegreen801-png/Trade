@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade Journal — Day Trader OS</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600;700&family=IBM+Plex+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #060810;
+    --surface: #0d1117;
+    --border: #1e2a3a;
+    --accent: #00ffa3;
+    --accent2: #ff6b35;
+    --accent3: #4d9fff;
+    --warn: #ff4757;
+    --text: #c9d1d9;
+    --muted: #586069;
+    --win: #00ffa3;
+    --loss: #ff4757;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+  header {
+    background: linear-gradient(90deg, #060810 0%, #0d1117 50%, #060810 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.3em;
+    color: var(--accent);
+    letter-spacing: 3px;
+    font-weight: 700;
+  }
+
+  .logo span { color: var(--text); font-weight: 300; }
+
+  .header-stats {
+    display: flex;
+    gap: 30px;
+  }
+
+  .hstat {
+    text-align: right;
+  }
+
+  .hstat-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65em;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  .hstat-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.1em;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .hstat-value.negative { color: var(--loss); }
+
+  .main { padding: 30px; }
+
+  .dashboard {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+  }
+
+  .card:hover { border-color: var(--accent); }
+
+  .card-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6em;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+
+  .card-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.8em;
+    font-weight: 700;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .card-value.loss { color: var(--loss); }
+  .card-value.neutral { color: var(--accent3); }
+
+  .card-sub {
+    font-size: 0.75em;
+    color: var(--muted);
+    margin-top: 5px;
+  }
+
+  /* Add Trade Form */
+  .form-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 25px;
+  }
+
+  .form-title {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--accent);
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .form-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    margin-bottom: 15px;
+  }
+
+  .form-group { display: flex; flex-direction: column; }
+
+  .form-group label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65em;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 12px;
+    border-radius: 5px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85em;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0, 255, 163, 0.08);
+  }
+
+  .form-group select option { background: var(--surface); }
+
+  .form-row-wide {
+    grid-column: span 2;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .btn {
+    padding: 11px 24px;
+    border: none;
+    border-radius: 5px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.8em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #060810;
+  }
+
+  .btn-primary:hover {
+    background: #00cc82;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 255, 163, 0.3);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* Journal Table */
+  .table-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .table-header {
+    padding: 18px 25px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .table-title {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--accent);
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+  }
+
+  .filter-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .filter-btn {
+    padding: 5px 12px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 3px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7em;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .filter-btn.active, .filter-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,255,163,0.05);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead th {
+    padding: 12px 18px;
+    text-align: left;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65em;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid rgba(30, 42, 58, 0.5);
+    transition: background 0.15s;
+  }
+
+  tbody tr:hover { background: rgba(0,255,163,0.03); }
+
+  tbody td {
+    padding: 13px 18px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.82em;
+    white-space: nowrap;
+  }
+
+  .pnl-win { color: var(--win); font-weight: 700; }
+  .pnl-loss { color: var(--loss); font-weight: 700; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.8em;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .badge-long { background: rgba(0,255,163,0.15); color: var(--win); }
+  .badge-short { background: rgba(255,71,87,0.15); color: var(--loss); }
+
+  .setup-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 0.75em;
+    background: rgba(77,159,255,0.15);
+    color: var(--accent3);
+  }
+
+  .delete-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 1em;
+    transition: color 0.2s;
+  }
+
+  .delete-btn:hover { color: var(--loss); }
+
+  .equity-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 25px;
+  }
+
+  .mini-chart {
+    height: 80px;
+    position: relative;
+    margin-top: 15px;
+  }
+
+  .equity-line {
+    width: 100%;
+    height: 100%;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+  }
+
+  .empty-state .icon { font-size: 2.5em; margin-bottom: 15px; }
+  .empty-state p { font-family: 'IBM Plex Mono', monospace; font-size: 0.85em; line-height: 1.8; }
+
+  .streak-display {
+    display: flex;
+    gap: 5px;
+    margin-top: 8px;
+  }
+
+  .streak-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+
+  .streak-dot.win { background: var(--win); box-shadow: 0 0 6px var(--win); }
+  .streak-dot.loss { background: var(--loss); box-shadow: 0 0 6px var(--loss); }
+
+  .notes-cell {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--muted);
+    font-size: 0.75em;
+  }
+
+  @media (max-width: 1000px) {
+    .dashboard { grid-template-columns: repeat(3,1fr); }
+    .form-grid { grid-template-columns: repeat(3,1fr); }
+  }
+</style>
+<link rel="stylesheet" href="assets/daytrader-os.css?v=20260504-vercel1">
+</head>
+<body>
+<a class="dto-home-link" href="index.html"><span class="dto-home-mark" aria-hidden="true">&larr;</span><span>Return Home</span></a>
+
+<header>
+  <div class="logo">JOURNAL<span>.OS</span></div>
+  <div class="header-stats">
+    <div class="hstat">
+      <div class="hstat-label">Net P&L</div>
+      <div class="hstat-value" id="hNetPnl">$0.00</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-label">Win Rate</div>
+      <div class="hstat-value" id="hWinRate">—</div>
+    </div>
+    <div class="hstat">
+      <div class="hstat-label">Trades</div>
+      <div class="hstat-value" id="hTrades">0</div>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+
+  <!-- DASHBOARD CARDS -->
+  <div class="dashboard">
+    <div class="card">
+      <div class="card-label">Total P&L</div>
+      <div class="card-value" id="totalPnl">$0.00</div>
+      <div class="card-sub" id="totalPnlSub">All trades combined</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Win Rate</div>
+      <div class="card-value neutral" id="winRate">—</div>
+      <div class="card-sub" id="winRateSub">0 wins / 0 losses</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Avg Win</div>
+      <div class="card-value" id="avgWin">—</div>
+      <div class="card-sub">Per winning trade</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Avg Loss</div>
+      <div class="card-value loss" id="avgLoss">—</div>
+      <div class="card-sub">Per losing trade</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Expectancy</div>
+      <div class="card-value neutral" id="expectancy">—</div>
+      <div class="card-sub">Avg $ per trade</div>
+    </div>
+  </div>
+
+  <!-- ADD TRADE FORM -->
+  <div class="form-section">
+    <div class="form-title">+ Log New Trade</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="form-group">
+        <label>Ticker</label>
+        <input type="text" id="f-ticker" placeholder="AAPL" style="text-transform:uppercase">
+      </div>
+      <div class="form-group">
+        <label>Direction</label>
+        <select id="f-dir">
+          <option value="LONG">LONG</option>
+          <option value="SHORT">SHORT</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Shares</label>
+        <input type="number" id="f-shares" placeholder="100">
+      </div>
+      <div class="form-group">
+        <label>Entry $</label>
+        <input type="number" id="f-entry" placeholder="175.00" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Exit $</label>
+        <input type="number" id="f-exit" placeholder="178.00" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Stop Loss $</label>
+        <input type="number" id="f-stop" placeholder="173.50" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Setup Type</label>
+        <select id="f-setup">
+          <option>Breakout</option>
+          <option>Bounce</option>
+          <option>Reversal</option>
+          <option>Gap Fill</option>
+          <option>VWAP Reclaim</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Emotion</label>
+        <select id="f-emotion">
+          <option>Calm</option>
+          <option>Excited</option>
+          <option>FOMO</option>
+          <option>Revenge</option>
+          <option>Confident</option>
+          <option>Uncertain</option>
+        </select>
+      </div>
+      <div class="form-group form-row-wide">
+        <label>Notes</label>
+        <input type="text" id="f-notes" placeholder="Why did you enter? What happened?">
+      </div>
+      <div class="form-group" style="justify-content:flex-end;">
+        <label>&nbsp;</label>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="addTrade()">LOG TRADE</button>
+          <button class="btn btn-ghost" onclick="clearForm()">CLEAR</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EQUITY CURVE -->
+  <div class="equity-section" id="equitySection" style="display:none;">
+    <div class="form-title">Equity Curve</div>
+    <div class="mini-chart">
+      <svg class="equity-line" id="equitySvg" viewBox="0 0 800 80" preserveAspectRatio="none"></svg>
+    </div>
+    <div class="streak-display" id="streakDisplay"></div>
+  </div>
+
+  <!-- TRADE TABLE -->
+  <div class="table-section">
+    <div class="table-header">
+      <div class="table-title">Trade Log</div>
+      <div class="filter-row">
+        <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+        <button class="filter-btn" onclick="setFilter('win', this)">Wins</button>
+        <button class="filter-btn" onclick="setFilter('loss', this)">Losses</button>
+        <button class="filter-btn" onclick="exportCSV()">Export CSV</button>
+        <button class="filter-btn" onclick="document.getElementById('csvImport').click()">Import CSV</button>
+        <button class="filter-btn" onclick="backupJSON()">Backup JSON</button>
+        <button class="filter-btn" onclick="document.getElementById('jsonRestore').click()">Restore JSON</button>
+      </div>
+    </div>
+    <input type="file" id="csvImport" accept=".csv,text/csv" style="display:none" onchange="importCSV(event)">
+    <input type="file" id="jsonRestore" accept=".json,application/json" style="display:none" onchange="restoreJSON(event)">
+    <div id="tableBody"></div>
+  </div>
+
+</div>
+
+<script>
+let trades = JSON.parse(localStorage.getItem('trades') || '[]');
+let currentFilter = 'all';
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[ch]));
+}
+
+function parseCSV(text) {
+  const rows = [];
+  let row = [];
+  let cell = '';
+  let quoted = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    const next = text[i + 1];
+    if (ch === '"' && quoted && next === '"') {
+      cell += '"';
+      i++;
+    } else if (ch === '"') {
+      quoted = !quoted;
+    } else if (ch === ',' && !quoted) {
+      row.push(cell);
+      cell = '';
+    } else if ((ch === '\n' || ch === '\r') && !quoted) {
+      if (ch === '\r' && next === '\n') i++;
+      row.push(cell);
+      if (row.some(v => v.trim() !== '')) rows.push(row);
+      row = [];
+      cell = '';
+    } else {
+      cell += ch;
+    }
+  }
+
+  row.push(cell);
+  if (row.some(v => v.trim() !== '')) rows.push(row);
+  return rows;
+}
+
+// Set today's date as default
+document.getElementById('f-date').valueAsDate = new Date();
+
+function loadSetupIntoJournal() {
+  const params = new URLSearchParams(location.search);
+  const setup = window.DTO?.getSetup?.() || {};
+  const symbol = params.get('symbol') || setup.symbol;
+  const side = params.get('side') || setup.side;
+  const entry = Number(params.get('entry') || setup.entry);
+  const stop = Number(params.get('stop') || setup.stop);
+  const thesis = params.get('thesis') || setup.thesis;
+  if (symbol) document.getElementById('f-ticker').value = String(symbol).toUpperCase();
+  if (String(side || '').toLowerCase().includes('short')) document.getElementById('f-dir').value = 'SHORT';
+  if (String(side || '').toLowerCase().includes('long')) document.getElementById('f-dir').value = 'LONG';
+  if (Number.isFinite(entry) && entry > 0) document.getElementById('f-entry').value = entry;
+  if (Number.isFinite(stop) && stop > 0) document.getElementById('f-stop').value = stop;
+  if (thesis) document.getElementById('f-notes').value = String(thesis).slice(0, 240);
+}
+
+function addTrade() {
+  const ticker = document.getElementById('f-ticker').value.toUpperCase().trim();
+  const date = document.getElementById('f-date').value;
+  const dir = document.getElementById('f-dir').value;
+  const shares = parseFloat(document.getElementById('f-shares').value);
+  const entry = parseFloat(document.getElementById('f-entry').value);
+  const exit = parseFloat(document.getElementById('f-exit').value);
+  const stop = parseFloat(document.getElementById('f-stop').value);
+  const setup = document.getElementById('f-setup').value;
+  const emotion = document.getElementById('f-emotion').value;
+  const notes = document.getElementById('f-notes').value;
+
+  if (!ticker || !date || isNaN(shares) || isNaN(entry) || isNaN(exit)) {
+    alert('Please fill in: Ticker, Date, Shares, Entry, and Exit.');
+    return;
+  }
+
+  const mult = dir === 'SHORT' ? -1 : 1;
+  const pnl = (exit - entry) * shares * mult;
+  const rr = stop ? Math.abs((exit - entry) / (entry - stop)).toFixed(2) : '—';
+
+  const trade = { id: Date.now(), ticker, date, dir, shares, entry, exit, stop, pnl, rr, setup, emotion, notes };
+  trades.push(trade);
+  if (window.DTO) DTO.recordTrade({
+    source: "journal",
+    symbol: ticker,
+    side: dir,
+    qty: shares,
+    entry,
+    exit,
+    pnl,
+    rr,
+    setupType: setup,
+    mistake: emotion,
+    notes,
+    closedAt: date
+  });
+  saveTrades();
+  clearForm();
+  render();
+}
+
+function deleteTrade(id) {
+  trades = trades.filter(t => t.id !== id);
+  saveTrades();
+  render();
+}
+
+function saveTrades() {
+  localStorage.setItem('trades', JSON.stringify(trades));
+}
+
+function clearForm() {
+  ['f-ticker','f-shares','f-entry','f-exit','f-stop','f-notes'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('f-date').valueAsDate = new Date();
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable();
+}
+
+function render() {
+  renderStats();
+  renderTable();
+  renderEquity();
+}
+
+function renderStats() {
+  const wins = trades.filter(t => t.pnl > 0);
+  const losses = trades.filter(t => t.pnl <= 0);
+  const total = trades.length;
+  const totalPnl = trades.reduce((s, t) => s + t.pnl, 0);
+  const winRate = total > 0 ? (wins.length / total * 100).toFixed(1) : null;
+  const avgWin = wins.length > 0 ? wins.reduce((s,t) => s+t.pnl,0) / wins.length : null;
+  const avgLoss = losses.length > 0 ? losses.reduce((s,t) => s+t.pnl,0) / losses.length : null;
+  const expectancy = total > 0 ? totalPnl / total : null;
+
+  const fmt = n => n >= 0 ? `+$${n.toFixed(2)}` : `-$${Math.abs(n).toFixed(2)}`;
+
+  // Dashboard
+  const pnlEl = document.getElementById('totalPnl');
+  pnlEl.textContent = fmt(totalPnl);
+  pnlEl.className = 'card-value' + (totalPnl < 0 ? ' loss' : '');
+  document.getElementById('totalPnlSub').textContent = `${total} trades logged`;
+
+  const wrEl = document.getElementById('winRate');
+  wrEl.textContent = winRate ? `${winRate}%` : '—';
+  wrEl.className = 'card-value' + (winRate >= 55 ? '' : winRate ? ' loss' : ' neutral');
+  document.getElementById('winRateSub').textContent = `${wins.length} wins / ${losses.length} losses`;
+
+  document.getElementById('avgWin').textContent = avgWin ? fmt(avgWin) : '—';
+  document.getElementById('avgLoss').textContent = avgLoss ? fmt(avgLoss) : '—';
+  const expEl = document.getElementById('expectancy');
+  expEl.textContent = expectancy !== null ? fmt(expectancy) : '—';
+  expEl.className = 'card-value' + (expectancy < 0 ? ' loss' : ' neutral');
+
+  // Header
+  document.getElementById('hNetPnl').textContent = fmt(totalPnl);
+  document.getElementById('hNetPnl').className = 'hstat-value' + (totalPnl < 0 ? ' negative' : '');
+  document.getElementById('hWinRate').textContent = winRate ? `${winRate}%` : '—';
+  document.getElementById('hTrades').textContent = total;
+}
+
+function renderTable() {
+  const body = document.getElementById('tableBody');
+
+  let filtered = trades;
+  if (currentFilter === 'win') filtered = trades.filter(t => t.pnl > 0);
+  if (currentFilter === 'loss') filtered = trades.filter(t => t.pnl <= 0);
+
+  if (filtered.length === 0) {
+    body.innerHTML = `<div class="empty-state">
+      <div class="icon">📋</div>
+      <p>No trades logged yet.<br>Fill in the form above and click LOG TRADE.<br>Every great trader started with their first entry.</p>
+    </div>`;
+    return;
+  }
+
+  const sorted = [...filtered].reverse();
+  body.innerHTML = `<table>
+    <thead>
+      <tr>
+        <th>Date</th><th>Ticker</th><th>Dir</th><th>Shares</th>
+        <th>Entry</th><th>Exit</th><th>Stop</th><th>R:R</th>
+        <th>P&L</th><th>Setup</th><th>Emotion</th><th>Notes</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      ${sorted.map(t => {
+        const pnlStr = t.pnl >= 0 ? `+$${t.pnl.toFixed(2)}` : `-$${Math.abs(t.pnl).toFixed(2)}`;
+        const pnlClass = t.pnl >= 0 ? 'pnl-win' : 'pnl-loss';
+        return `<tr>
+          <td>${escapeHtml(t.date)}</td>
+          <td><strong style="color:#fff">${escapeHtml(t.ticker)}</strong></td>
+          <td><span class="badge badge-${String(t.dir || '').toLowerCase()}">${escapeHtml(t.dir)}</span></td>
+          <td>${t.shares}</td>
+          <td>$${parseFloat(t.entry).toFixed(2)}</td>
+          <td>$${parseFloat(t.exit).toFixed(2)}</td>
+          <td>${t.stop ? '$'+parseFloat(t.stop).toFixed(2) : '—'}</td>
+          <td style="color:var(--accent3)">${t.rr}x</td>
+          <td class="${pnlClass}">${pnlStr}</td>
+          <td><span class="setup-badge">${escapeHtml(t.setup)}</span></td>
+          <td style="color:var(--muted);font-size:0.8em">${escapeHtml(t.emotion)}</td>
+          <td class="notes-cell" title="${escapeHtml(t.notes)}">${escapeHtml(t.notes || '—')}</td>
+          <td><button class="delete-btn" onclick="deleteTrade(${t.id})">✕</button></td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>`;
+}
+
+function renderEquity() {
+  const section = document.getElementById('equitySection');
+  if (trades.length < 2) { section.style.display = 'none'; return; }
+  section.style.display = 'block';
+
+  // Build cumulative equity
+  let equity = [0];
+  trades.forEach(t => equity.push(equity[equity.length-1] + t.pnl));
+  const min = Math.min(...equity);
+  const max = Math.max(...equity);
+  const range = max - min || 1;
+
+  const W = 800, H = 80;
+  const pts = equity.map((v, i) => {
+    const x = (i / (equity.length - 1)) * W;
+    const y = H - ((v - min) / range) * (H - 10) - 5;
+    return `${x},${y}`;
+  });
+
+  const color = equity[equity.length-1] >= 0 ? '#00ffa3' : '#ff4757';
+  const svg = document.getElementById('equitySvg');
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="eg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${color}" stop-opacity="0.3"/>
+        <stop offset="100%" stop-color="${color}" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+    <polyline points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="2"/>
+    <polygon points="0,${H} ${pts.join(' ')} ${W},${H}" fill="url(#eg)"/>
+  `;
+
+  // Streak dots
+  const streak = document.getElementById('streakDisplay');
+  const last10 = trades.slice(-10);
+  streak.innerHTML = last10.map(t =>
+    `<div class="streak-dot ${t.pnl > 0 ? 'win' : 'loss'}" title="${t.ticker}: ${t.pnl>0?'+':''}$${t.pnl.toFixed(2)}"></div>`
+  ).join('') + `<span style="margin-left:8px;font-size:0.7em;color:var(--muted);font-family:'IBM Plex Mono',monospace;">Last ${last10.length} trades</span>`;
+}
+
+function exportCSV() {
+  if (!trades.length) { alert('No trades to export.'); return; }
+  const headers = ['Date','Ticker','Direction','Shares','Entry','Exit','Stop','PnL','RR','Setup','Emotion','Notes'];
+  const csvCell = value => `"${String(value ?? '').replace(/"/g, '""')}"`;
+  const rows = trades.map(t =>
+    [t.date,t.ticker,t.dir,t.shares,t.entry,t.exit,t.stop||'',t.pnl.toFixed(2),t.rr,t.setup,t.emotion,t.notes||''].map(csvCell).join(',')
+  );
+  const csv = [headers.join(','), ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'trade_journal.csv';
+  a.click();
+}
+
+function importCSV(event) {
+  const file = event.target.files[0];
+  event.target.value = '';
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    const rows = parseCSV(String(reader.result || ''));
+    if (rows.length < 2) { alert('No trade rows found in that CSV.'); return; }
+
+    const headers = rows[0].map(h => h.trim().toLowerCase());
+    const index = name => headers.indexOf(name.toLowerCase());
+    const imported = rows.slice(1).map(row => {
+      const get = name => {
+        const idx = index(name);
+        return idx >= 0 ? row[idx] || '' : '';
+      };
+      const date = get('Date') || new Date().toISOString().slice(0, 10);
+      const ticker = get('Ticker').toUpperCase().trim();
+      const dir = (get('Direction') || 'LONG').toUpperCase().trim();
+      const shares = parseFloat(get('Shares'));
+      const entry = parseFloat(get('Entry'));
+      const exit = parseFloat(get('Exit'));
+      const stop = parseFloat(get('Stop'));
+      const pnl = Number.isFinite(parseFloat(get('PnL')))
+        ? parseFloat(get('PnL'))
+        : ((exit - entry) * shares * (dir === 'SHORT' ? -1 : 1));
+      const rr = get('RR') || (Number.isFinite(stop) ? Math.abs((exit - entry) / (entry - stop)).toFixed(2) : '-');
+
+      if (!ticker || !Number.isFinite(shares) || !Number.isFinite(entry) || !Number.isFinite(exit)) return null;
+      return {
+        id: Date.now() + Math.floor(Math.random() * 100000),
+        ticker, date, dir, shares, entry, exit,
+        stop: Number.isFinite(stop) ? stop : '',
+        pnl, rr,
+        setup: get('Setup'),
+        emotion: get('Emotion'),
+        notes: get('Notes')
+      };
+    }).filter(Boolean);
+
+    if (!imported.length) { alert('No valid trades found.'); return; }
+    trades = trades.concat(imported);
+    saveTrades();
+    render();
+    alert(`Imported ${imported.length} trade${imported.length === 1 ? '' : 's'}.`);
+  };
+  reader.readAsText(file);
+}
+
+function backupJSON() {
+  const payload = {
+    exportedAt: new Date().toISOString(),
+    version: 1,
+    trades
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'trade_journal_backup.json';
+  a.click();
+}
+
+function restoreJSON(event) {
+  const file = event.target.files[0];
+  event.target.value = '';
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const payload = JSON.parse(String(reader.result || '{}'));
+      const restored = Array.isArray(payload) ? payload : payload.trades;
+      if (!Array.isArray(restored)) throw new Error('Missing trades array.');
+      if (!confirm(`Restore ${restored.length} trades? This replaces the current journal.`)) return;
+      trades = restored.map(t => ({ ...t, id: t.id || Date.now() + Math.floor(Math.random() * 100000) }));
+      saveTrades();
+      render();
+    } catch (error) {
+      alert('That JSON backup could not be restored.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+loadSetupIntoJournal();
+render();
+</script>
+<script src="assets/daytrader-os.js?v=20260504-vercel1" defer></script>
+</body>
+</html>
+

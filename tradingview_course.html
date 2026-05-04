@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradingView Crash Course</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier Prime', monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #00d4ff;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: #00d4ff;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+            margin-bottom: 5px;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .nav-btn {
+            padding: 12px 20px;
+            background: rgba(0, 212, 255, 0.2);
+            border: 1px solid #00d4ff;
+            color: #00d4ff;
+            cursor: pointer;
+            border-radius: 5px;
+            font-family: 'Courier Prime', monospace;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);
+            color: #0a0e27;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .module {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .module.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section {
+            background: rgba(20, 25, 50, 0.8);
+            border: 1px solid #00d4ff;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0, 212, 255, 0.1);
+        }
+
+        .section-title {
+            color: #00d4ff;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #00d4ff;
+            padding-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .lesson {
+            margin-bottom: 25px;
+        }
+
+        .lesson-title {
+            color: #ff9600;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .lesson-content {
+            line-height: 1.7;
+            color: #b3e5ff;
+        }
+
+        .code-block {
+            background: rgba(40, 50, 80, 0.8);
+            border-left: 3px solid #00d4ff;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-family: 'Courier Prime', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+        }
+
+        .highlight {
+            color: #00d4ff;
+            font-weight: bold;
+        }
+
+        .warning {
+            background: rgba(255, 50, 50, 0.1);
+            border-left: 3px solid #ff3232;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            color: #ff9999;
+        }
+
+        .tip {
+            background: rgba(0, 212, 100, 0.1);
+            border-left: 3px solid #00d464;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            color: #b3ff99;
+        }
+
+        .checklist {
+            list-style: none;
+            margin: 15px 0;
+        }
+
+        .checklist li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .checklist li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #00d464;
+            font-weight: bold;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            border: 1px solid #00d4ff;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .comparison-table th {
+            background: rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
+            font-weight: bold;
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: rgba(0, 212, 255, 0.05);
+        }
+
+        .visual-demo {
+            background: rgba(40, 50, 80, 0.8);
+            border: 1px solid #00d4ff;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 5px;
+            text-align: center;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .chart-label {
+            font-size: 0.9em;
+            color: #ff9600;
+            margin-top: 10px;
+        }
+
+        .step-box {
+            background: rgba(0, 212, 255, 0.1);
+            border-left: 4px solid #00d4ff;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .step-number {
+            display: inline-block;
+            background: #00d4ff;
+            color: #0a0e27;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #00d4ff;
+            color: #666;
+            font-size: 0.9em;
+        }
+</style>
+<link rel="stylesheet" href="assets/daytrader-os.css?v=20260504-vercel1">
+</head>
+<body>
+<a class="dto-home-link" href="index.html"><span class="dto-home-mark" aria-hidden="true">&larr;</span><span>Return Home</span></a>
+    <div class="container">
+        <header>
+            <h1>📚 TRADINGVIEW CRASH COURSE</h1>
+            <p class="subtitle">Master the platform in 30 minutes • Start paper trading today</p>
+        </header>
+
+        <div class="nav-tabs">
+            <button class="nav-btn active" onclick="switchModule('basics')">1. Basics</button>
+            <button class="nav-btn" onclick="switchModule('charttypes')">2. Chart Types</button>
+            <button class="nav-btn" onclick="switchModule('patterns')">3. Candlestick Patterns</button>
+            <button class="nav-btn" onclick="switchModule('indicators')">4. Indicators</button>
+            <button class="nav-btn" onclick="switchModule('setup')">5. Setup & Trade</button>
+            <button class="nav-btn" onclick="switchModule('checklist')">6. Checklist</button>
+        </div>
+
+        <!-- MODULE 1: BASICS -->
+        <div id="basics" class="module active">
+            <div class="section">
+                <div class="section-title">🎯 Module 1: TradingView Basics</div>
+
+                <div class="lesson">
+                    <div class="lesson-title">What is TradingView?</div>
+                    <div class="lesson-content">
+                        TradingView is a charting and analysis platform where you can:
+                        <ul class="checklist">
+                            <li>View real-time stock price charts</li>
+                            <li>Add technical indicators (moving averages, RSI, MACD, etc.)</li>
+                            <li>Draw trendlines, support, and resistance</li>
+                            <li>Paper trade (practice with fake money)</li>
+                            <li>Backtest your strategies on historical data</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="lesson">
+                    <div class="lesson-title">Getting Started on TradingView</div>
+                    <div class="lesson-content">
+                        <div class="step-box">
+                            <span class="step-number">1</span>
+                            Go to <span class="highlight">tradingview.com</span> → Sign up (free account)
+                        </div>
+                        <div class="step-box">
+                            <span class="step-number">2</span>
+                            Top left: Search a stock ticker (e.g., <span class="highlight">AAPL</span>)
+                        </div>
+                        <div class="step-box">
+                            <span class="step-number">3</span>
+                            You'll see the <span class="highlight">price chart</span> with candlesticks
+                        </div>
+                        <div class="step-box">
+                            <span class="step-number">4</span>
+                            Below the chart: "Trade" button → Switch to <span class="highlight">Paper Trading</span>
+                        </div>
+                        <div class="step-box">
+                            <span class="step-number">5</span>
+                            You now have $100,000 fake money to practice with
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tip">
+                    <strong>💡 Pro Tip:</strong> Start with a 1-hour or 15-minute chart for day trading. 
+                    Avoid 1-minute charts (too noisy). Avoid daily charts (not suited for day trading).
+                </div>
+
+                <div class="lesson">
+                    <div class="lesson-title">Key TradingView Features to Know</div>
+                    <table class="comparison-table">
+                        <tr>
+                            <th>Feature</th>
+                            <th>Location</th>
+                            <th>What It Does</th>
+                        </tr>
+                        <tr>
+                            <td><strong>Timeframe Selector</strong></td>
+                            <td>Top left, chart area</td>
+                            <td>Change between 1m, 5m, 15m, 1h, 4h, daily charts</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Indicator Panel</strong></td>
+                            <td>Top toolbar, "Indicators" button</td>
+                            <td>Add moving averages, RSI, MACD, Bollinger Bands, etc.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Drawing Tools</strong></td>
+                            <td>Left toolbar, pencil icon</td>
+                            <td>Draw trendlines, support/resistance, channels</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Alert Button</strong></td>
+                            <td>Top toolbar, bell icon</td>
+                            <td>Set price alerts (notify when price hits target)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Paper Trading</strong></td>
+                            <td>Bottom of chart, "Trade" button</td>
+                            <td>Place fake orders to practice without real money</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODULE 2: CHART TYPES -->
+        <div id="charttypes" class="module">
+            <div class="section">
+                <div class="section-title">📊 Module 2: Chart Types</div>
+
+                <div class="lesson">
+                    <div class="lesson-title">Candlestick Chart (BEST FOR DAY TRADING)</div>
+                    <div class="lesson-content">
+                        Each "candle" represents one time period (1 minute, 5 minutes, 1 hour, etc.)
+                        <div class="visual-demo">
+                            <div style="font-size: 1.2em; color: #00d4ff; line-height: 2;">
+                                🟩 GREEN (bullish) = Close > Open<br>
+                                🟥 RED (bearish) = Close < Open<br>
+                                📍 Wick = High & Low of period
+                            </div>
+                        </div>
+                        <div class="code-block">
+                            <strong>Anatomy of a Candle:</strong><br>
+                            ┌─ HIGH (top of upper wick)<br>
+                            │  <br>
+                            │  ┌─────────┐  ← CLOSE<br>
+                            │  │  BODY   │<br>
+                            │  │ (green) │<br>
+                            │  └─────────┘  ← OPEN<br>
+                            │  <br>
+                            └─ LOW (bottom of lower wick)
+                        </div>
+                        <p class="chart-label">
+                            <strong>Green candles = Buyers in control</strong><br>
+                            <strong>Red candles = Sellers in control</strong><br>
+                            <strong>Long wicks = Rejection at that price</strong>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="lesson">
+                    <div class="lesson-title">Other Chart Types (Less Important)</div>
+                    <div class="lesson-content">
+                        <strong>Line Chart:</strong> Just connects closing prices. Too simple for day trading.<br><br>
+                        <strong>Renko/Heiken-Ashi:</strong> Filtered versions of candles. Nice but not required.<br><br>
+                        <strong>Volume Bars:</strong> Shows buying/selling force. Use WITH candlesticks (not alone).
+                        <div class="tip">
+                            <strong>✓ Recommendation:</strong> Use CANDLESTICK charts. They show everything you need.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODULE 3: CANDLESTICK PATTERNS -->
+        <div id="patterns" class="module">
+            <div class="section">
+                <div class="section-title">🕯️ Module 3: Candlestick Patterns</div>
+
+                <div class="lesson">
+                    <div class="lesson-title">The 4 Patterns You NEED to Know</div>
+                    <div class="lesson-content">
+                        <strong>1. DOJI (Indecision)</strong><br>
+                        Open ≈ Close | Long wicks on both sides<br>
+                        <span style="color: #ff9600;">Meaning:</span> Nobody in control. Next candle shows direction.<br><br>
+
+                        <strong>2. HAMMER (Bullish Reversal)</strong><br>
+                        Small body at top | Long lower wick<br>
+                        <span style="color: #ff9600;">Meaning:</span> Rejection of lower prices. Buyers stepping in.<br><br>
+
+                        <strong>3. SHOOTING STAR (Bearish Reversal)</strong><br>
+                        Small body at bottom | Long upper wick<br>
+                        <span style="color: #ff9600;">Meaning:</span> Rejection of higher prices. Sellers stepping in.<br><br>
+
+                        <strong>4. ENGULFING (Reversal)</strong><br>
+                        Current candle fully covers previous candle<br>
+                        <span style="color: #ff9600;">Meaning:</span> Momentum change. Strong conviction.<br><br>
+                    </div>
+                </div>
+
+                <div class="warning">
+                    <strong>⚠️ Important:</strong> These patterns ONLY matter at support/resistance levels or with volume confirmation. 
+                    A hammer in the middle of a down-trend is just noise.
+                </div>
+
+                <div class="tip">
+                    <strong>💡 For Day Trading:</strong> Ignore individual patterns. Focus on candlestick REJECTION at support/resistance. 
+                    If price touches a support level and bounces with a hammer, THAT matters.
+                </div>
+            </div>
+        </div>
+
+        <!-- MODULE 4: INDICATORS -->
+        <div id="indicators" class="module">
+            <div class="section">
+                <div class="section-title">📈 Module 4: Technical Indicators</div>
+
+                <div class="lesson">
+                    <div class="lesson-title">The ONLY 3 Indicators You Need</div>
+                    <div class="lesson-content">
+                        <strong>1. Moving Average (MA)</strong><br>
+                        <span style="color: #ff9600;">What it is:</span> Average price over last N candles<br>
+                        <span style="color: #ff9600;">Why you need it:</span> Shows the trend direction<br>
+                        <span style="color: #ff9600;">Setting:</span> 20-period (good for day trading)<br>
+                        <span style="color: #ff9600;">How to use:</span> If price is ABOVE the MA, bias is bullish. Below = bearish.<br><br>
+
+                        <strong>2. Support & Resistance (Manual Drawing)</strong><br>
+                        <span style="color: #ff9600;">What it is:</span> Price levels where buyers (support) or sellers (resistance) are strong<br>
+                        <span style="color: #ff9600;">Why you need it:</span> Shows where to enter and where to stop loss<br>
+                        <span style="color: #ff9600;">Setting:</span> Use the drawing tool to mark past lows (support) and highs (resistance)<br>
+                        <span style="color: #ff9600;">How to use:</span> ENTER when price breaks resistance. RISK when price breaks support.<br><br>
+
+                        <strong>3. Volume</strong><br>
+                        <span style="color: #ff9600;">What it is:</span> Number of shares traded in each candle<br>
+                        <span style="color: #ff9600;">Why you need it:</span> Confirms if a move has conviction<br>
+                        <span style="color: #ff9600;">Setting:</span> Volume bars show at bottom of chart (usually on by default)<br>
+                        <span style="color: #ff9600;">How to use:</span> Breakouts on HIGH volume are more likely to hold. Breakouts on LOW volume fail often.<br><br>
+                    </div>
+                </div>
+
+                <div class="warning">
+                    <strong>⚠️ Avoid These Traps:</strong><br>
+                    ❌ Don't add 10 indicators (they'll all say different things)<br>
+                    ❌ Don't rely on RSI, Stochastic, MACD alone (lagging)<br>
+                    ❌ Don't confuse "indicator signal" with "entry signal"<br>
+                    <br>
+                    Your entries come from PRICE ACTION (breakouts, bounces, support/resistance), 
+                    not from an indicator crossing over.
+                </div>
+
+                <div class="lesson">
+                    <div class="lesson-title">How to Add Indicators in TradingView</div>
+                    <div class="lesson-content">
+                        <div class="step-box">
+                            <span class="step-number">1</span>
+                            Click "Indicators" button (top toolbar)
+                        </div>
+                        <div class="step-box">
+                            <span class="step-number">2</span>
+                            Search "Moving Average"
+                        </div>
+                        <div class="step-box">
+                            <span class="step-number">3</span>
+                            Choose "SMA" (Simple Moving Average)
+                        </div>
+                        <div class="step-box">
+                            <span class="step-number">4</span>
+                            Set period to 20
+                        </div>
+                        <div class="step-box">
+                            <span class="step-number">5</span>
+                            Change color to orange (easier to see)
+                        </div>
+                        <div class="step-box">
+                            <span class="step-number">6</span>
+                            Click "Add to Chart"
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODULE 5: SETUP & TRADE -->
+        <div id="setup" class="module">
+            <div class="section">
+                <div class="section-title">⚡ Module 5: Setting Up Your First Trade</div>
+
+                <div class="lesson">
+                    <div class="lesson-title">Step-by-Step: Paper Trade Your First Setup</div>
+                    <div class="lesson-content">
+                        <div class="step-box">
+                            <span class="step-number">1</span>
+                            <strong>Pick a stock:</strong> Search AAPL (Apple) on TradingView
+                        </div>
+                        <div class="step-box">
+                            <span class="step-number">2</span>
+                            <strong>Set timeframe:</strong> Click "1h" (1-hour chart)
+                        </div>
+                        <div class="step-box">
+                            <span class="step-number">3</span>
+                            <strong>Add indicator:</strong> Add 20-period moving average (orange line)
+                        </div>
+                        <div class="step-box">
+                            <span class="step-number">4</span>
+                            <strong>Draw levels:</strong> Use pencil tool to mark the last 5 days' highs and lows
+                        </div>
+                        <div class="step-box">
+                            <span class="step-number">5</span>
+                            <strong>Identify setup:</strong> Is price above the MA? Is there a clear support and resistance?
+                        </div>
+                        <div class="step-box">
+                            <span class="step-number">6</span>
+                            <strong>Wait for signal:</strong> Watch for price to break above resistance or bounce from support
+                        </div>
+                        <div class="step-box">
+                            <span class="step-number">7</span>
+                            <strong>Place order:</strong> Click "Trade" → Choose entry price, stop loss, target
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lesson">
+                    <div class="lesson-title">Real Example: TSLA Breakout</div>
+                    <div class="lesson-content">
+                        <strong>Setup Details:</strong><br>
+                        • Chart: TSLA 1-hour<br>
+                        • Price: $240 (above 20-day MA ✓)<br>
+                        • Support: $238 (previous low)<br>
+                        • Resistance: $244 (previous high)<br>
+                        • Volume: Above average<br><br>
+
+                        <strong>Signal:</strong> Price breaks above $244 on high volume<br><br>
+
+                        <strong>Your Order:</strong><br>
+                        • BUY 10 shares at $244.50<br>
+                        • STOP LOSS at $242.50 (protect if wrong)<br>
+                        • TAKE PROFIT at $249.00 (2% gain target)<br><br>
+
+                        <strong>Result (hypothetical):</strong><br>
+                        Price rallies → hits $249.00 → Sell automatically → +$45 profit<br>
+                        (You just made $45 on a $2,450 position. Log it. Repeat.)
+                    </div>
+                </div>
+
+                <div class="tip">
+                    <strong>💡 Paper Trading Rule:</strong> Treat paper trades like REAL trades. 
+                    Same rules, same discipline. If you don't follow rules on fake money, 
+                    you won't follow them on real money.
+                </div>
+            </div>
+        </div>
+
+        <!-- MODULE 6: CHECKLIST -->
+        <div id="checklist" class="module">
+            <div class="section">
+                <div class="section-title">✅ Module 6: Pre-Trade Checklist</div>
+
+                <div class="lesson">
+                    <div class="lesson-title">Your Daily Setup Checklist</div>
+                    <div class="lesson-content">
+                        Run this checklist EVERY time before entering a trade:
+                        <ul class="checklist">
+                            <li>Is the stock trading above its 20-day moving average?</li>
+                            <li>Have I identified at least 2 support/resistance levels?</li>
+                            <li>Is my entry at a level (not randomly in the middle)?</li>
+                            <li>Is my stop loss 1-2% below entry (tight)?</li>
+                            <li>Is my target at least 2x my risk?</li>
+                            <li>Do I see volume confirmation on the entry candle?</li>
+                            <li>Am I risking <1% of my account on this trade?</li>
+                            <li>Have I already taken 3-5 trades today? (Time to stop)</li>
+                            <li>Am I in a good emotional state? (Not revenge trading)</li>
+                            <li>Is it before 2 PM? (Not trading the last hour of the day)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="lesson">
+                    <div class="lesson-title">If ANY Box is Unchecked...</div>
+                    <div class="lesson-content">
+                        <div class="warning">
+                            <strong>DO NOT TRADE.</strong><br>
+                            Wait for the next setup. Quality > Quantity. One great trade beats 
+                            ten mediocre ones.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lesson">
+                    <div class="lesson-title">Your 30-Day Practice Plan</div>
+                    <div class="lesson-content">
+                        <strong>Days 1-5:</strong> Paper trade with 1-hour charts only. Practice 5-10 trades.<br><br>
+                        <strong>Days 6-10:</strong> Mix 1-hour and 15-minute charts. Paper trade 10-15 setups.<br><br>
+                        <strong>Days 11-20:</strong> Log every trade in a journal. Calculate win rate. Adjust rules if needed.<br><br>
+                        <strong>Days 21-30:</strong> Complete 30+ paper trades. Review journal. If 55%+ win rate, consider real money.<br><br>
+
+                        <div class="tip">
+                            <strong>🎯 Goal:</strong> 55%+ win rate on 30+ trades. Not 100%, not gambling. 
+                            Just proven consistency.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 40px; padding: 20px; background: rgba(0, 212, 255, 0.1); border-radius: 8px;">
+                <p style="color: #00d4ff; font-size: 1.1em; margin-bottom: 15px;">
+                    <strong>Ready to practice?</strong>
+                </p>
+                <p style="color: #b3e5ff;">
+                    Open TradingView now. Pick a stock. Paper trade one setup. Log it.<br>
+                    Then do it again tomorrow. Consistency beats perfection.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>📊 TradingView Crash Course | Build your day trading foundation</p>
+    </footer>
+
+    <script>
+        function switchModule(moduleId) {
+            // Hide all modules
+            const modules = document.querySelectorAll('.module');
+            modules.forEach(m => m.classList.remove('active'));
+
+            // Remove active from all buttons
+            const buttons = document.querySelectorAll('.nav-btn');
+            buttons.forEach(b => b.classList.remove('active'));
+
+            // Show selected module
+            document.getElementById(moduleId).classList.add('active');
+
+            // Highlight selected button
+            event.target.classList.add('active');
+        }
+    </script>
+<script src="assets/daytrader-os.js?v=20260504-vercel1" defer></script>
+</body>
+</html>
+

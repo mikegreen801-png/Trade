@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trade Builder - Day Trader OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/daytrader-os.css?v=20260504-vercel1">
+<style>
+  :root {
+    --bg: #05070c;
+    --panel: #0c111a;
+    --panel2: #101827;
+    --line: #223047;
+    --soft: rgba(127, 141, 163, 0.22);
+    --text: #d8e2ef;
+    --muted: #8190a8;
+    --cyan: #00d7ff;
+    --green: #00e08a;
+    --gold: #f2b84b;
+    --red: #ff5b6e;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      linear-gradient(rgba(0, 215, 255, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 215, 255, 0.035) 1px, transparent 1px),
+      radial-gradient(circle at 78% 12%, rgba(0, 224, 138, 0.12), transparent 32%),
+      var(--bg);
+    background-size: 72px 72px, 72px 72px, auto, auto;
+    color: var(--text);
+    font-family: "JetBrains Mono", monospace;
+    padding: 74px 28px 110px;
+  }
+
+  main {
+    width: min(1480px, calc(100vw - 56px));
+    margin: 0 auto;
+  }
+
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 390px;
+    gap: 28px;
+    align-items: end;
+    margin-bottom: 26px;
+  }
+
+  .kicker {
+    color: var(--cyan);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    color: #fff;
+    font-family: "Barlow Condensed", sans-serif;
+    font-size: clamp(70px, 11vw, 156px);
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    line-height: 0.82;
+    margin: 0;
+    text-transform: uppercase;
+  }
+
+  .sub {
+    max-width: 760px;
+    color: #9eb0c9;
+    font-size: 17px;
+    line-height: 1.7;
+    margin: 22px 0 0;
+  }
+
+  .hero-card,
+  .panel {
+    border: 1px solid var(--soft);
+    border-radius: 8px;
+    background: linear-gradient(145deg, rgba(17, 24, 36, 0.98), rgba(7, 11, 18, 0.98));
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.22);
+  }
+
+  .hero-card {
+    padding: 18px;
+  }
+
+  .hero-card h2,
+  .panel h2 {
+    color: #fff;
+    font-family: "Barlow Condensed", sans-serif;
+    font-size: 32px;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    margin: 8px 0 10px;
+    text-transform: uppercase;
+  }
+
+  .path {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .path-step {
+    min-height: 74px;
+    border: 1px solid rgba(0, 215, 255, 0.32);
+    border-radius: 7px;
+    background: rgba(0, 215, 255, 0.055);
+    padding: 13px;
+  }
+
+  .path-step strong {
+    display: block;
+    color: #fff;
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+
+  .path-step span {
+    color: var(--muted);
+    display: block;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .builder-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 18px;
+    align-items: start;
+  }
+
+  .panel {
+    padding: 20px;
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .section-title p {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+    margin: 0;
+    max-width: 560px;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    grid-column: span 3;
+    min-width: 0;
+  }
+
+  .field.wide { grid-column: span 6; }
+  .field.full { grid-column: 1 / -1; }
+
+  label {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    min-height: 48px;
+    border: 1px solid rgba(127, 141, 163, 0.28);
+    border-radius: 7px;
+    background: #070c14;
+    color: #f4f8ff;
+    font: 600 14px/1.4 "JetBrains Mono", monospace;
+    outline: none;
+    padding: 12px 13px;
+  }
+
+  textarea {
+    min-height: 118px;
+    resize: vertical;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 0 3px rgba(0, 215, 255, 0.09);
+  }
+
+  .quick-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 18px;
+  }
+
+  .quick-row button,
+  .btn {
+    border: 1px solid rgba(0, 215, 255, 0.34);
+    border-radius: 7px;
+    background: rgba(0, 215, 255, 0.07);
+    color: #e7faff;
+    cursor: pointer;
+    font: 800 12px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.08em;
+    min-height: 42px;
+    padding: 11px 13px;
+    text-transform: uppercase;
+  }
+
+  .quick-row button:hover,
+  .btn:hover {
+    background: rgba(0, 215, 255, 0.16);
+  }
+
+  .live-strip {
+    border: 1px solid rgba(0, 215, 255, 0.25);
+    border-radius: 8px;
+    background: rgba(0, 215, 255, 0.045);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 14px;
+    margin: 0 0 18px;
+    padding: 14px;
+  }
+
+  .live-quote-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .live-cell {
+    border-right: 1px solid rgba(127, 141, 163, 0.16);
+    min-width: 0;
+    padding-right: 10px;
+  }
+
+  .live-cell:last-child {
+    border-right: 0;
+  }
+
+  .live-cell span {
+    color: var(--muted);
+    display: block;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    margin-bottom: 7px;
+    text-transform: uppercase;
+  }
+
+  .live-cell strong {
+    color: #fff;
+    display: block;
+    font-size: 19px;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+  }
+
+  .live-cell strong.up { color: var(--green); }
+  .live-cell strong.down { color: var(--red); }
+
+  .live-actions {
+    align-items: stretch;
+    display: grid;
+    gap: 8px;
+    min-width: 190px;
+  }
+
+  .live-note {
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.5;
+    margin-top: 10px;
+  }
+
+  .btn.primary {
+    border-color: transparent;
+    background: var(--green);
+    color: #04100b;
+  }
+
+  .btn.gold {
+    border-color: transparent;
+    background: var(--gold);
+    color: #120d02;
+  }
+
+  .score-card {
+    position: sticky;
+    top: 82px;
+  }
+
+  .score-top {
+    display: grid;
+    grid-template-columns: 128px minmax(0, 1fr);
+    gap: 16px;
+    align-items: center;
+  }
+
+  .score-ring {
+    --score: 0;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(circle at center, #0c111a 0 56%, transparent 57%),
+      conic-gradient(var(--green) calc(var(--score) * 1%), rgba(127,141,163,.18) 0);
+  }
+
+  .score-ring strong {
+    color: #fff;
+    display: block;
+    font-size: 34px;
+    line-height: 1;
+    text-align: center;
+  }
+
+  .score-ring span {
+    color: var(--muted);
+    display: block;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    margin-top: 4px;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .score-copy h3 {
+    color: #fff;
+    font-family: "Barlow Condensed", sans-serif;
+    font-size: 36px;
+    line-height: 0.95;
+    margin: 0 0 8px;
+    text-transform: uppercase;
+  }
+
+  .score-copy p,
+  .note {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .chip {
+    border: 1px solid rgba(127, 141, 163, 0.26);
+    border-radius: 999px;
+    color: #cbd8e9;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    padding: 8px 10px;
+    text-transform: uppercase;
+  }
+
+  .blockers {
+    display: grid;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  .blocker {
+    border: 1px solid rgba(242, 184, 75, 0.35);
+    border-radius: 7px;
+    background: rgba(242, 184, 75, 0.08);
+    color: #eed7a4;
+    font-size: 12px;
+    line-height: 1.45;
+    padding: 12px;
+  }
+
+  .blocker.good {
+    border-color: rgba(0, 224, 138, 0.32);
+    background: rgba(0, 224, 138, 0.07);
+    color: #bdf6d8;
+  }
+
+  .launch-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  .launch-grid a,
+  .launch-grid button {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    text-align: center;
+    text-decoration: none;
+  }
+
+  .checklist {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .check {
+    align-items: flex-start;
+    border: 1px solid rgba(127, 141, 163, 0.18);
+    border-radius: 7px;
+    background: rgba(5, 7, 12, 0.45);
+    display: flex;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .check input {
+    width: 18px;
+    min-height: auto;
+    margin-top: 2px;
+  }
+
+  .check span {
+    color: #cbd8e9;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .saved-row {
+    border-top: 1px solid rgba(127, 141, 163, 0.14);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    margin-top: 18px;
+    padding-top: 16px;
+  }
+
+  .saved-row strong {
+    color: #fff;
+    display: block;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .saved-row small {
+    color: var(--muted);
+    display: block;
+    font-size: 11px;
+  }
+
+  @media (max-width: 1060px) {
+    .hero,
+    .builder-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .score-card {
+      position: static;
+    }
+  }
+
+  @media (max-width: 760px) {
+    body {
+      padding: 64px 14px 120px;
+    }
+
+    main {
+      width: 100%;
+    }
+
+    .path {
+      grid-template-columns: 1fr;
+    }
+
+    .field,
+    .field.wide {
+      grid-column: 1 / -1;
+    }
+
+    .score-top,
+    .launch-grid,
+    .live-strip,
+    .live-quote-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .live-cell {
+      border-right: 0;
+      border-bottom: 1px solid rgba(127, 141, 163, 0.16);
+      padding: 0 0 10px;
+    }
+  }
+</style>
+</head>
+<body><a class="dto-home-link" href="index.html"><span class="dto-home-mark" aria-hidden="true">&larr;</span><span>Return Home</span></a>
+<main>
+  <section class="hero">
+    <div>
+      <div class="kicker">Scan -> Analyze -> Plan -> Size -> Paper</div>
+      <h1>Trade Builder</h1>
+      <p class="sub">Build one clean setup packet that flows into Risk Calculator, Paper Trading, Backtest, Journal, and Mission Control. This page should feel like a cockpit, not a worksheet.</p>
+    </div>
+    <aside class="hero-card">
+      <div class="kicker">Builder Mode</div>
+      <h2>Beginner Safe, Pro Fast</h2>
+      <p class="note">Fill the setup once. The grader checks R:R, missing levels, catalysts, and whether the idea should stay paper-only.</p>
+    </aside>
+  </section>
+
+  <div class="path" aria-label="Trade workflow">
+    <div class="path-step"><strong>1. Symbol</strong><span>Pick the asset and direction.</span></div>
+    <div class="path-step"><strong>2. Thesis</strong><span>Define why this trade exists.</span></div>
+    <div class="path-step"><strong>3. Levels</strong><span>Entry, stop, target, support, resistance.</span></div>
+    <div class="path-step"><strong>4. Grade</strong><span>Check quality before risking money.</span></div>
+    <div class="path-step"><strong>5. Launch</strong><span>Open risk, paper trade, or journal.</span></div>
+  </div>
+
+  <section class="builder-layout">
+    <form class="panel" id="builderForm">
+      <div class="section-title">
+        <div>
+          <div class="kicker">Setup Packet</div>
+          <h2>Trade Details</h2>
+        </div>
+        <p>Use quick symbols, then tighten the levels. The score updates live as you type.</p>
+      </div>
+
+      <div class="quick-row" aria-label="Quick symbols">
+        <button type="button" data-symbol="AAPL">AAPL</button>
+        <button type="button" data-symbol="TSLA">TSLA</button>
+        <button type="button" data-symbol="NVDA">NVDA</button>
+        <button type="button" data-symbol="SPY">SPY</button>
+        <button type="button" data-symbol="BTC">BTC</button>
+        <button type="button" data-symbol="ETH">ETH</button>
+        <button type="button" data-symbol="SOL">SOL</button>
+      </div>
+
+      <div class="live-strip" aria-label="Live quote">
+        <div>
+          <div class="live-quote-grid" id="liveQuoteGrid">
+            <div class="live-cell"><span>Live Symbol</span><strong id="liveSymbol">--</strong></div>
+            <div class="live-cell"><span>Last Price</span><strong id="livePrice">--</strong></div>
+            <div class="live-cell"><span>Change</span><strong id="liveChange">--</strong></div>
+            <div class="live-cell"><span>Day Range</span><strong id="liveRange">--</strong></div>
+            <div class="live-cell"><span>Source</span><strong id="liveSource">--</strong></div>
+          </div>
+          <div class="live-note" id="liveNote">Pick a symbol to pull the latest reachable quote. Use this as the entry, then tighten stop/target before saving.</div>
+        </div>
+        <div class="live-actions">
+          <button class="btn primary" type="button" id="refreshQuoteBtn">Refresh Live Price</button>
+          <button class="btn" type="button" id="useQuoteBtn">Use Live As Entry</button>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label for="symbol">Symbol</label>
+          <input id="symbol" placeholder="AAPL, TSLA, BTC" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="assetType">Asset Type</label>
+          <select id="assetType">
+            <option value="stock">Stock</option>
+            <option value="crypto">Crypto</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="side">Side</label>
+          <select id="side">
+            <option value="long">Long</option>
+            <option value="short">Short</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="timeframe">Timeframe</label>
+          <select id="timeframe">
+            <option value="intraday">Intraday</option>
+            <option value="scalp">Scalp</option>
+            <option value="swing">Swing</option>
+            <option value="position">Position</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="entry">Entry</label>
+          <input id="entry" type="number" step="0.0001" placeholder="280.00">
+        </div>
+        <div class="field">
+          <label for="stop">Stop</label>
+          <input id="stop" type="number" step="0.0001" placeholder="277.00">
+        </div>
+        <div class="field">
+          <label for="target">Target</label>
+          <input id="target" type="number" step="0.0001" placeholder="286.00">
+        </div>
+        <div class="field">
+          <label for="rating">Bias</label>
+          <select id="rating">
+            <option>CHECK</option>
+            <option>BUY</option>
+            <option>SELL</option>
+            <option>HOLD</option>
+            <option>WAIT</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="support">Support</label>
+          <input id="support" type="number" step="0.0001" placeholder="Nearest floor">
+        </div>
+        <div class="field">
+          <label for="resistance">Resistance</label>
+          <input id="resistance" type="number" step="0.0001" placeholder="Nearest ceiling">
+        </div>
+        <div class="field">
+          <label for="confidence">Confidence</label>
+          <input id="confidence" type="number" min="0" max="100" step="1" placeholder="0-100">
+        </div>
+        <div class="field">
+          <label for="setupType">Setup Type</label>
+          <select id="setupType">
+            <option>Breakout</option>
+            <option>Pullback</option>
+            <option>VWAP Reclaim</option>
+            <option>Reversal</option>
+            <option>Gapper</option>
+            <option>Range Trade</option>
+            <option>Crypto Momentum</option>
+          </select>
+        </div>
+
+        <div class="field wide">
+          <label for="thesis">Thesis</label>
+          <textarea id="thesis" placeholder="Why this trade, why now, what confirms it, and what invalidates it?"></textarea>
+        </div>
+        <div class="field wide">
+          <label for="catalysts">Catalysts</label>
+          <textarea id="catalysts" placeholder="Earnings, news, sector strength, volume, macro, crypto flow, Ground News check..."></textarea>
+        </div>
+      </div>
+
+      <div class="checklist" aria-label="Execution gates">
+        <label class="check"><input id="gateLevels" type="checkbox"><span>Levels are clear: entry, stop, target, support, and resistance are not guesses.</span></label>
+        <label class="check"><input id="gateRisk" type="checkbox"><span>Risk is acceptable and the setup has a realistic path toward at least 2R.</span></label>
+        <label class="check"><input id="gateCatalyst" type="checkbox"><span>I checked catalyst/news context and know what headline could break the trade.</span></label>
+      </div>
+    </form>
+
+    <aside class="panel score-card">
+      <div class="section-title">
+        <div>
+          <div class="kicker">Live Quality Check</div>
+          <h2>Setup Grade</h2>
+        </div>
+      </div>
+      <div id="gradeBox"></div>
+      <div class="launch-grid">
+        <button class="btn primary" type="button" id="saveBtn">Save Setup</button>
+        <a class="btn" id="riskLink" href="risk_calculator.html">Open Risk</a>
+        <a class="btn gold" id="paperLink" href="paper_trading_simulator.html">Paper Trade</a>
+        <a class="btn" id="strategyLink" href="strategy_playbook.html">Plan Strategy</a>
+        <a class="btn" id="backtestLink" href="backtest_simulator.html">Backtest</a>
+        <a class="btn" id="journalLink" href="trade_journal.html">Journal Result</a>
+      </div>
+    </aside>
+  </section>
+
+  <section class="panel" style="margin-top:18px;">
+    <div class="section-title">
+      <div>
+        <div class="kicker">Mission Control</div>
+        <h2>Current OS State</h2>
+      </div>
+      <p>Saved setups and recent paper/journal activity update here after the setup is saved.</p>
+    </div>
+    <div id="missionControl"></div>
+  </section>
+</main>
+
+<script src="assets/daytrader-os.js?v=20260504-vercel1"></script>
+<script>
+const fields = ["symbol","assetType","side","timeframe","entry","stop","target","rating","support","resistance","confidence","setupType","thesis","catalysts"];
+const gates = ["gateLevels","gateRisk","gateCatalyst"];
+
+function el(id) {
+  return document.getElementById(id);
+}
+
+function val(id) {
+  return el(id).value;
+}
+
+function num(id) {
+  const n = Number(val(id));
+  return Number.isFinite(n) ? n : null;
+}
+
+function cryptoGuess(symbol) {
+  return /^(BTC|ETH|SOL|DOGE|XRP|BNB|ADA|AVAX|LINK|SUI|PEPE|SHIB|LTC|BCH|[A-Z0-9]{2,12}(USDT|USD))$/i.test(String(symbol || "").trim());
+}
+
+let lastLiveQuote = null;
+let quoteRequestId = 0;
+let quoteInputTimer = null;
+
+const cryptoPairs = {
+  BTC: "BTCUSDT",
+  ETH: "ETHUSDT",
+  SOL: "SOLUSDT",
+  DOGE: "DOGEUSDT",
+  XRP: "XRPUSDT",
+  BNB: "BNBUSDT",
+  ADA: "ADAUSDT",
+  AVAX: "AVAXUSDT",
+  LINK: "LINKUSDT",
+  SUI: "SUIUSDT",
+  PEPE: "PEPEUSDT",
+  SHIB: "SHIBUSDT",
+  LTC: "LTCUSDT",
+  BCH: "BCHUSDT"
+};
+
+function cleanSymbol(symbol) {
+  return String(symbol || "").trim().toUpperCase().replace(/[^A-Z0-9.-]/g, "");
+}
+
+function fmtPrice(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "--";
+  if (n >= 1000) return n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  if (n >= 1) return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return n.toLocaleString(undefined, { minimumFractionDigits: 4, maximumFractionDigits: 8 });
+}
+
+function quoteFetch(url, label) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5500);
+  return fetch(url, { signal: controller.signal, cache: "no-store" })
+    .then(response => {
+      clearTimeout(timer);
+      if (!response.ok) throw new Error(`${label} HTTP ${response.status}`);
+      return response.json();
+    });
+}
+
+function cryptoPair(symbol) {
+  const clean = cleanSymbol(symbol).replace(/[-.]/g, "");
+  if (cryptoPairs[clean]) return cryptoPairs[clean];
+  if (clean.endsWith("USDT")) return clean;
+  if (clean.endsWith("USD")) return `${clean.slice(0, -3)}USDT`;
+  return null;
+}
+
+async function fetchCryptoQuote(symbol) {
+  const pair = cryptoPair(symbol);
+  if (!pair) throw new Error("Crypto pair not mapped");
+  const urls = [
+    `https://api.binance.com/api/v3/ticker/24hr?symbol=${encodeURIComponent(pair)}`,
+    `https://data-api.binance.vision/api/v3/ticker/24hr?symbol=${encodeURIComponent(pair)}`
+  ];
+  let lastError;
+  for (const url of urls) {
+    try {
+      const data = await quoteFetch(url, "Binance");
+      return {
+        symbol: cleanSymbol(symbol),
+        price: Number(data.lastPrice),
+        changePct: Number(data.priceChangePercent),
+        dayLow: Number(data.lowPrice),
+        dayHigh: Number(data.highPrice),
+        volume: Number(data.volume),
+        source: "Binance 24hr",
+        updatedAt: new Date().toISOString()
+      };
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error("Crypto quote unavailable");
+}
+
+async function fetchStockQuote(symbol) {
+  const clean = cleanSymbol(symbol);
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(clean)}?range=1d&interval=1m&includePrePost=true`;
+  const data = await quoteFetch(url, "Yahoo chart");
+  const result = data?.chart?.result?.[0];
+  const meta = result?.meta || {};
+  const quote = result?.indicators?.quote?.[0] || {};
+  const closes = (quote.close || []).map(Number).filter(Number.isFinite);
+  const highs = (quote.high || []).map(Number).filter(Number.isFinite);
+  const lows = (quote.low || []).map(Number).filter(Number.isFinite);
+  const price = Number(meta.regularMarketPrice) || closes[closes.length - 1];
+  const previous = Number(meta.previousClose) || Number(meta.chartPreviousClose);
+  if (!Number.isFinite(price)) throw new Error("No stock price returned");
+  return {
+    symbol: clean,
+    price,
+    changePct: Number.isFinite(previous) && previous !== 0 ? ((price - previous) / previous) * 100 : null,
+    dayLow: lows.length ? Math.min(...lows) : Number(meta.regularMarketDayLow),
+    dayHigh: highs.length ? Math.max(...highs) : Number(meta.regularMarketDayHigh),
+    volume: Number(meta.regularMarketVolume),
+    source: "Yahoo live chart",
+    updatedAt: new Date().toISOString()
+  };
+}
+
+function renderLiveQuote(quote, message = "") {
+  const change = Number(quote?.changePct);
+  const changeClass = Number.isFinite(change) ? change >= 0 ? "up" : "down" : "";
+  el("liveSymbol").textContent = quote?.symbol || "--";
+  el("livePrice").textContent = quote?.price ? `$${fmtPrice(quote.price)}` : "--";
+  el("liveChange").textContent = Number.isFinite(change) ? `${change >= 0 ? "+" : ""}${change.toFixed(2)}%` : "--";
+  el("liveChange").className = changeClass;
+  el("liveRange").textContent = quote?.dayLow && quote?.dayHigh ? `$${fmtPrice(quote.dayLow)} - $${fmtPrice(quote.dayHigh)}` : "--";
+  el("liveSource").textContent = quote?.source || "--";
+  el("liveNote").textContent = message || (quote?.updatedAt ? `Updated ${new Date(quote.updatedAt).toLocaleTimeString()}. Live quote can fill entry/support/resistance, then you still control stop and target.` : "Pick a symbol to pull the latest reachable quote.");
+}
+
+function renderQuoteError(symbol, error) {
+  lastLiveQuote = null;
+  el("liveSymbol").textContent = cleanSymbol(symbol) || "--";
+  el("livePrice").textContent = "--";
+  el("liveChange").textContent = "--";
+  el("liveChange").className = "";
+  el("liveRange").textContent = "--";
+  el("liveSource").textContent = "Browser/API blocked";
+  el("liveNote").textContent = `This local file could not read the quote API directly (${error?.message || "provider/CORS block"}). TradingView can still show the live chart visually, but JavaScript needs a backend proxy to pull stock quotes reliably. Try Refresh Live Price, open Signal Dashboard, or use Yahoo/TradingView for the live entry.`;
+}
+
+function applyQuoteToForm(quote, overwrite = false) {
+  if (!quote?.price) return;
+  if (overwrite || !val("entry")) el("entry").value = Number(quote.price.toFixed(quote.price >= 1 ? 4 : 8));
+  if (quote.dayLow && (overwrite || !val("support"))) el("support").value = Number(quote.dayLow.toFixed(quote.dayLow >= 1 ? 4 : 8));
+  if (quote.dayHigh && (overwrite || !val("resistance"))) el("resistance").value = Number(quote.dayHigh.toFixed(quote.dayHigh >= 1 ? 4 : 8));
+  if (!val("confidence")) el("confidence").value = Number.isFinite(Number(quote.changePct)) ? Math.min(90, Math.max(35, Math.round(55 + Number(quote.changePct) * 2))) : 50;
+  if (!val("target") && quote.dayHigh && val("side") === "long") el("target").value = Number(quote.dayHigh.toFixed(quote.dayHigh >= 1 ? 4 : 8));
+  if (!val("target") && quote.dayLow && val("side") === "short") el("target").value = Number(quote.dayLow.toFixed(quote.dayLow >= 1 ? 4 : 8));
+  if (!val("thesis")) {
+    el("thesis").value = `${quote.symbol} live price is $${fmtPrice(quote.price)} from ${quote.source}. Build the trade around current price, day range, trend, volume, catalyst, and a stop that invalidates the setup.`;
+  }
+  renderGrade();
+}
+
+async function refreshLivePrice({ apply = true, overwrite = false } = {}) {
+  const symbol = cleanSymbol(val("symbol"));
+  if (!symbol) {
+    renderQuoteError("", new Error("enter a symbol first"));
+    return null;
+  }
+  const requestId = ++quoteRequestId;
+  el("refreshQuoteBtn").textContent = "Loading...";
+  renderLiveQuote({ symbol, source: "Loading" }, "Pulling latest reachable quote...");
+  try {
+    const quote = cryptoGuess(symbol) || val("assetType") === "crypto"
+      ? await fetchCryptoQuote(symbol)
+      : await fetchStockQuote(symbol);
+    if (requestId !== quoteRequestId) return null;
+    lastLiveQuote = quote;
+    renderLiveQuote(quote);
+    if (apply) applyQuoteToForm(quote, overwrite);
+    return quote;
+  } catch (error) {
+    if (requestId === quoteRequestId) renderQuoteError(symbol, error);
+    return null;
+  } finally {
+    if (requestId === quoteRequestId) el("refreshQuoteBtn").textContent = "Refresh Live Price";
+  }
+}
+
+function setupFromForm() {
+  const entry = num("entry");
+  const stop = num("stop");
+  const target = num("target");
+  const rr = entry && stop && target && entry !== stop ? Math.abs(target - entry) / Math.abs(entry - stop) : null;
+  return {
+    symbol: val("symbol"),
+    assetType: val("assetType"),
+    side: val("side"),
+    timeframe: val("timeframe"),
+    entry,
+    stop,
+    target,
+    support: num("support"),
+    resistance: num("resistance"),
+    confidence: num("confidence"),
+    rating: val("rating"),
+    rr,
+    setupType: val("setupType"),
+    thesis: val("thesis"),
+    catalysts: val("catalysts").split(/\n|,/).map(item => item.trim()).filter(Boolean),
+    riskNotes: gates.filter(id => !el(id).checked).map(id => el(id).closest(".check").innerText.trim()),
+    livePrice: lastLiveQuote?.price || null,
+    liveSource: lastLiveQuote?.source || "",
+    liveUpdatedAt: lastLiveQuote?.updatedAt || "",
+    liveDayLow: lastLiveQuote?.dayLow || null,
+    liveDayHigh: lastLiveQuote?.dayHigh || null,
+    sourcePage: "guided_trade_builder.html",
+    createdAt: new Date().toISOString()
+  };
+}
+
+function gateWarnings() {
+  const warnings = [];
+  if (!el("gateLevels").checked) warnings.push("Execution gate: levels are not confirmed yet.");
+  if (!el("gateRisk").checked) warnings.push("Execution gate: risk/reward is not accepted yet.");
+  if (!el("gateCatalyst").checked) warnings.push("Execution gate: catalyst/news context is not confirmed yet.");
+  return warnings;
+}
+
+function renderGrade() {
+  const setup = setupFromForm();
+  const grade = DTO.gradeSetup(setup);
+  const warnings = [...grade.warnings, ...gateWarnings()];
+  const good = warnings.length === 0 && grade.score >= 68;
+  el("gradeBox").innerHTML = `
+    <div class="score-top">
+      <div class="score-ring" style="--score:${grade.score}">
+        <div><strong>${grade.score}</strong><span>${DTO.escapeHtml(grade.label)}</span></div>
+      </div>
+      <div class="score-copy">
+        <h3>${good ? "Trade Ready" : grade.label}</h3>
+        <p>${DTO.escapeHtml(grade.modeText.beginner)}</p>
+      </div>
+    </div>
+    <div class="chips">
+      <span class="chip">${DTO.escapeHtml(setup.symbol || "No Symbol")}</span>
+      <span class="chip">${DTO.escapeHtml(setup.side.toUpperCase())}</span>
+      <span class="chip">${setup.rr ? setup.rr.toFixed(2) + "R" : "R:R --"}</span>
+      <span class="chip">${DTO.escapeHtml(setup.assetType)}</span>
+    </div>
+    <div class="blockers">
+      ${warnings.length ? warnings.slice(0, 5).map(item => `<div class="blocker">${DTO.escapeHtml(item)}</div>`).join("") : `<div class="blocker good">No major blocker. Still verify live price, liquidity, and your broker feed before acting.</div>`}
+    </div>
+    <div class="saved-row">
+      <div><strong>Packet Preview</strong><small>Entry ${setup.entry || "--"} / Stop ${setup.stop || "--"} / Target ${setup.target || "--"}</small></div>
+      <small>${setup.confidence || "--"}/100</small>
+    </div>`;
+  updateLinks(setup);
+}
+
+function updateLinks(rawSetup = setupFromForm()) {
+  const setup = DTO.normalizeSetup(rawSetup);
+  el("riskLink").href = DTO.workflowUrl("risk_calculator.html", setup);
+  el("paperLink").href = DTO.workflowUrl("paper_trading_simulator.html", setup);
+  el("strategyLink").href = DTO.workflowUrl("strategy_playbook.html", setup);
+  el("backtestLink").href = DTO.workflowUrl("backtest_simulator.html", setup);
+  el("journalLink").href = DTO.workflowUrl("trade_journal.html", setup);
+}
+
+function saveSetup() {
+  const setup = DTO.saveSetup(setupFromForm());
+  DTO.renderMissionControl();
+  updateLinks(setup);
+  el("saveBtn").textContent = `${setup.symbol} Saved`;
+  setTimeout(() => { el("saveBtn").textContent = "Save Setup"; }, 1400);
+}
+
+function loadSetup() {
+  const setup = DTO.getSetup();
+  if (!setup) return;
+  fields.forEach(id => {
+    if (!el(id)) return;
+    if (id === "catalysts") el(id).value = Array.isArray(setup.catalysts) ? setup.catalysts.join(", ") : setup.catalysts || "";
+    else if (id === "setupType") el(id).value = setup.setupType || "Breakout";
+    else if (setup[id] !== null && setup[id] !== undefined) el(id).value = setup[id];
+  });
+  if (setup.symbol && cryptoGuess(setup.symbol)) el("assetType").value = "crypto";
+}
+
+document.querySelectorAll("[data-symbol]").forEach(button => {
+  button.addEventListener("click", () => {
+    el("symbol").value = button.dataset.symbol;
+    el("assetType").value = cryptoGuess(button.dataset.symbol) ? "crypto" : "stock";
+    renderGrade();
+    refreshLivePrice({ apply: true, overwrite: true });
+  });
+});
+
+fields.concat(gates).forEach(id => {
+  el(id).addEventListener("input", () => {
+    if (id === "symbol") {
+      if (cryptoGuess(val("symbol"))) el("assetType").value = "crypto";
+      clearTimeout(quoteInputTimer);
+      const symbol = cleanSymbol(val("symbol"));
+      if (symbol.length >= 2) {
+        quoteInputTimer = setTimeout(() => refreshLivePrice({ apply: true, overwrite: false }), 750);
+      }
+    }
+    renderGrade();
+  });
+  el(id).addEventListener("change", renderGrade);
+});
+
+el("builderForm").addEventListener("submit", event => {
+  event.preventDefault();
+  saveSetup();
+});
+el("saveBtn").addEventListener("click", saveSetup);
+el("refreshQuoteBtn").addEventListener("click", () => refreshLivePrice({ apply: true, overwrite: false }));
+el("useQuoteBtn").addEventListener("click", () => {
+  if (lastLiveQuote) {
+    applyQuoteToForm(lastLiveQuote, true);
+    renderLiveQuote(lastLiveQuote, `Applied $${fmtPrice(lastLiveQuote.price)} as entry and refreshed the setup grade.`);
+  } else {
+    refreshLivePrice({ apply: true, overwrite: true });
+  }
+});
+
+loadSetup();
+renderGrade();
+DTO.renderMissionControl();
+if (val("symbol")) refreshLivePrice({ apply: false, overwrite: false });
+</script>
+</body>
+</html>
+

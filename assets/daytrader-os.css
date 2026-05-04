@@ -1,0 +1,639 @@
+:root {
+  --dto-bg: #05070c;
+  --dto-panel: #0c111a;
+  --dto-panel-2: #111824;
+  --dto-border: #223047;
+  --dto-text: #d8e2ef;
+  --dto-muted: #7f8da3;
+  --dto-cyan: #00d7ff;
+  --dto-green: #00e08a;
+  --dto-gold: #f2b84b;
+  --dto-red: #ff5b6e;
+}
+
+.dto-home-link {
+  position: fixed;
+  left: 18px;
+  top: 18px;
+  z-index: 10020;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid rgba(0, 215, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(9, 16, 26, 0.76);
+  color: #cfe6f0;
+  font: 700 10px/1 "JetBrains Mono", monospace;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.dto-home-link:hover,
+.dto-home-link:focus-visible {
+  color: #061017;
+  border-color: rgba(0, 224, 138, 0.65);
+  background: linear-gradient(135deg, var(--dto-cyan), var(--dto-green));
+  outline: none;
+}
+
+.dto-home-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  color: inherit;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.dto-home-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--dto-green);
+  box-shadow: 0 0 12px rgba(0, 224, 138, 0.8);
+}
+
+.dto-signal-note {
+  margin: 10px 26px 0;
+  padding: 10px 14px;
+  border: 1px solid rgba(242, 184, 75, 0.32);
+  border-radius: 7px;
+  background: rgba(242, 184, 75, 0.06);
+  color: #e5d3a9;
+  font: 12px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.dto-global-actions {
+  position: fixed;
+  left: 50%;
+  bottom: 16px;
+  z-index: 9998;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  max-width: calc(100vw - 24px);
+  padding: 8px;
+  border: 1px solid rgba(0, 215, 255, 0.26);
+  border-radius: 12px;
+  background: rgba(5, 7, 12, 0.92);
+  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.46);
+  backdrop-filter: blur(14px);
+  transform: translateX(-50%);
+}
+
+.dto-global-actions a,
+.dto-global-actions button,
+.dto-action-row a,
+.dto-action-row button {
+  border: 1px solid rgba(0, 215, 255, 0.3);
+  border-radius: 7px;
+  background: rgba(0, 215, 255, 0.07);
+  color: #e9fbff;
+  cursor: pointer;
+  font: 800 11px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0.08em;
+  padding: 10px 12px;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.dto-global-actions a:hover,
+.dto-global-actions button:hover,
+.dto-action-row a:hover,
+.dto-action-row button:hover {
+  background: var(--dto-cyan);
+  color: #061017;
+}
+
+.dto-mission-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.dto-mission-lists {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.dto-mission-panel {
+  min-width: 0;
+  border: 1px solid rgba(127, 141, 163, 0.22);
+  border-radius: 8px;
+  background: linear-gradient(145deg, rgba(17, 24, 36, 0.96), rgba(8, 12, 18, 0.96));
+  color: var(--dto-text);
+  padding: 18px;
+}
+
+.dto-mission-panel h3 {
+  margin: 8px 0;
+  color: #fff;
+  font-size: clamp(22px, 2.7vw, 36px);
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.dto-mission-panel p {
+  margin: 8px 0 0;
+  color: var(--dto-muted);
+  font: 13px/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.dto-panel-kicker {
+  color: var(--dto-cyan);
+  font: 800 11px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.dto-chip-row,
+.dto-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.dto-chip-row span {
+  border: 1px solid rgba(127, 141, 163, 0.28);
+  border-radius: 999px;
+  color: #cbd8e9;
+  font: 800 11px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0.08em;
+  padding: 8px 10px;
+  text-transform: uppercase;
+}
+
+.dto-score-ring {
+  --score: 0;
+  position: relative;
+  width: 118px;
+  height: 118px;
+  flex: 0 0 118px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 14px 0 10px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, var(--dto-panel) 0 53%, transparent 54%),
+    conic-gradient(var(--dto-green) calc(var(--score) * 1%), rgba(127,141,163,.2) 0);
+  overflow: hidden;
+  text-align: center;
+}
+
+.dto-score-ring::after {
+  content: "";
+  position: absolute;
+  inset: 18px;
+  border-radius: 50%;
+  background: var(--dto-panel);
+  z-index: 0;
+}
+
+.dto-score-ring strong {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+  display: block;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.dto-score-ring span {
+  position: relative;
+  z-index: 1;
+  color: var(--dto-muted);
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.1;
+  margin-top: 7px;
+  text-transform: uppercase;
+}
+
+.dto-grade-panel {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.dto-grade-panel .dto-score-ring {
+  margin: 0;
+  transform: none;
+}
+
+.dto-grade-summary strong {
+  display: block;
+  color: #fff;
+  font-size: clamp(22px, 2.2vw, 34px);
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.dto-grade-summary small {
+  display: block;
+  margin-top: 8px;
+  color: var(--dto-muted);
+  font: 12px/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.dto-grade-breakdown {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.dto-grade-item {
+  border: 1px solid rgba(127, 141, 163, 0.18);
+  border-radius: 7px;
+  background: rgba(5, 7, 12, 0.42);
+  padding: 10px;
+}
+
+.dto-grade-item span {
+  display: block;
+  color: var(--dto-muted);
+  font: 800 10px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.dto-grade-item strong {
+  color: #fff;
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.dto-grade-notes {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.dto-grade-note {
+  border: 1px solid rgba(242, 184, 75, 0.3);
+  border-radius: 7px;
+  background: rgba(242, 184, 75, 0.075);
+  color: #ead3a2;
+  font: 12px/1.45 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  padding: 10px;
+}
+
+.dto-grade-note.good {
+  border-color: rgba(0, 224, 138, 0.28);
+  background: rgba(0, 224, 138, 0.07);
+  color: #bff2dc;
+}
+
+.dto-list-row {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+  padding: 11px 12px;
+  border: 1px solid rgba(127, 141, 163, 0.18);
+  border-radius: 7px;
+  background: rgba(5, 7, 12, 0.55);
+  color: var(--dto-text);
+  text-align: left;
+}
+
+.dto-list-row strong {
+  color: #fff;
+}
+
+.dto-list-row span {
+  color: var(--dto-muted);
+}
+
+.dto-tool-form {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.dto-tool-form label {
+  color: var(--dto-muted);
+  display: grid;
+  gap: 6px;
+  font: 800 11px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.dto-tool-form input,
+.dto-tool-form select,
+.dto-tool-form textarea {
+  width: 100%;
+  border: 1px solid rgba(127, 141, 163, 0.28);
+  border-radius: 7px;
+  background: #080d15;
+  color: var(--dto-text);
+  font: 14px/1.4 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  padding: 12px;
+}
+
+.dto-tool-form textarea,
+.dto-span-2 {
+  grid-column: span 2;
+}
+
+.dto-span-4 {
+  grid-column: 1 / -1;
+}
+
+.dto-primary-btn {
+  border: 0;
+  border-radius: 7px;
+  background: var(--dto-green);
+  color: #04100b;
+  cursor: pointer;
+  font: 900 12px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0.1em;
+  padding: 13px 15px;
+  text-transform: uppercase;
+}
+
+.dto-warning {
+  border: 1px solid rgba(242, 184, 75, 0.35);
+  border-radius: 8px;
+  background: rgba(242, 184, 75, 0.08);
+  color: #eed7a4;
+  padding: 14px;
+}
+
+.dto-auth-bar {
+  position: fixed;
+  right: 18px;
+  top: 18px;
+  z-index: 10000;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100vw - 36px);
+  padding: 7px;
+  border: 1px solid rgba(0, 215, 255, 0.26);
+  border-radius: 12px;
+  background: rgba(5, 7, 12, 0.92);
+  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.46);
+  backdrop-filter: blur(14px);
+}
+
+.dto-auth-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px;
+  border: 1px solid rgba(0, 215, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(5, 7, 12, 0.76);
+}
+
+.dto-auth-bar span,
+.dto-auth-inline span {
+  max-width: 180px;
+  overflow: hidden;
+  color: #e8f6ff;
+  font: 800 11px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.dto-auth-bar button,
+.dto-auth-inline button,
+.dto-auth-submit,
+.dto-auth-switch,
+.dto-auth-close {
+  border: 1px solid rgba(0, 215, 255, 0.36);
+  border-radius: 7px;
+  background: rgba(0, 215, 255, 0.075);
+  color: #e8fbff;
+  cursor: pointer;
+  font: 900 11px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0.08em;
+  padding: 10px 12px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.dto-auth-bar button:hover,
+.dto-auth-inline button:hover,
+.dto-auth-submit:hover,
+.dto-auth-switch:hover,
+.dto-auth-close:hover {
+  background: var(--dto-cyan);
+  color: #061017;
+}
+
+.dto-auth-modal[hidden] {
+  display: none;
+}
+
+.dto-auth-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  display: grid;
+  place-items: center;
+  padding: 22px;
+}
+
+.dto-auth-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.66);
+  backdrop-filter: blur(7px);
+}
+
+.dto-auth-panel {
+  position: relative;
+  width: min(760px, 100%);
+  max-height: calc(100vh - 44px);
+  overflow: auto;
+  border: 1px solid rgba(0, 215, 255, 0.26);
+  border-radius: 10px;
+  background: linear-gradient(145deg, rgba(17, 24, 36, 0.98), rgba(7, 11, 18, 0.98));
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.62);
+  color: var(--dto-text);
+  padding: 24px;
+}
+
+.dto-auth-close {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+}
+
+.dto-auth-head {
+  padding-right: 90px;
+}
+
+.dto-auth-head h2 {
+  margin: 8px 0 6px;
+  color: #fff;
+  font-size: clamp(34px, 5vw, 66px);
+  line-height: 0.9;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dto-auth-head p {
+  margin: 0 0 18px;
+  color: #a9b8cc;
+  font: 13px/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.dto-auth-form {
+  display: grid;
+  gap: 14px;
+}
+
+.dto-auth-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.dto-auth-form label {
+  display: grid;
+  gap: 7px;
+  color: var(--dto-cyan);
+  font: 800 11px/1.2 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.dto-auth-form input,
+.dto-auth-form select,
+.dto-auth-form textarea {
+  width: 100%;
+  border: 1px solid rgba(127, 141, 163, 0.3);
+  border-radius: 7px;
+  background: #070c14;
+  color: #f4f8ff;
+  font: 700 14px/1.4 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  padding: 12px;
+}
+
+.dto-auth-form input:focus,
+.dto-auth-form select:focus,
+.dto-auth-form textarea:focus {
+  border-color: var(--dto-cyan);
+  box-shadow: 0 0 0 3px rgba(0, 215, 255, 0.12);
+  outline: none;
+}
+
+.dto-auth-wide {
+  grid-column: 1 / -1;
+}
+
+.dto-auth-submit {
+  border-color: rgba(0, 224, 138, 0.44);
+  background: var(--dto-green);
+  color: #04130d;
+}
+
+.dto-auth-switch {
+  justify-self: start;
+}
+
+.dto-auth-message {
+  min-height: 20px;
+  color: #a9b8cc;
+  font: 13px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.dto-auth-message.good {
+  color: #bff2dc;
+}
+
+.dto-auth-message.bad {
+  color: #ffd0d7;
+}
+
+@media (max-width: 680px) {
+  .dto-home-link {
+    left: 12px;
+    top: 12px;
+    padding: 9px 11px;
+    font-size: 11px;
+  }
+
+  .dto-global-actions {
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+
+  .dto-auth-bar {
+    right: 12px;
+    top: 12px;
+  }
+
+  .dto-auth-inline {
+    order: 3;
+  }
+
+  .dto-auth-bar span,
+  .dto-auth-inline span {
+    display: none;
+  }
+
+  .dto-auth-panel {
+    padding: 18px;
+  }
+
+  .dto-auth-head {
+    padding-right: 0;
+    padding-top: 42px;
+  }
+
+  .dto-auth-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dto-mission-grid,
+  .dto-mission-lists,
+  .dto-tool-form,
+  .dto-grade-panel,
+  .dto-grade-breakdown {
+    grid-template-columns: 1fr;
+  }
+
+  .dto-tool-form textarea,
+  .dto-span-2,
+  .dto-span-4 {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 1280px) {
+  .dto-mission-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 820px) {
+  .dto-mission-grid,
+  .dto-mission-lists {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,3654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day Trader OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/daytrader-os.css?v=20260504-vercel1">
+<style>
+  :root {
+    --dto-bg: #05070c;
+    --dto-panel: #0b111b;
+    --dto-panel-2: #101826;
+    --dto-border: #24334a;
+    --dto-text: #dce7f5;
+    --dto-muted: #8ea0ba;
+    --dto-cyan: #00d7ff;
+    --dto-green: #00e08a;
+    --dto-gold: #f2b84b;
+    --dto-red: #ff5b6e;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      linear-gradient(180deg, rgba(0, 215, 255, 0.09), transparent 260px),
+      radial-gradient(circle at 86% 14%, rgba(0, 224, 138, 0.16), transparent 26rem),
+      radial-gradient(circle at 10% 86%, rgba(242, 184, 75, 0.11), transparent 24rem),
+      var(--dto-bg);
+    color: var(--dto-text);
+    font-family: "Barlow Condensed", system-ui, sans-serif;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(220, 231, 245, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(220, 231, 245, 0.035) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: linear-gradient(180deg, #000, transparent 82%);
+  }
+
+  a { color: inherit; }
+
+  .shell {
+    position: relative;
+    width: min(1380px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 26px 0 36px;
+  }
+
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 18px;
+    padding: 12px 0 22px;
+    border-bottom: 1px solid rgba(220, 231, 245, 0.12);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .nav-links a {
+    border: 1px solid rgba(0, 215, 255, 0.24);
+    border-radius: 999px;
+    padding: 8px 10px;
+    background: rgba(9, 16, 26, 0.76);
+    color: #cfe6f0;
+    font: 700 10px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.1em;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .top-right .dto-auth-inline {
+    display: inline-flex;
+    gap: 8px;
+    align-items: center;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .top-right .dto-auth-inline button,
+  .top-right .dto-auth-inline span {
+    min-height: 36px;
+    border: 1px solid rgba(0, 215, 255, 0.24);
+    border-radius: 999px;
+    padding: 8px 12px;
+    background: rgba(9, 16, 26, 0.76);
+    color: #cfe6f0;
+    cursor: pointer;
+    font: 700 10px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.1em;
+    text-decoration: none;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .top-right .dto-auth-inline button:hover,
+  .top-right .dto-auth-inline button:focus-visible {
+    border-color: rgba(0, 224, 138, 0.65);
+    background: linear-gradient(135deg, var(--dto-cyan), var(--dto-green));
+    color: #061017;
+    outline: none;
+  }
+
+  .brand {
+    font-family: "JetBrains Mono", monospace;
+    font-weight: 800;
+    letter-spacing: 0.22em;
+    color: #ffffff;
+  }
+
+  .brand span { color: var(--dto-cyan); }
+
+  .session {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #c4d0df;
+  }
+
+  .top-right {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .pill {
+    border: 1px solid rgba(0, 215, 255, 0.35);
+    border-radius: 999px;
+    padding: 8px 11px;
+    background: rgba(9, 16, 26, 0.88);
+  }
+
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 0.92fr) minmax(420px, 1.08fr);
+    gap: 20px;
+    align-items: stretch;
+    padding: 30px 0 16px;
+  }
+
+  .hero-copy,
+  .analysis-card,
+  .status-card,
+  .tool,
+  .resource,
+  .op {
+    border: 1px solid rgba(220, 231, 245, 0.13);
+    border-radius: 8px;
+    background: linear-gradient(180deg, rgba(17, 25, 39, 0.94), rgba(8, 13, 21, 0.95));
+    box-shadow: 0 20px 70px rgba(0, 0, 0, 0.26);
+  }
+
+  .hero-copy {
+    min-height: 520px;
+    padding: 34px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .eyebrow,
+  .label,
+  .tool-kicker,
+  .hint,
+  .fineprint {
+    font-family: "JetBrains Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+  }
+
+  .eyebrow {
+    color: var(--dto-cyan);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  h1 {
+    margin: 18px 0 0;
+    color: #ffffff;
+    font-size: clamp(58px, 7vw, 104px);
+    line-height: 0.86;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+
+  .subtitle {
+    max-width: 760px;
+    margin: 18px 0 0;
+    color: #aebdd0;
+    font: 15px/1.75 "JetBrains Mono", monospace;
+  }
+
+  .command-snapshot {
+    display: grid;
+    gap: 14px;
+    margin-top: 28px;
+    padding-top: 22px;
+    border-top: 1px solid rgba(220, 231, 245, 0.1);
+  }
+
+  .command-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .command-label,
+  .command-tag,
+  .command-tile span,
+  .command-step {
+    font-family: "JetBrains Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  .command-label {
+    color: var(--dto-cyan);
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .command-head strong {
+    display: block;
+    max-width: 460px;
+    margin-top: 7px;
+    color: #ffffff;
+    font: 800 20px/1.15 "Barlow Condensed", sans-serif;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .command-tag {
+    flex: 0 0 auto;
+    border: 1px solid rgba(0, 215, 255, 0.32);
+    border-radius: 999px;
+    padding: 8px 10px;
+    background: rgba(0, 215, 255, 0.07);
+    color: #cceaf4;
+    font-size: 10px;
+    font-weight: 800;
+  }
+
+  .command-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border: 1px solid rgba(220, 231, 245, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(3, 8, 15, 0.44);
+  }
+
+  .command-tile {
+    min-height: 82px;
+    padding: 14px 16px;
+    border-right: 1px solid rgba(220, 231, 245, 0.08);
+    border-bottom: 1px solid rgba(220, 231, 245, 0.08);
+  }
+
+  .command-tile:nth-child(2n) { border-right: 0; }
+  .command-tile:nth-last-child(-n + 2) { border-bottom: 0; }
+
+  .command-tile span {
+    display: block;
+    color: #8ea0ba;
+    font-size: 10px;
+    font-weight: 800;
+  }
+
+  .command-tile strong {
+    display: block;
+    margin-top: 10px;
+    color: #ffffff;
+    font: 900 25px/0.95 "JetBrains Mono", monospace;
+  }
+
+  .command-tile small {
+    display: block;
+    margin-top: 8px;
+    color: #9fb1c8;
+    font: 11px/1.45 "JetBrains Mono", monospace;
+  }
+
+  .market-pulse {
+    border: 1px solid rgba(0, 215, 255, 0.16);
+    border-radius: 8px;
+    background: rgba(3, 8, 15, 0.34);
+    overflow: hidden;
+  }
+
+  .pulse-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(220, 231, 245, 0.08);
+  }
+
+  .pulse-title {
+    color: var(--dto-cyan);
+    font: 900 11px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .pulse-refresh {
+    border: 1px solid rgba(0, 215, 255, 0.32);
+    border-radius: 999px;
+    padding: 8px 10px;
+    background: rgba(0, 215, 255, 0.07);
+    color: #e8fbff;
+    cursor: pointer;
+    font: 900 9px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .pulse-refresh:hover,
+  .pulse-refresh:focus-visible {
+    background: var(--dto-cyan);
+    color: #041018;
+    outline: none;
+  }
+
+  .pulse-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .pulse-card {
+    min-height: 82px;
+    padding: 13px 14px;
+    border-right: 1px solid rgba(220, 231, 245, 0.08);
+    color: inherit;
+    text-align: left;
+    text-decoration: none;
+  }
+
+  .pulse-card:last-child { border-right: 0; }
+
+  .pulse-card span {
+    display: block;
+    color: #8ea0ba;
+    font: 900 9px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+  }
+
+  .pulse-card strong {
+    display: block;
+    margin-top: 9px;
+    color: #ffffff;
+    font: 900 25px/0.92 "JetBrains Mono", monospace;
+  }
+
+  .pulse-card small {
+    display: block;
+    margin-top: 8px;
+    color: #aebdd0;
+    font: 11px/1.35 "JetBrains Mono", monospace;
+  }
+
+  .pulse-card.best strong,
+  .pulse-up { color: var(--dto-green); }
+
+  .pulse-card.worst strong,
+  .pulse-down { color: var(--dto-red); }
+
+  .pulse-card.hot strong { color: var(--dto-gold); }
+
+  .pulse-strip {
+    display: flex;
+    gap: 7px;
+    padding: 11px 14px 13px;
+    border-top: 1px solid rgba(220, 231, 245, 0.08);
+    overflow-x: auto;
+  }
+
+  .pulse-chip {
+    flex: 0 0 auto;
+    border: 1px solid rgba(0, 215, 255, 0.18);
+    border-radius: 999px;
+    padding: 7px 9px;
+    background: rgba(0, 215, 255, 0.05);
+    color: #d8e7f5;
+    font: 900 10px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .pulse-note {
+    color: #8ea0ba;
+    font: 10px/1.35 "JetBrains Mono", monospace;
+  }
+
+  .command-next {
+    border-left: 3px solid var(--dto-cyan);
+    padding: 12px 14px;
+    background: linear-gradient(90deg, rgba(0, 215, 255, 0.11), rgba(0, 215, 255, 0.02));
+    color: #bfd0e6;
+    font: 12px/1.6 "JetBrains Mono", monospace;
+  }
+
+  .command-loop {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .command-step {
+    min-height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(0, 215, 255, 0.22);
+    border-radius: 999px;
+    background: rgba(0, 215, 255, 0.05);
+    color: #8ea0ba;
+    cursor: pointer;
+    font-size: 9px;
+    font-weight: 900;
+    text-decoration: none;
+  }
+
+  button.command-step {
+    font-family: "JetBrains Mono", monospace;
+    padding: 0 10px;
+  }
+
+  .command-step:hover,
+  .command-step:focus-visible {
+    border-color: rgba(0, 215, 255, 0.72);
+    background: rgba(0, 215, 255, 0.14);
+    color: #ffffff;
+    outline: none;
+  }
+
+  .command-step.is-done {
+    border-color: rgba(0, 224, 138, 0.38);
+    color: #dfffee;
+    background: rgba(0, 224, 138, 0.1);
+  }
+
+  .command-step.is-active {
+    border-color: rgba(242, 184, 75, 0.58);
+    color: #ffe3a4;
+    background: rgba(242, 184, 75, 0.12);
+  }
+
+  .quick-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 28px;
+  }
+
+  .action {
+    display: inline-flex;
+    min-height: 46px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(0, 215, 255, 0.38);
+    border-radius: 6px;
+    padding: 12px 14px;
+    background: rgba(0, 215, 255, 0.08);
+    color: #eaf9ff;
+    font: 700 12px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.12em;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .action.primary {
+    background: var(--dto-cyan);
+    color: #031018;
+    border-color: var(--dto-cyan);
+  }
+
+  .hero-side {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 14px;
+  }
+
+  .analysis-card {
+    padding: 22px;
+  }
+
+  .card-title {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: start;
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    margin: 0;
+    color: #ffffff;
+    font-size: 30px;
+    line-height: 0.95;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .live-dot {
+    display: inline-flex;
+    gap: 7px;
+    align-items: center;
+    color: var(--dto-green);
+    font: 700 11px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .live-dot::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--dto-green);
+    box-shadow: 0 0 14px rgba(0, 224, 138, 0.85);
+  }
+
+  .search-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+  }
+
+  .search-row input {
+    min-width: 0;
+    width: 100%;
+    border: 1px solid rgba(0, 215, 255, 0.35);
+    border-radius: 6px;
+    background: #050a12;
+    color: #ffffff;
+    padding: 15px 16px;
+    font: 700 15px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.1em;
+    outline: none;
+    text-transform: uppercase;
+  }
+
+  .search-row input:focus {
+    border-color: var(--dto-cyan);
+    box-shadow: 0 0 0 4px rgba(0, 215, 255, 0.09);
+  }
+
+  .search-row button {
+    border: 0;
+    border-radius: 6px;
+    background: var(--dto-green);
+    color: #03120c;
+    padding: 0 18px;
+    font: 800 12px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .result {
+    margin-top: 14px;
+    border: 1px solid rgba(220, 231, 245, 0.11);
+    border-radius: 8px;
+    background: rgba(5, 10, 18, 0.62);
+    overflow: hidden;
+  }
+
+  .result-top {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid rgba(220, 231, 245, 0.1);
+  }
+
+  .symbol {
+    color: #ffffff;
+    font: 800 36px/0.95 "JetBrains Mono", monospace;
+    letter-spacing: 0.04em;
+  }
+
+  .name {
+    margin-top: 6px;
+    color: #90a4bc;
+    font: 12px/1.35 "JetBrains Mono", monospace;
+  }
+
+  .rating {
+    min-width: 118px;
+    border-radius: 6px;
+    padding: 13px 14px;
+    text-align: center;
+    color: #041018;
+    background: var(--dto-gold);
+    font: 900 18px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.08em;
+  }
+
+  .rating.offline {
+    background: #5f7086;
+    color: #ffffff;
+    font-size: 14px;
+  }
+
+  .rating.buy { background: var(--dto-green); }
+  .rating.sell { background: var(--dto-red); color: #190307; }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-bottom: 1px solid rgba(220, 231, 245, 0.1);
+  }
+
+  .metric {
+    padding: 14px 16px;
+    border-right: 1px solid rgba(220, 231, 245, 0.1);
+  }
+
+  .metric:last-child { border-right: 0; }
+
+  .label {
+    color: #71839b;
+    font-size: 10px;
+  }
+
+  .metric strong {
+    display: block;
+    margin-top: 7px;
+    color: #ffffff;
+    font: 800 18px/1 "JetBrains Mono", monospace;
+  }
+
+  .analysis-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .analysis-body h3 {
+    margin: 0 0 8px;
+    color: #ffffff;
+    font: 800 14px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .analysis-body p,
+  .analysis-body li {
+    color: #aebdd0;
+    font: 12px/1.65 "JetBrains Mono", monospace;
+  }
+
+  .analysis-body p { margin: 0; }
+  .analysis-body ul { margin: 0; padding-left: 18px; }
+
+  .source-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .source-card {
+    min-height: 96px;
+    border: 1px solid rgba(0, 215, 255, 0.16);
+    border-radius: 7px;
+    background: rgba(5, 9, 15, 0.62);
+    padding: 12px;
+  }
+
+  .source-card strong {
+    display: block;
+    margin-bottom: 7px;
+    color: #ffffff;
+    font: 900 12px/1.15 "JetBrains Mono", monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .source-card p {
+    margin: 0 0 9px;
+    color: var(--dto-muted);
+    font: 600 12px/1.45 "JetBrains Mono", monospace;
+  }
+
+  .source-card a {
+    display: inline-flex;
+    border: 1px solid rgba(0, 215, 255, 0.3);
+    border-radius: 999px;
+    padding: 7px 10px;
+    color: var(--dto-cyan);
+    font: 900 10px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .headline-list {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .headline-list a,
+  .headline-list span {
+    display: block;
+    border-left: 2px solid rgba(242, 184, 75, 0.65);
+    padding-left: 10px;
+    color: #d8e2ef;
+    font: 600 12px/1.45 "JetBrains Mono", monospace;
+    text-decoration: none;
+  }
+
+  .company-read {
+    border-top: 1px solid rgba(220, 231, 245, 0.1);
+    padding: 16px;
+    background: rgba(0, 215, 255, 0.025);
+  }
+
+  .signal-grade {
+    border-top: 1px solid rgba(220, 231, 245, 0.1);
+    padding: 16px;
+    background: rgba(0, 215, 255, 0.025);
+  }
+
+  .signal-grade-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .signal-grade-head h3 {
+    margin: 0;
+    color: #ffffff;
+    font: 800 14px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .signal-grade-grid {
+    display: grid;
+    grid-template-columns: 0.9fr 1fr 1.2fr;
+    gap: 12px;
+  }
+
+  .signal-grade-card {
+    border: 1px solid rgba(220, 231, 245, 0.1);
+    border-radius: 8px;
+    background: rgba(5, 10, 18, 0.82);
+    padding: 14px;
+    min-width: 0;
+  }
+
+  .signal-grade-card h4 {
+    margin: 0 0 8px;
+    color: var(--dto-cyan);
+    font: 800 11px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .signal-grade-card strong {
+    display: block;
+    color: #ffffff;
+    font: 900 24px/1 "JetBrains Mono", monospace;
+    overflow-wrap: anywhere;
+  }
+
+  .signal-grade-card p {
+    margin: 9px 0 0;
+    color: #aebdd0;
+    font: 12px/1.6 "JetBrains Mono", monospace;
+  }
+
+  .signal-grade-list {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .signal-grade-note {
+    border: 1px solid rgba(242, 184, 75, 0.34);
+    border-radius: 8px;
+    background: rgba(242, 184, 75, 0.08);
+    color: #eed7a4;
+    font: 12px/1.55 "JetBrains Mono", monospace;
+    padding: 10px 12px;
+  }
+
+  .signal-grade-note.good {
+    border-color: rgba(0, 224, 138, 0.28);
+    background: rgba(0, 224, 138, 0.07);
+    color: #bdf6d8;
+  }
+
+  .company-read-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .company-read-head h3 {
+    margin: 0;
+    color: #ffffff;
+    font: 800 14px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .company-source {
+    border: 1px solid rgba(0, 215, 255, 0.28);
+    border-radius: 999px;
+    padding: 6px 9px;
+    color: var(--dto-cyan);
+    font: 800 10px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .company-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+    gap: 12px;
+  }
+
+  .company-card {
+    border: 1px solid rgba(220, 231, 245, 0.1);
+    border-radius: 8px;
+    background: rgba(5, 10, 18, 0.82);
+    padding: 14px;
+  }
+
+  .company-card h4 {
+    margin: 0 0 8px;
+    color: var(--dto-cyan);
+    font: 800 11px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .company-card p,
+  .company-card li {
+    color: #aebdd0;
+    font: 12px/1.65 "JetBrains Mono", monospace;
+  }
+
+  .company-card p,
+  .company-card ul { margin: 0; }
+
+  .company-card ul { padding-left: 18px; }
+
+  .workflow-actions {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    padding: 14px 16px;
+    border-top: 1px solid rgba(220, 231, 245, 0.1);
+    background: rgba(5, 10, 18, 0.65);
+  }
+
+  .flow-btn {
+    min-height: 44px;
+    border: 1px solid rgba(0, 215, 255, 0.34);
+    border-radius: 7px;
+    background: rgba(0, 215, 255, 0.07);
+    color: #dff8ff;
+    cursor: pointer;
+    font: 800 11px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .flow-btn.primary {
+    border-color: var(--dto-green);
+    background: var(--dto-green);
+    color: #04130d;
+  }
+
+  .flow-btn.gold {
+    border-color: rgba(242, 184, 75, 0.48);
+    background: rgba(242, 184, 75, 0.1);
+    color: #ffe2a3;
+  }
+
+  .fineprint {
+    margin-top: 12px;
+    color: #72849a;
+    font-size: 10px;
+    line-height: 1.55;
+  }
+
+  .status-note {
+    margin-top: 12px;
+    border: 1px solid rgba(255, 91, 110, 0.3);
+    border-radius: 6px;
+    padding: 10px 12px;
+    background: rgba(255, 91, 110, 0.06);
+    color: #ffc4cc;
+    font: 11px/1.55 "JetBrains Mono", monospace;
+  }
+
+  .ground-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+    border: 1px solid rgba(242, 184, 75, 0.42);
+    border-radius: 6px;
+    padding: 10px 12px;
+    background: rgba(242, 184, 75, 0.08);
+    color: #ffe2a3;
+    font: 800 11px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.1em;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .live-widgets {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .widget-box {
+    min-height: 360px;
+    border: 1px solid rgba(220, 231, 245, 0.11);
+    border-radius: 8px;
+    background: #050a12;
+    overflow: hidden;
+  }
+
+  .widget-box.technical {
+    min-height: 420px;
+  }
+
+  .native-widget {
+    padding: 14px;
+    min-height: 330px;
+  }
+
+  .native-chart {
+    width: 100%;
+    height: 285px;
+    display: block;
+    background: linear-gradient(rgba(0, 215, 255, 0.04) 1px, transparent 1px), #050a12;
+    background-size: 100% 25%;
+    border-top: 1px solid rgba(220, 231, 245, 0.08);
+  }
+
+  .tradingview-frame {
+    width: 100%;
+    height: 330px;
+    border: 0;
+    display: block;
+    background: #050a12;
+  }
+
+  .tradingview-frame.tv-live-frame {
+    height: 430px;
+    border-top: 1px solid rgba(220, 231, 245, 0.12);
+  }
+
+  .source-deck {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 12px 0;
+  }
+
+  .source-deck a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    border: 1px solid rgba(0, 215, 255, 0.24);
+    border-radius: 7px;
+    background: rgba(0, 215, 255, 0.06);
+    color: #dff8ff;
+    font: 800 10px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.08em;
+    text-align: center;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .source-deck a:hover {
+    background: var(--dto-cyan);
+    color: #061017;
+  }
+
+  .source-note {
+    margin: 8px 0 0;
+    color: #71839b;
+    font: 11px/1.55 "JetBrains Mono", monospace;
+  }
+
+  .native-empty {
+    min-height: 300px;
+    display: grid;
+    place-items: center;
+    color: #71839b;
+    font: 12px/1.7 "JetBrains Mono", monospace;
+    text-align: center;
+    padding: 22px;
+  }
+
+  .chart-stats,
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .chart-stat,
+  .tech-stat {
+    border: 1px solid rgba(220, 231, 245, 0.1);
+    border-radius: 6px;
+    background: rgba(13, 20, 31, 0.78);
+    padding: 9px;
+  }
+
+  .chart-stat span,
+  .tech-stat span {
+    display: block;
+    color: #71839b;
+    font: 10px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .chart-stat strong,
+  .tech-stat strong {
+    display: block;
+    margin-top: 6px;
+    color: #ffffff;
+    font: 800 14px/1 "JetBrains Mono", monospace;
+  }
+
+  .rating-dial {
+    padding: 20px 16px;
+  }
+
+  .rating-main {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+
+  .rating-main strong {
+    color: #ffffff;
+    font: 900 44px/0.9 "Barlow Condensed", sans-serif;
+    letter-spacing: 0.04em;
+  }
+
+  .score-ring {
+    width: 92px;
+    height: 92px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: conic-gradient(var(--dto-cyan) var(--score), rgba(220, 231, 245, 0.12) 0);
+  }
+
+  .score-ring span {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: #050a12;
+    color: #ffffff;
+    font: 900 16px/1 "JetBrains Mono", monospace;
+  }
+
+  .tech-line {
+    margin-top: 10px;
+  }
+
+  .tech-line label {
+    display: flex;
+    justify-content: space-between;
+    color: #aebdd0;
+    font: 11px/1 "JetBrains Mono", monospace;
+    margin-bottom: 6px;
+  }
+
+  .tech-track {
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(220, 231, 245, 0.1);
+    overflow: hidden;
+  }
+
+  .tech-fill {
+    height: 100%;
+    width: 50%;
+    background: var(--dto-cyan);
+  }
+
+  .tech-analysis {
+    display: grid;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .tech-read {
+    border: 1px solid rgba(220, 231, 245, 0.1);
+    border-radius: 7px;
+    background: rgba(13, 20, 31, 0.72);
+    padding: 11px;
+  }
+
+  .tech-read span {
+    display: block;
+    margin-bottom: 6px;
+    color: #71839b;
+    font: 800 10px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .tech-read p {
+    margin: 0;
+    color: #b9c7d9;
+    font: 12px/1.55 "JetBrains Mono", monospace;
+  }
+
+  .widget-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(220, 231, 245, 0.1);
+    color: #9fb0c8;
+    font: 700 10px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .status-card {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    overflow: hidden;
+  }
+
+  .status-item {
+    padding: 17px;
+    border-right: 1px solid rgba(220, 231, 245, 0.1);
+  }
+
+  .status-item:last-child { border-right: 0; }
+
+  .value {
+    margin-top: 8px;
+    color: #ffffff;
+    font: 900 26px/1 "JetBrains Mono", monospace;
+  }
+
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 20px;
+    margin: 26px 0 14px;
+  }
+
+  .hint {
+    color: var(--dto-muted);
+    font-size: 11px;
+    text-align: right;
+  }
+
+  .tool-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .tool {
+    display: flex;
+    flex-direction: column;
+    min-height: 210px;
+    padding: 18px;
+    text-decoration: none;
+    transition: transform 0.16s ease, border-color 0.16s ease;
+  }
+
+  .tool:hover,
+  .tool:focus-visible {
+    transform: translateY(-2px);
+    border-color: rgba(0, 215, 255, 0.75);
+    outline: none;
+  }
+
+  .tool.featured {
+    border-color: rgba(0, 224, 138, 0.5);
+    background: linear-gradient(135deg, rgba(0, 224, 138, 0.12), rgba(0, 215, 255, 0.06)), var(--dto-panel);
+    box-shadow: inset 0 0 0 1px rgba(0, 224, 138, 0.08);
+  }
+
+  .tool.featured .tool-kicker,
+  .tool.featured .tag {
+    color: var(--dto-green);
+    border-color: rgba(0, 224, 138, 0.28);
+  }
+
+  .tool-kicker {
+    color: var(--dto-cyan);
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  .tool h3 {
+    margin: 18px 0 10px;
+    color: #ffffff;
+    font-size: 28px;
+    line-height: 0.95;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  .tool p {
+    margin: 0;
+    color: #aebdd0;
+    font: 13px/1.55 "JetBrains Mono", monospace;
+  }
+
+  .tool-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: auto;
+    padding-top: 18px;
+  }
+
+  .tag {
+    border: 1px solid rgba(220, 231, 245, 0.14);
+    border-radius: 999px;
+    padding: 5px 8px;
+    color: #aab8cc;
+    font: 10px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .resources,
+  .ops {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .ops { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+  .resource,
+  .op {
+    padding: 18px;
+    text-decoration: none;
+  }
+
+  .resource strong,
+  .op strong {
+    display: block;
+    color: #ffffff;
+    font-size: 24px;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .op strong {
+    font: 700 13px/1.2 "JetBrains Mono", monospace;
+    letter-spacing: 0.08em;
+  }
+
+  .resource span,
+  .op span {
+    display: block;
+    margin-top: 9px;
+    color: #aebdd0;
+    font: 12px/1.55 "JetBrains Mono", monospace;
+  }
+
+  .op {
+    border: 1px solid rgba(220, 231, 245, 0.11);
+    border-radius: 8px;
+    background: rgba(13, 20, 31, 0.82);
+  }
+
+  .op-data {
+    margin-top: 12px;
+    color: #ffffff;
+    font: 800 16px/1.2 "JetBrains Mono", monospace;
+  }
+
+  .op-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .op-actions a,
+  .op-actions button {
+    border: 1px solid rgba(0, 215, 255, 0.32);
+    border-radius: 6px;
+    background: rgba(0, 215, 255, 0.08);
+    color: #e7f9ff;
+    padding: 9px 10px;
+    cursor: pointer;
+    text-decoration: none;
+    font: 800 10px/1 "JetBrains Mono", monospace;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 1120px) {
+    .hero { grid-template-columns: 1fr; }
+    .hero-copy { min-height: 420px; }
+    .tool-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ops { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 720px) {
+    .shell { width: min(100% - 22px, 1380px); padding-top: 18px; }
+    .topbar,
+    .section-head,
+    .card-title { align-items: flex-start; flex-direction: column; }
+    .session { justify-content: flex-start; }
+    .top-right { justify-content: flex-start; }
+    .quick-actions,
+    .search-row,
+    .workflow-actions,
+    .live-widgets,
+    .analysis-body,
+    .company-grid,
+    .signal-grade-grid,
+    .source-deck,
+    .source-grid,
+    .resources,
+    .status-card,
+    .metrics { grid-template-columns: 1fr; }
+    .company-read-head { align-items: flex-start; flex-direction: column; }
+    .tool-grid { grid-template-columns: 1fr; }
+    .hero-copy { padding: 22px; min-height: 0; }
+    .command-head { flex-direction: column; }
+    .command-metrics,
+    .pulse-grid,
+    .command-loop { grid-template-columns: 1fr; }
+    .command-tile,
+    .command-tile:nth-child(2n),
+    .command-tile:nth-last-child(-n + 2) {
+      border-right: 0;
+      border-bottom: 1px solid rgba(220, 231, 245, 0.08);
+    }
+    .command-tile:last-child { border-bottom: 0; }
+    .pulse-card,
+    .pulse-card:last-child {
+      border-right: 0;
+      border-bottom: 1px solid rgba(220, 231, 245, 0.08);
+    }
+    .pulse-card:last-child { border-bottom: 0; }
+    .status-item,
+    .metric { border-right: 0; border-bottom: 1px solid rgba(220, 231, 245, 0.1); }
+    .hint { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<main class="shell">
+  <header class="topbar">
+    <div class="brand">DAYTRADER<span>_OS</span></div>
+    <div class="top-right">
+      <nav class="nav-links" aria-label="Main navigation">
+        <a href="index.html">Home</a>
+        <a href="#mission">Mission</a>
+        <a href="#tools">Tools</a>
+        <a href="#resources">Resources</a>
+      </nav>
+      <div class="dto-auth-inline" aria-label="Account controls">
+        <button type="button" data-dto-open-auth="signup" onclick="window.DTO?.openAuthModal('signup')">Sign Up</button>
+        <button type="button" data-dto-open-auth="login" onclick="window.DTO?.openAuthModal('login')">Log In</button>
+      </div>
+      <div class="session">
+        <span class="pill" id="clock">--:-- ET</span>
+        <span class="pill" id="marketState">Market status</span>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-copy">
+      <div>
+        <div class="eyebrow">Trading toolkit home</div>
+        <h1>Command Center</h1>
+        <p class="subtitle">Search any stock or crypto for an instant educational signal, then jump into prep, risk sizing, chart review, replay practice, or journaling without losing the home screen.</p>
+        <div class="command-snapshot" aria-label="Command Center mission snapshot">
+          <div class="command-head">
+            <div>
+              <div class="command-label">Mission snapshot</div>
+              <strong id="heroNextAction">Analyze a symbol to start the workflow.</strong>
+            </div>
+            <span class="command-tag" id="heroProfileMode">Guest / Beginner</span>
+          </div>
+          <div class="command-metrics">
+            <div class="command-tile">
+              <span>Active setup</span>
+              <strong id="heroActiveSetup">None</strong>
+              <small id="heroSetupMeta">Signal, grade, and risk will appear after analysis.</small>
+            </div>
+            <div class="command-tile">
+              <span>Saved setups</span>
+              <strong id="heroSavedSetups">0</strong>
+              <small id="heroSavedMeta">Practice plans stored in this browser.</small>
+            </div>
+            <div class="command-tile">
+              <span>Paper account</span>
+              <strong id="heroPaperPnl">$0.00</strong>
+              <small id="heroPaperMeta">No open fake-money positions yet.</small>
+            </div>
+            <div class="command-tile">
+              <span>Journal edge</span>
+              <strong id="heroJournalEdge">0%</strong>
+              <small id="heroJournalMeta">No closed trades logged yet.</small>
+            </div>
+          </div>
+          <div class="market-pulse" aria-label="Best and worst performers">
+            <div class="pulse-head">
+              <div>
+                <div class="pulse-title">Market Pulse</div>
+                <div class="pulse-note" id="pulseStatus">Checking liquid stocks, crypto, and your watchlist.</div>
+              </div>
+              <button class="pulse-refresh" id="refreshPulse" type="button">Refresh</button>
+            </div>
+            <div class="pulse-grid">
+              <a class="pulse-card best" id="pulseBest" href="signal_dashboard.html"><span>Best Performer</span><strong>--</strong><small>Waiting for candles</small></a>
+              <a class="pulse-card worst" id="pulseWorst" href="signal_dashboard.html"><span>Worst Performer</span><strong>--</strong><small>Waiting for candles</small></a>
+            <a class="pulse-card hot" id="pulseVolatile" href="market_workbench.html"><span>Highest Volatility</span><strong>--</strong><small>Waiting for range</small></a>
+            </div>
+            <div class="pulse-strip" id="pulseStrip">
+              <span class="pulse-chip">Loading movers...</span>
+            </div>
+          </div>
+          <div class="command-next" id="heroCommandNote">Use the signal box on the right, then save the setup packet so every tool stays linked.</div>
+          <div class="command-loop" id="heroWorkflow">
+            <a class="command-step is-active" href="market_workbench.html" data-flow-step="scan">Scan</a>
+            <button class="command-step" type="button" data-flow-step="analyze">Analyze</button>
+            <a class="command-step" href="trade_planner.html" data-flow-step="plan">Plan</a>
+            <a class="command-step" href="execution_workbench.html" data-flow-step="size">Size</a>
+            <a class="command-step" href="practice_workbench.html" data-flow-step="paper">Paper</a>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="quick-actions">
+          <a class="action primary" href="market_workbench.html">Market Desk</a>
+          <a class="action" href="trade_planner.html">Trade Planner</a>
+          <a class="action" href="execution_workbench.html">Execution Desk</a>
+          <a class="action" href="practice_workbench.html">Practice Arena</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-side">
+      <section class="analysis-card" aria-label="Instant market analysis">
+        <div class="card-title">
+          <div>
+            <div class="eyebrow">Instant analysis</div>
+            <h2>Stock / Crypto Signal</h2>
+          </div>
+          <div class="live-dot" id="feedState">Ready</div>
+        </div>
+        <form class="search-row" id="analysisForm" onsubmit="return window.commandCenterSubmit ? window.commandCenterSubmit(event) : false">
+          <input id="assetInput" placeholder="AAPL, TSLA, BTC, ETH..." autocomplete="off">
+          <button type="submit">Analyze</button>
+        </form>
+        <div class="result" id="analysisResult">
+          <div class="result-top">
+            <div>
+              <div class="symbol">LIVE CHECK</div>
+              <div class="name">Enter a stock or crypto symbol to refresh the live chart and technical view.</div>
+            </div>
+            <div class="rating">READY</div>
+          </div>
+          <div class="metrics">
+            <div class="metric"><div class="label">Price</div><strong>Loading</strong></div>
+            <div class="metric"><div class="label">Support</div><strong>--</strong></div>
+            <div class="metric"><div class="label">Resistance</div><strong>--</strong></div>
+            <div class="metric"><div class="label">Stop</div><strong>--</strong></div>
+            <div class="metric"><div class="label">Target</div><strong>--</strong></div>
+            <div class="metric"><div class="label">R:R / RSI</div><strong>--</strong></div>
+          </div>
+          <div class="live-widgets">
+            <div class="widget-box">
+              <div class="widget-label"><span>Live Quote / Chart</span><span id="tvSymbolLabel">NASDAQ:AAPL</span></div>
+              <div id="tvOverview"></div>
+            </div>
+            <div class="widget-box technical">
+              <div class="widget-label"><span>Technical Rating</span><span>Native</span></div>
+              <div id="tvTechnical"></div>
+            </div>
+          </div>
+          <div class="analysis-body">
+            <div>
+              <h3>Signal Logic</h3>
+              <p>Use the live chart and technical rating below to judge trend, momentum, and timing before planning a trade.</p>
+            </div>
+            <div>
+              <h3>Market Context</h3>
+              <ul>
+                <li>Analyze a symbol to load headline links, earnings/SEC checks, macro calendar, sector or crypto beta, CNBC/Yahoo, and Ground News source balance.</li>
+                <li>On Vercel, Alpaca-backed `/api/analyze` becomes the public live feed for every visitor.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="status-note" id="liveStatus">Live chart and technical rating are ready. Enter a ticker to refresh the view.</div>
+        </div>
+        <div class="fineprint">Educational signal only, not financial advice. Verify quotes, risk, and news before trading.</div>
+      </section>
+
+      <aside class="status-card" aria-label="Toolkit snapshot">
+        <div class="status-item">
+          <div class="label">Journal trades</div>
+          <div class="value" id="tradeCount">0</div>
+        </div>
+        <div class="status-item">
+          <div class="label">Net journal P&L</div>
+          <div class="value" id="netPnl">$0.00</div>
+        </div>
+        <div class="status-item">
+          <div class="label">Prep watchlist</div>
+          <div class="value" id="watchCount">0</div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section id="mission">
+    <div class="section-head">
+      <h2>Mission Control</h2>
+      <div class="hint">The active setup packet, paper P&L, saved plans, journal edge, and next workflow step in one place.</div>
+    </div>
+    <div id="missionControl">
+      <div class="dto-mission-grid">
+        <article class="dto-mission-panel">
+          <div class="dto-panel-kicker">Active Setup Packet</div>
+          <h3>No Active Setup</h3>
+          <p>Analyze a symbol above or open Trade Planner to create the shared setup packet.</p>
+          <div class="dto-action-row"><a href="trade_planner.html">Open Planner</a><a href="market_workbench.html">Market Desk</a></div>
+        </article>
+        <article class="dto-mission-panel">
+          <div class="dto-panel-kicker">Setup Grader</div>
+          <h3>Ready</h3>
+          <p>Trend, levels, reward/risk, catalyst quality, and risk structure will appear here after a setup is saved.</p>
+          <div class="dto-action-row"><a data-signal-link href="signal_dashboard.html">Open Signals</a><a href="execution_workbench.html">Execution Desk</a></div>
+        </article>
+        <article class="dto-mission-panel">
+          <div class="dto-panel-kicker">Paper Account</div>
+          <h3>$0.00</h3>
+          <p>Paper positions and fake-money P&L update here once Practice Arena has trades.</p>
+          <div class="dto-action-row"><a href="practice_workbench.html">Practice</a></div>
+        </article>
+        <article class="dto-mission-panel">
+          <div class="dto-panel-kicker">Review Loop</div>
+          <h3>0%</h3>
+          <p>Journal stats, repeat mistakes, and next-session rules populate after Review Room entries.</p>
+          <div class="dto-action-row"><a href="review_workbench.html">Review</a></div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="tools">
+    <div class="section-head">
+      <h2>Ultra Tools</h2>
+      <div class="hint">Five stronger workbenches replace the overlapping single-purpose tools.</div>
+    </div>
+    <div class="tool-grid">
+      <a class="tool featured" href="market_workbench.html"><span class="tool-kicker">Scan + Context + Prep</span><h3>Market Intelligence</h3><p>Scanner, watchlist, pre-market plan, index context, catalyst checklist, crypto board, and alert planning in one desk.</p><span class="tool-meta"><span class="tag">Scan</span><span class="tag">Prep</span><span class="tag">Alerts</span></span></a>
+      <a class="tool featured" href="trade_planner.html"><span class="tool-kicker">Builder + Playbook + Lab</span><h3>Trade Planner</h3><p>Build the shared setup packet, grade the idea, use strategy presets, save rules, and launch Risk or Paper Trading.</p><span class="tool-meta"><span class="tag">Setup</span><span class="tag">Grade</span><span class="tag">Strategy</span></span></a>
+      <a class="tool featured" href="execution_workbench.html"><span class="tool-kicker">Risk + Options + Broker</span><h3>Execution Desk</h3><p>Size stocks and crypto correctly, preview notional risk, sketch option hedges, and keep Alpaca live execution locked behind safeguards.</p><span class="tool-meta"><span class="tag">Sizing</span><span class="tag">Options</span><span class="tag">Alpaca</span></span></a>
+      <a class="tool featured" href="practice_workbench.html"><span class="tool-kicker">Paper + Replay</span><h3>Practice Arena</h3><p>Run fake-money trades, see paper account state, plan replay challenges, and jump into the full simulator or backtest when needed.</p><span class="tool-meta"><span class="tag">Paper</span><span class="tag">P&L</span><span class="tag">Replay</span></span></a>
+      <a class="tool featured" href="review_workbench.html"><span class="tool-kicker">Journal + Coach</span><h3>Review Room</h3><p>Log outcomes, tag mistakes, track discipline, turn trades into lessons, and set the next session's rule before you trade again.</p><span class="tool-meta"><span class="tag">Journal</span><span class="tag">Coach</span><span class="tag">Rules</span></span></a>
+      <a class="tool" data-signal-link href="signal_dashboard.html"><span class="tool-kicker">Dedicated Signal View</span><h3>Signal Dashboard</h3><p>Open the deeper signal page when you want the live chart, native rating, company read, and setup grader in a focused view.</p><span class="tool-meta"><span class="tag">Signal</span><span class="tag">Chart</span></span></a>
+      <a class="tool" href="broker_execution_plan.html"><span class="tool-kicker">Advanced Broker Console</span><h3>Alpaca Plan</h3><p>Owner account setup, public feed path, broker access design, and order-preview guardrails for the future production backend.</p><span class="tool-meta"><span class="tag">Broker</span><span class="tag">Locked</span></span></a>
+      <a class="tool" href="tradingview_course.html"><span class="tool-kicker">Training</span><h3>TradingView Course</h3><p>Learn chart setup, indicator workflow, and practical TradingView habits without crowding the main trading workflow.</p><span class="tool-meta"><span class="tag">Course</span><span class="tag">Charts</span></span></a>
+    </div>
+  </section>
+
+  <section id="resources">
+    <div class="section-head">
+      <h2>Resources</h2>
+      <div class="hint">Specialist modules stay available when you need the deeper original page.</div>
+    </div>
+    <div class="resources">
+      <a class="resource" href="scanner_hub.html"><strong>Scanner Hub</strong><span>Original saved watchlists, movers, and crypto board module.</span></a>
+      <a class="resource" href="strategy_playbook.html"><strong>Strategy Playbook</strong><span>Interactive setup modules with entries, stops, targets, and review prompts.</span></a>
+      <a class="resource" href="options_hedge_builder.html"><strong>Options Hedge Builder</strong><span>Standalone protective put/call and debit/credit spread planner.</span></a>
+      <a class="resource" href="backtest_simulator.html"><strong>Backtest Simulator</strong><span>Deeper replay page for zoom, pan, markers, and challenge mode practice.</span></a>
+      <a class="resource" href="trade_review_coach.html"><strong>Trade Review Coach</strong><span>Focused post-trade improvement prompts and mistake tracking.</span></a>
+      <a class="resource" href="accountability.html"><strong>Accountability</strong><span>Daily rules, max-loss guardrails, emotional state, and lockout planning.</span></a>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Production Path</h2>
+      <div class="hint">One connected workflow: Scan, Analyze, Plan, Size, Practice, Review.</div>
+    </div>
+    <div class="ops" id="productionPath">
+      <div class="op"><strong>1. Market Intelligence</strong><span>Scan watchlists, context, catalysts, and alerts before choosing a symbol.</span></div>
+      <div class="op"><strong>2. Trade Planner</strong><span>Turn the signal into a graded setup packet with a clear strategy.</span></div>
+      <div class="op"><strong>3. Execution Desk</strong><span>Size risk, check notional pressure, and preview hedges before any order idea.</span></div>
+      <div class="op"><strong>4. Practice + Review</strong><span>Paper trade, replay, journal, and improve before live execution is ever unlocked.</span></div>
+    </div>
+  </section>
+</main>
+
+<script src="assets/daytrader-os.js?v=20260504-vercel1"></script>
+<script>
+  function readJson(key, fallback) {
+    try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
+    catch (error) { return fallback; }
+  }
+
+  function formatMoney(value) {
+    const sign = value < 0 ? "-" : "";
+    return `${sign}$${Math.abs(value).toFixed(2)}`;
+  }
+
+  function compactNumber(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return "--";
+    return Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(n);
+  }
+
+  function fmtPrice(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return "--";
+    const decimals = n >= 100 ? 2 : n >= 1 ? 3 : 5;
+    return `$${n.toFixed(decimals).replace(/\.?0+$/, "")}`;
+  }
+
+  function avg(values) {
+    return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
+  }
+
+  function rsi(closes, period = 14) {
+    if (closes.length <= period) return null;
+    let gains = 0;
+    let losses = 0;
+    for (let i = closes.length - period; i < closes.length; i++) {
+      const diff = closes[i] - closes[i - 1];
+      if (diff >= 0) gains += diff;
+      else losses -= diff;
+    }
+    if (losses === 0) return 100;
+    const rs = gains / losses;
+    return 100 - (100 / (1 + rs));
+  }
+
+  const cryptoMap = {
+    BTC: "BINANCE:BTCUSDT",
+    BITCOIN: "BINANCE:BTCUSDT",
+    ETH: "BINANCE:ETHUSDT",
+    ETHEREUM: "BINANCE:ETHUSDT",
+    SOL: "BINANCE:SOLUSDT",
+    SOLANA: "BINANCE:SOLUSDT",
+    DOGE: "BINANCE:DOGEUSDT",
+    DOGECOIN: "BINANCE:DOGEUSDT",
+    XRP: "BINANCE:XRPUSDT",
+    ADA: "BINANCE:ADAUSDT",
+    CARDANO: "BINANCE:ADAUSDT",
+    BNB: "BINANCE:BNBUSDT",
+    AVAX: "BINANCE:AVAXUSDT",
+    LINK: "BINANCE:LINKUSDT",
+    SUI: "BINANCE:SUIUSDT",
+    PEPE: "BINANCE:PEPEUSDT",
+    SHIB: "BINANCE:SHIBUSDT",
+    LTC: "BINANCE:LTCUSDT",
+    BCH: "BINANCE:BCHUSDT",
+    DOT: "BINANCE:DOTUSDT",
+    MATIC: "BINANCE:MATICUSDT",
+    POL: "BINANCE:POLUSDT"
+  };
+
+  const cryptoDataMap = {
+    BTC: "BTCUSDT",
+    BITCOIN: "BTCUSDT",
+    ETH: "ETHUSDT",
+    ETHEREUM: "ETHUSDT",
+    SOL: "SOLUSDT",
+    SOLANA: "SOLUSDT",
+    DOGE: "DOGEUSDT",
+    DOGECOIN: "DOGEUSDT",
+    XRP: "XRPUSDT",
+    ADA: "ADAUSDT",
+    CARDANO: "ADAUSDT",
+    BNB: "BNBUSDT",
+    AVAX: "AVAXUSDT",
+    LINK: "LINKUSDT",
+    SUI: "SUIUSDT",
+    PEPE: "PEPEUSDT",
+    SHIB: "SHIBUSDT",
+    LTC: "LTCUSDT",
+    BCH: "BCHUSDT",
+    DOT: "DOTUSDT",
+    MATIC: "MATICUSDT",
+    POL: "POLUSDT"
+  };
+
+  function isCryptoSymbol(rawSymbol) {
+    const clean = cleanSymbol(rawSymbol);
+    return Boolean(cryptoDataMap[clean] || /(?:USDT|USD)$/.test(clean) && clean.length > 4);
+  }
+
+  function tradingViewSymbol(rawSymbol) {
+    const clean = String(rawSymbol || "AAPL").trim().toUpperCase().replace(/[^A-Z0-9.-]/g, "");
+    if (!clean) return "NASDAQ:AAPL";
+    if (clean.includes(":")) return clean;
+    if (cryptoMap[clean]) return cryptoMap[clean];
+    const exchangeMap = {
+      AAPL: "NASDAQ:AAPL",
+      MSFT: "NASDAQ:MSFT",
+      NVDA: "NASDAQ:NVDA",
+      TSLA: "NASDAQ:TSLA",
+      META: "NASDAQ:META",
+      AMZN: "NASDAQ:AMZN",
+      GOOGL: "NASDAQ:GOOGL",
+      GOOG: "NASDAQ:GOOG",
+      AMD: "NASDAQ:AMD",
+      INTC: "NASDAQ:INTC",
+      AVGO: "NASDAQ:AVGO",
+      MU: "NASDAQ:MU",
+      QCOM: "NASDAQ:QCOM",
+      ARM: "NASDAQ:ARM",
+      SMCI: "NASDAQ:SMCI",
+      COIN: "NASDAQ:COIN",
+      MSTR: "NASDAQ:MSTR",
+      PLTR: "NASDAQ:PLTR",
+      SOFI: "NASDAQ:SOFI",
+      RIVN: "NASDAQ:RIVN",
+      LCID: "NASDAQ:LCID",
+      MARA: "NASDAQ:MARA",
+      RIOT: "NASDAQ:RIOT",
+      NFLX: "NASDAQ:NFLX",
+      SPY: "AMEX:SPY",
+      QQQ: "NASDAQ:QQQ",
+      DIA: "AMEX:DIA",
+      IWM: "AMEX:IWM",
+      GLD: "AMEX:GLD",
+      SLV: "AMEX:SLV",
+      IBM: "NYSE:IBM",
+      DIS: "NYSE:DIS",
+      JPM: "NYSE:JPM",
+      BAC: "NYSE:BAC",
+      WMT: "NYSE:WMT",
+      XOM: "NYSE:XOM",
+      CVX: "NYSE:CVX",
+      BA: "NYSE:BA",
+      F: "NYSE:F",
+      GM: "NYSE:GM",
+      NKE: "NYSE:NKE",
+      KO: "NYSE:KO",
+      PFE: "NYSE:PFE"
+    };
+    return exchangeMap[clean] || clean;
+  }
+
+  function tradingViewUrl(rawSymbol) {
+    return `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(tradingViewSymbol(rawSymbol))}`;
+  }
+
+  function tradingViewEmbedUrl(rawSymbol) {
+    const symbol = encodeURIComponent(tradingViewSymbol(rawSymbol));
+    return `https://s.tradingview.com/widgetembed/?symbol=${symbol}&interval=60&hidesidetoolbar=1&symboledit=1&saveimage=0&toolbarbg=050a12&theme=dark&style=1&timezone=America%2FNew_York&withdateranges=1&hideideas=1&locale=en`;
+  }
+
+  function sourceUrls(rawSymbol) {
+    const symbol = cleanSymbol(rawSymbol);
+    const isCrypto = Boolean(cryptoDataMap[symbol]);
+    const cryptoBase = isCrypto ? String(cryptoDataMap[symbol]).replace(/USDT$/, "") : symbol;
+    const yahooSymbol = isCrypto ? `${cryptoBase}-USD` : symbol;
+    const searchQuery = encodeURIComponent(`${symbol} stock crypto market news`);
+    return {
+      tradingView: tradingViewUrl(symbol),
+      yahoo: `https://finance.yahoo.com/quote/${encodeURIComponent(yahooSymbol)}`,
+      cnbc: `https://www.cnbc.com/search/?query=${encodeURIComponent(symbol)}`,
+      marketWatch: isCrypto
+        ? `https://www.marketwatch.com/search?q=${encodeURIComponent(symbol)}`
+        : `https://www.marketwatch.com/investing/stock/${encodeURIComponent(symbol.toLowerCase())}`,
+      nasdaq: isCrypto
+        ? `https://www.nasdaq.com/search?q=${encodeURIComponent(symbol)}`
+        : `https://www.nasdaq.com/market-activity/stocks/${encodeURIComponent(symbol.toLowerCase())}`,
+      ground: `https://ground.news/search?q=${searchQuery}`,
+      finviz: isCrypto
+        ? `https://finviz.com/crypto.ashx`
+        : `https://finviz.com/quote.ashx?t=${encodeURIComponent(symbol)}`
+    };
+  }
+
+  function sourceDeckHtml(rawSymbol) {
+    const urls = sourceUrls(rawSymbol);
+    return `<div class="source-deck" aria-label="Reliable market source links">
+      <a href="${escapeHtml(urls.tradingView)}" target="_blank" rel="noopener">TradingView</a>
+      <a href="${escapeHtml(urls.yahoo)}" target="_blank" rel="noopener">Yahoo Finance</a>
+      <a href="${escapeHtml(urls.cnbc)}" target="_blank" rel="noopener">CNBC</a>
+      <a href="${escapeHtml(urls.marketWatch)}" target="_blank" rel="noopener">MarketWatch</a>
+      <a href="${escapeHtml(urls.nasdaq)}" target="_blank" rel="noopener">Nasdaq</a>
+      <a href="${escapeHtml(urls.ground)}" target="_blank" rel="noopener">Ground News</a>
+    </div>`;
+  }
+
+  function cleanSymbol(rawSymbol) {
+    return String(rawSymbol || "AAPL").trim().toUpperCase().replace(/[^A-Z0-9.-]/g, "") || "AAPL";
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[char]));
+  }
+
+  function marketProxySources(url, label = "feed") {
+    return [
+      { url, label: `${label} direct` },
+      { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`, label: `${label} AllOrigins` },
+      { url: `https://corsproxy.io/?${encodeURIComponent(url)}`, label: `${label} CORS proxy` },
+      { url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`, label: `${label} CodeTabs` }
+    ];
+  }
+
+  async function fetchJson(url, label = "feed") {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4500);
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      if (!response.ok) throw new Error(`${label} returned ${response.status}`);
+      const text = await response.text();
+      return JSON.parse(text);
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  async function fetchPublicApiJson(path, label = "public API") {
+    const cleanPath = String(path || "").replace(/^\/+/, "");
+    const urls = [`/api/${cleanPath}`, `/.netlify/functions/${cleanPath}`];
+    let lastError = null;
+    for (const url of urls) {
+      try {
+        return await fetchJson(url, label);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError || new Error(`${label} unavailable`);
+  }
+
+  async function fetchText(url, label = "feed") {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 4500);
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      if (!response.ok) throw new Error(`${label} returned ${response.status}`);
+      return response.text();
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  async function fetchJsonWithFallback(url, label = "feed") {
+    let lastError = null;
+    for (const source of marketProxySources(url, label)) {
+      try {
+        return await fetchJson(source.url, source.label);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError || new Error(`${label} unavailable`);
+  }
+
+  async function fetchTextWithFallback(url, label = "feed") {
+    let lastError = null;
+    for (const source of marketProxySources(url, label)) {
+      try {
+        return await fetchText(source.url, source.label);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError || new Error(`${label} unavailable`);
+  }
+
+  async function fetchBackendCandles(rawSymbol) {
+    if (!/^https?:$/.test(location.protocol)) {
+      throw new Error("Backend candle proxy is only available when the app is hosted, not from file://.");
+    }
+    const symbol = cleanSymbol(rawSymbol);
+    const data = await fetchPublicApiJson(`analyze?symbol=${encodeURIComponent(symbol)}`, "Public candle proxy");
+    const candles = (data?.candles || []).map(candle => ({
+      time: candle.time,
+      open: Number(candle.open),
+      high: Number(candle.high),
+      low: Number(candle.low),
+      close: Number(candle.close),
+      volume: Number(candle.volume)
+    })).filter(candle => Number.isFinite(candle.close) && Number.isFinite(candle.high) && Number.isFinite(candle.low));
+    if (!candles.length) throw new Error(data?.error || "No backend candles returned");
+    candles.source = data?.candleSource || "Public candle proxy";
+    candles.delayed = Boolean(data?.feedDelayed);
+    candles.backendSignal = data;
+    return candles;
+  }
+
+  function parseYahooCandles(data) {
+    const result = data.chart?.result?.[0];
+    const quote = result?.indicators?.quote?.[0];
+    if (!quote?.close?.length) throw new Error("No candles returned");
+    return quote.close.map((close, index) => ({
+      time: result.timestamp?.[index],
+      open: Number(quote.open?.[index]),
+      high: Number(quote.high?.[index]),
+      low: Number(quote.low?.[index]),
+      close: Number(close),
+      volume: Number(quote.volume?.[index])
+    })).filter(candle => Number.isFinite(candle.close) && Number.isFinite(candle.high) && Number.isFinite(candle.low));
+  }
+
+  function parseStooqCandles(csv) {
+    const lines = String(csv || "").trim().split(/\r?\n/).filter(Boolean);
+    if (lines.length < 20 || !/^date,/i.test(lines[0])) throw new Error("No Stooq candles returned");
+    return lines.slice(1).map(line => {
+      const [date, open, high, low, close, volume] = line.split(",");
+      const time = Math.floor(new Date(`${date}T16:00:00-05:00`).getTime() / 1000);
+      return {
+        time,
+        open: Number(open),
+        high: Number(high),
+        low: Number(low),
+        close: Number(close),
+        volume: Number(volume)
+      };
+    }).filter(candle => Number.isFinite(candle.close) && Number.isFinite(candle.high) && Number.isFinite(candle.low));
+  }
+
+  async function fetchStooqDailyCandles(symbol) {
+    const stooqSymbol = `${cleanSymbol(symbol).toLowerCase()}.us`;
+    const url = `https://stooq.com/q/d/l/?s=${encodeURIComponent(stooqSymbol)}&i=d`;
+    const candles = parseStooqCandles(await fetchTextWithFallback(url, "Stooq daily candles")).slice(-180);
+    if (!candles.length) throw new Error("Stooq delayed daily feed unavailable");
+    candles.source = "Stooq delayed daily candles";
+    candles.delayed = true;
+    return candles;
+  }
+
+  async function fetchStockCandles(symbol) {
+    const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=1mo&interval=1h&includePrePost=true`;
+    let lastError = null;
+    for (const source of marketProxySources(yahooUrl, "Yahoo candles")) {
+      try {
+        const candles = parseYahooCandles(await fetchJson(source.url, source.label));
+        if (candles.length) {
+          candles.source = source.label;
+          return candles;
+        }
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    try {
+      return await fetchStooqDailyCandles(symbol);
+    } catch (error) {
+      lastError = error;
+    }
+    throw lastError || new Error("Stock candle feed unavailable");
+  }
+
+  async function fetchCryptoCandles(symbol) {
+    const pair = cryptoDataMap[symbol];
+    const urls = [
+      `https://data-api.binance.vision/api/v3/klines?symbol=${pair}&interval=1h&limit=160`,
+      `https://api.binance.us/api/v3/klines?symbol=${pair}&interval=1h&limit=160`,
+      `https://api.binance.com/api/v3/klines?symbol=${pair}&interval=1h&limit=160`
+    ];
+    let lastError = null;
+    for (const url of urls) {
+      try {
+        const rows = await fetchJson(url);
+        const candles = rows.map(row => ({
+          time: row[0],
+          open: Number(row[1]),
+          high: Number(row[2]),
+          low: Number(row[3]),
+          close: Number(row[4]),
+          volume: Number(row[5])
+        })).filter(candle => Number.isFinite(candle.close) && Number.isFinite(candle.high) && Number.isFinite(candle.low));
+        if (candles.length) {
+          candles.source = "Binance/Coinbase crypto candles";
+          return candles;
+        }
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError || new Error("Crypto candle feed unavailable");
+  }
+
+  async function fetchCandles(rawSymbol) {
+    const symbol = cleanSymbol(rawSymbol);
+    let backendError = null;
+    const shouldPreferBackendError = /^https?:$/.test(location.protocol) && !isStaticOnlyHost();
+    try {
+      return await fetchBackendCandles(symbol);
+    } catch (error) {
+      backendError = error;
+    }
+    try {
+      if (cryptoDataMap[symbol]) return await fetchCryptoCandles(symbol);
+      return await fetchStockCandles(symbol);
+    } catch (error) {
+      throw backendError && shouldPreferBackendError ? backendError : error;
+    }
+  }
+
+  function nearestLevel(values, price, direction) {
+    const filtered = values.filter(value => direction === "above" ? value > price : value < price);
+    if (!filtered.length) return null;
+    return filtered.reduce((best, value) => Math.abs(value - price) < Math.abs(best - price) ? value : best, filtered[0]);
+  }
+
+  function pctDistance(from, to) {
+    if (!Number.isFinite(from) || !Number.isFinite(to) || !from) return "--";
+    return `${(((to - from) / from) * 100).toFixed(2)}%`;
+  }
+
+  function marketContextForSymbol(symbol, news = []) {
+    const clean = cleanSymbol(symbol);
+    const isCrypto = isCryptoSymbol(clean);
+    const groundQuery = `${clean} ${isCrypto ? "crypto" : "stock"} market news`;
+    const headlineItems = (news || []).map(item => {
+      if (typeof item === "string") return { title: item, publisher: "Market feed", url: "" };
+      return item;
+    }).filter(item => item && item.title);
+    return {
+      summary: [
+        headlineItems.length
+          ? `${headlineItems.length} headline/context item${headlineItems.length === 1 ? "" : "s"} loaded for ${clean}.`
+          : `No source headlines loaded yet for ${clean}; use the source checks below before acting.`,
+        isCrypto
+          ? "Crypto context should include BTC/ETH direction, exchange liquidity, token unlocks, regulation, and macro risk appetite."
+          : "Equity context should include same-day headlines, earnings, filings, sector beta, macro calendar, and peer strength.",
+        "Treat this as context for planning; the chart and risk map still decide the trade."
+      ],
+      feeds: {
+        headlines: headlineItems,
+        yahoo: {
+          label: "Yahoo Finance quote/news",
+          query: `${clean} finance news`,
+          url: `https://finance.yahoo.com/quote/${encodeURIComponent(clean)}`
+        },
+        cnbc: {
+          label: "CNBC ticker/news search",
+          query: `${clean} market news`,
+          url: `https://www.cnbc.com/search/?query=${encodeURIComponent(clean + " market news")}`
+        },
+        earnings: {
+          label: isCrypto ? "Token/events calendar" : "Earnings calendar",
+          query: isCrypto ? `${clean} crypto events token unlock news` : `${clean} earnings calendar`,
+          url: isCrypto ? `https://www.coindesk.com/search?s=${encodeURIComponent(clean)}` : `https://finance.yahoo.com/calendar/earnings?symbol=${encodeURIComponent(clean)}`
+        },
+        sec: {
+          label: isCrypto ? "Regulatory / exchange news" : "SEC/company releases",
+          query: isCrypto ? `${clean} regulation exchange listing news` : `${clean} filings`,
+          url: isCrypto ? `https://www.coindesk.com/search?s=${encodeURIComponent(clean + " regulation")}` : `https://www.sec.gov/edgar/search/#/q=${encodeURIComponent(clean)}`
+        },
+        macro: {
+          label: "Macro calendar",
+          query: `${clean} rates dollar yields macro market impact`,
+          url: "https://www.marketwatch.com/economy-politics/calendar"
+        },
+        sector: {
+          label: isCrypto ? "Crypto beta / BTC ETH" : "Sector / beta check",
+          query: isCrypto ? `${clean} BTC ETH relative strength liquidity` : `${clean} sector ETF peers relative strength`,
+          url: isCrypto ? "https://www.coinglass.com/" : `https://finance.yahoo.com/quote/${encodeURIComponent(clean)}/comparison/`
+        },
+        groundNews: {
+          label: "Ground News source balance",
+          query: groundQuery,
+          url: `https://ground.news/search?q=${encodeURIComponent(groundQuery)}`
+        }
+      }
+    };
+  }
+
+  function renderMarketContext(data) {
+    const symbol = data.symbol || "AAPL";
+    const context = data.marketContext || marketContextForSymbol(symbol, data.news || []);
+    const feeds = context.feeds || {};
+    const sourceCards = [feeds.yahoo, feeds.cnbc, feeds.earnings, feeds.sec, feeds.macro, feeds.sector, feeds.groundNews]
+      .filter(Boolean)
+      .map(feed => `
+        <div class="source-card">
+          <strong>${escapeHtml(feed.label || "Source Check")}</strong>
+          <p>${escapeHtml(feed.query || "Open source and verify context.")}</p>
+          <a href="${escapeHtml(feed.url || "#")}" target="_blank" rel="noopener">Open Source</a>
+        </div>`)
+      .join("");
+    const headlines = (feeds.headlines || []).slice(0, 5);
+    const headlineHtml = headlines.length
+      ? `<div class="headline-list">${headlines.map(item => {
+          const label = `${item.publisher ? item.publisher + ": " : ""}${item.title || item}`;
+          return item.url
+            ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener">${escapeHtml(label)}</a>`
+            : `<span>${escapeHtml(label)}</span>`;
+        }).join("")}</div>`
+      : `<div class="headline-list">${(context.summary || []).map(item => `<span>${escapeHtml(item)}</span>`).join("")}</div>`;
+    return `
+      <ul>${(context.summary || []).slice(0, 3).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+      ${headlineHtml}
+      <div class="source-grid">${sourceCards}</div>`;
+  }
+
+  function avgRange(candles) {
+    const ranges = candles.map(candle => Math.abs(candle.high - candle.low)).filter(Number.isFinite);
+    return avg(ranges.slice(-14)) || 0;
+  }
+
+  function tradeLevels({ rating, price, support, resistance, candles }) {
+    const atr = avgRange(candles);
+    const buffer = Math.max(price * 0.0025, atr * 0.35);
+    const bullish = rating === "BUY";
+    const bearish = rating === "SELL";
+    let entry = price;
+    let stop = bullish ? support - buffer : bearish ? resistance + buffer : support - buffer;
+    let target = bullish ? resistance : bearish ? support : resistance;
+    if (bullish && target <= price) target = price + Math.max(buffer * 2, Math.abs(price - stop) * 2);
+    if (bearish && target >= price) target = price - Math.max(buffer * 2, Math.abs(stop - price) * 2);
+    if (!bullish && !bearish) {
+      entry = price;
+      stop = support - buffer;
+      target = resistance;
+    }
+    const risk = Math.abs(entry - stop);
+    const reward = Math.abs(target - entry);
+    return {
+      entry,
+      stop,
+      target,
+      riskReward: risk ? reward / risk : null,
+      buffer,
+      atr
+    };
+  }
+
+  function analyzeCandles(rawSymbol, candles) {
+    const symbol = cleanSymbol(rawSymbol);
+    const recent = candles.slice(-80);
+    const closes = recent.map(c => c.close);
+    const highs = recent.map(c => c.high);
+    const lows = recent.map(c => c.low);
+    const volumes = recent.map(c => c.volume).filter(Number.isFinite);
+    const price = closes[closes.length - 1];
+    const previous = closes[closes.length - 2] || price;
+    const top = Math.max(...highs);
+    const bottom = Math.min(...lows);
+    const sma20 = avg(closes.slice(-20));
+    const sma50 = avg(closes.slice(-50));
+    const rsiValue = rsi(closes);
+    const avgVol = avg(volumes.slice(-50));
+    const lastVol = volumes[volumes.length - 1] || 0;
+    const volRatio = avgVol ? lastVol / avgVol : null;
+    const pivotHighs = recent.slice(2, -2).filter((c, i) => c.high > recent[i + 1].high && c.high > recent[i + 3].high).map(c => c.high);
+    const pivotLows = recent.slice(2, -2).filter((c, i) => c.low < recent[i + 1].low && c.low < recent[i + 3].low).map(c => c.low);
+    const resistance = nearestLevel(pivotHighs.length ? pivotHighs : highs, price, "above") || top;
+    const support = nearestLevel(pivotLows.length ? pivotLows : lows, price, "below") || bottom;
+    const change = ((price - previous) / previous) * 100;
+    const rangePosition = ((price - bottom) / (top - bottom || 1)) * 100;
+
+    let score = 50;
+    const rationale = [];
+    if (sma20 && price > sma20) { score += 10; rationale.push(`Price is above the 20-period average (${fmtPrice(sma20)}), which supports bullish momentum.`); }
+    if (sma20 && price < sma20) { score -= 10; rationale.push(`Price is below the 20-period average (${fmtPrice(sma20)}), which weakens the setup.`); }
+    if (sma50 && price > sma50) { score += 8; rationale.push(`Price is above the 50-period average (${fmtPrice(sma50)}), keeping the broader short-term trend constructive.`); }
+    if (sma50 && price < sma50) { score -= 8; rationale.push(`Price is below the 50-period average (${fmtPrice(sma50)}), so trend confirmation is weaker.`); }
+    if (change > 0.5) { score += 6; rationale.push(`Recent candle change is positive (${change.toFixed(2)}%), showing near-term buying pressure.`); }
+    if (change < -0.5) { score -= 6; rationale.push(`Recent candle change is negative (${change.toFixed(2)}%), showing near-term selling pressure.`); }
+    if (rsiValue !== null && rsiValue >= 55 && rsiValue <= 68) { score += 7; rationale.push(`RSI near ${rsiValue.toFixed(0)} shows momentum without being extremely stretched.`); }
+    if (rsiValue !== null && rsiValue > 72) { score -= 7; rationale.push(`RSI near ${rsiValue.toFixed(0)} is stretched, so chasing is higher risk.`); }
+    if (rsiValue !== null && rsiValue < 35) { score -= 5; rationale.push(`RSI near ${rsiValue.toFixed(0)} shows weakness unless a reversal forms.`); }
+    if (price > (support || bottom) && resistance > price) rationale.push(`Nearest support is ${fmtPrice(support)} and nearest resistance is ${fmtPrice(resistance)}.`);
+    if (volRatio) rationale.push(`Current candle volume is about ${volRatio.toFixed(1)}x the recent average, which ${volRatio >= 1.2 ? "adds conviction to the move" : "means confirmation is lighter than ideal"}.`);
+    rationale.push(`Price sits around ${Math.max(0, Math.min(100, rangePosition)).toFixed(0)}% of the recent candle range from ${fmtPrice(bottom)} to ${fmtPrice(top)}.`);
+
+    const clamped = Math.max(5, Math.min(95, Math.round(score)));
+    const rating = clamped >= 64 ? "BUY" : clamped <= 40 ? "SELL" : "HOLD";
+    const bullish = rating === "BUY";
+    const bearish = rating === "SELL";
+    const levels = tradeLevels({ rating, price, support, resistance, candles: recent });
+    const entryText = bullish
+      ? `Bullish entry idea: look for price to hold above ${fmtPrice(support)} and reclaim/continue through intraday strength before targeting ${fmtPrice(levels.target)}.`
+      : bearish
+        ? `Bearish entry idea: look for rejection below ${fmtPrice(resistance)} and weakness back toward ${fmtPrice(levels.target)} before pressing short.`
+        : `Neutral entry idea: wait for a decisive break above ${fmtPrice(resistance)} or a clean reclaim from ${fmtPrice(support)} instead of forcing a middle-of-range trade.`;
+    const invalidationText = bullish
+      ? `Invalidation: a clean loss of the buffered stop area near ${fmtPrice(levels.stop)} weakens the long setup and should force a reassessment.`
+      : bearish
+        ? `Invalidation: a clean reclaim above the buffered stop area near ${fmtPrice(levels.stop)} weakens the short setup and can trigger a squeeze.`
+        : `Invalidation: chop between ${fmtPrice(support)} and ${fmtPrice(resistance)} means the edge is not clear enough yet.`;
+    const rewardText = `Reward/risk map: entry ${fmtPrice(levels.entry)}, stop ${fmtPrice(levels.stop)}, target ${fmtPrice(levels.target)}, estimated R:R ${levels.riskReward ? levels.riskReward.toFixed(2) + "R" : "--"}. Price is ${pctDistance(price, support)} from support and ${pctDistance(price, resistance)} from resistance.`;
+    const context = marketContextForSymbol(symbol);
+    const catalystList = context.summary;
+
+    return {
+      symbol,
+      name: `Explained rating from recent candle trend, momentum, and levels.`,
+      rating,
+      confidence: clamped,
+      metrics: {
+        price: fmtPrice(price),
+        support: fmtPrice(support),
+        resistance: fmtPrice(resistance),
+        stop: fmtPrice(levels.stop),
+        target: fmtPrice(levels.target),
+        rr: levels.riskReward ? `${levels.riskReward.toFixed(2)}R` : "--",
+        rsi: rsiValue === null ? "--" : rsiValue.toFixed(0),
+        volume: volRatio ? `${volRatio.toFixed(1)}x avg` : "--"
+      },
+      raw: {
+        price,
+        support,
+        resistance,
+        stop: levels.stop,
+        target: levels.target,
+        rr: levels.riskReward,
+        rsi: rsiValue,
+        volume: lastVol
+      },
+      rationale: [
+        ...rationale,
+        entryText,
+        invalidationText,
+        rewardText
+      ],
+      news: catalystList,
+      groundNews: {
+        query: `${symbol} market news`,
+        url: context.feeds.groundNews.url
+      },
+      marketContext: context,
+      source: "Recent candle analysis"
+    };
+  }
+
+  function yahooRaw(field) {
+    if (field == null) return null;
+    if (typeof field === "object" && "raw" in field) return field.raw;
+    return field;
+  }
+
+  function yahooFmt(field) {
+    if (field == null) return null;
+    if (typeof field === "object" && field.fmt) return field.fmt;
+    const raw = yahooRaw(field);
+    return raw == null ? null : String(raw);
+  }
+
+  function moneyFromYahoo(field) {
+    const raw = Number(yahooRaw(field));
+    if (Number.isFinite(raw)) return `$${compactNumber(raw)}`;
+    return yahooFmt(field);
+  }
+
+  function pctFromYahoo(field) {
+    const raw = Number(yahooRaw(field));
+    if (!Number.isFinite(raw)) return null;
+    return `${(raw * 100).toFixed(1)}%`;
+  }
+
+  function truncateText(text, max = 520) {
+    const clean = String(text || "").replace(/\s+/g, " ").trim();
+    if (clean.length <= max) return clean;
+    return `${clean.slice(0, max).replace(/\s+\S*$/, "")}...`;
+  }
+
+  function parseYahooCompanyProfile(data) {
+    const result = data?.quoteSummary?.result?.[0];
+    if (!result || data?.quoteSummary?.error) throw new Error("Company profile unavailable");
+    const asset = result.assetProfile || {};
+    const financial = result.financialData || {};
+    const price = result.price || {};
+    const summary = result.summaryDetail || {};
+    return {
+      longName: price.longName || price.shortName || "",
+      sector: asset.sector || "",
+      industry: asset.industry || "",
+      website: asset.website || "",
+      summary: asset.longBusinessSummary || "",
+      marketCap: moneyFromYahoo(price.marketCap || summary.marketCap),
+      beta: yahooFmt(summary.beta),
+      revenueGrowth: pctFromYahoo(financial.revenueGrowth),
+      grossMargins: pctFromYahoo(financial.grossMargins),
+      profitMargins: pctFromYahoo(financial.profitMargins),
+      earningsGrowth: pctFromYahoo(financial.earningsGrowth),
+      totalCash: moneyFromYahoo(financial.totalCash),
+      totalDebt: moneyFromYahoo(financial.totalDebt),
+      targetMeanPrice: yahooFmt(financial.targetMeanPrice),
+      recommendationKey: financial.recommendationKey ? String(financial.recommendationKey).replace(/_/g, " ") : "",
+      analystCount: yahooRaw(financial.numberOfAnalystOpinions),
+      source: "Yahoo profile"
+    };
+  }
+
+  const localCompanyProfiles = {
+    TSLA: {
+      longName: "Tesla, Inc.",
+      sector: "Consumer Cyclical",
+      industry: "Auto Manufacturers / Energy Storage",
+      summary: "Tesla designs and sells electric vehicles, energy storage systems, solar products, charging infrastructure, and software-led autonomy features. The future story is tied to EV demand, margins, full self-driving execution, energy storage growth, manufacturing scale, and whether AI/robotics optionality turns into durable revenue.",
+      drivers: [
+        "EV deliveries, pricing power, gross margins, and factory utilization decide whether the core auto business is strengthening or weakening.",
+        "Energy storage, Supercharger monetization, software subscriptions, autonomy, and robotaxi execution are the main upside optionality buckets.",
+        "China demand, rate sensitivity, consumer credit, incentives, and competition from BYD, legacy automakers, and lower-cost EV makers can change the setup fast."
+      ],
+      risks: [
+        "Margin compression, delivery misses, price cuts, product delays, regulatory scrutiny, or safety/autonomy headlines can break the bullish story.",
+        "The stock often trades on future optionality, so valuation can compress hard when growth expectations or market risk appetite cool.",
+        "For day trades, rejection near resistance or a clean loss of support matters more than the long-term narrative."
+      ],
+      verify: [
+        "Check same-day delivery, pricing, autonomy/FSD, energy storage, China, and analyst revision headlines before sizing.",
+        "Review the latest earnings release, shareholder deck, 10-Q/10-K, and management guidance for the real company thesis.",
+        "Compare TSLA against QQQ, consumer discretionary names, and EV peers to separate company strength from market beta."
+      ],
+      source: "Built-in TSLA company profile"
+    },
+    AAPL: {
+      longName: "Apple Inc.",
+      sector: "Technology",
+      industry: "Consumer Electronics / Services",
+      summary: "Apple sells iPhone, Mac, iPad, wearables, services, and ecosystem software. The future story depends on product cycles, services growth, installed-base retention, AI features, margins, capital returns, and whether new hardware categories can add meaningful growth.",
+      drivers: [
+        "iPhone replacement cycles, services revenue, ecosystem retention, gross margin, and China demand are the central business drivers.",
+        "AI features, device upgrades, wearables, payments, App Store economics, and capital returns can support the longer-term thesis.",
+        "Relative strength versus QQQ and mega-cap tech matters because AAPL is heavily tied to index flows."
+      ],
+      risks: [
+        "Weak iPhone demand, China pressure, regulatory/App Store changes, margin compression, or delayed AI adoption can pressure the stock.",
+        "AAPL can look stable while offering limited intraday range, so poor R:R near resistance is a common trap.",
+        "Earnings and guidance can override clean-looking technical levels."
+      ],
+      verify: [
+        "Check product, China, services, regulatory, and analyst revision headlines.",
+        "Compare against QQQ, MSFT, NVDA, and consumer electronics peers.",
+        "Use the chart for entry timing; use filings and earnings for business conviction."
+      ],
+      source: "Built-in AAPL company profile"
+    },
+    NVDA: {
+      longName: "NVIDIA Corporation",
+      sector: "Technology",
+      industry: "Semiconductors",
+      summary: "NVIDIA sells GPUs, AI accelerators, networking, software, and data-center platforms. The future read depends on AI infrastructure demand, supply, margins, cloud/customer capex, export controls, and whether earnings growth keeps justifying the valuation.",
+      drivers: [
+        "Data-center revenue, AI accelerator demand, supply availability, networking attach, and gross margin drive the story.",
+        "Cloud capex, enterprise AI adoption, sovereign AI, and software/platform revenue can extend the growth cycle.",
+        "Semiconductor sector strength and QQQ trend heavily influence intraday follow-through."
+      ],
+      risks: [
+        "Export controls, customer concentration, supply constraints, margin pressure, or AI capex slowdown can hit the thesis.",
+        "Because expectations are high, even good numbers can sell off if guidance fails to beat the whisper number.",
+        "Fast momentum names can punish late entries near resistance."
+      ],
+      verify: [
+        "Check AI capex, cloud customer, China/export, earnings, and analyst revision headlines.",
+        "Compare against AMD, AVGO, SMH, and QQQ.",
+        "Confirm volume expansion before chasing breakouts."
+      ],
+      source: "Built-in NVDA company profile"
+    },
+    INTC: {
+      longName: "Intel Corporation",
+      sector: "Technology",
+      industry: "Semiconductors / Foundry / CPUs",
+      summary: "Intel designs and manufactures CPUs, data-center chips, client PC processors, networking silicon, and foundry manufacturing services. The future story depends on process-node execution, foundry customer wins, AI/data-center competitiveness, PC demand, margins, capex discipline, and whether turnaround milestones restore investor confidence.",
+      drivers: [
+        "Process technology execution, foundry roadmap progress, server/client CPU share, AI accelerator competitiveness, and gross margin recovery drive the core thesis.",
+        "Government incentives, foundry partnerships, data-center demand, and PC refresh cycles can support a longer turnaround if execution improves.",
+        "INTC trades with semiconductor sector sentiment, SMH/SOX direction, and headline confidence around management milestones."
+      ],
+      risks: [
+        "Execution delays, weak foundry adoption, share loss to AMD/NVDA/ARM, heavy capex, margin pressure, or guidance cuts can break the thesis.",
+        "Turnaround stocks can rally hard on hope but fade if earnings and cash flow do not confirm progress.",
+        "For intraday trades, failed reclaims near resistance and low relative strength versus SMH/AMD/NVDA are important warnings."
+      ],
+      verify: [
+        "Check earnings guidance, foundry/customer news, process-node roadmap updates, AI/data-center commentary, and analyst revisions.",
+        "Compare INTC against AMD, NVDA, AVGO, MU, SMH, and QQQ.",
+        "Confirm volume and relative strength before treating a breakout as institutional demand."
+      ],
+      source: "Built-in INTC company profile"
+    },
+    MSFT: {
+      longName: "Microsoft Corporation",
+      sector: "Technology",
+      industry: "Software / Cloud",
+      summary: "Microsoft sells cloud infrastructure, enterprise software, Windows, gaming, security, and AI-enabled productivity tools. The future story depends on Azure growth, Copilot adoption, enterprise spending, margins, and AI infrastructure returns.",
+      drivers: [
+        "Azure growth, commercial bookings, Copilot monetization, security, and operating margin are the core drivers.",
+        "AI workloads can support cloud demand, but investors watch whether capex converts into revenue and profit.",
+        "Enterprise software names often move with rates, QQQ, and broader mega-cap quality flows."
+      ],
+      risks: [
+        "Cloud deceleration, AI monetization disappointment, regulatory pressure, or weaker enterprise budgets can pressure the stock.",
+        "A slow, high-quality chart can still be a poor day trade if range and R:R are weak.",
+        "Earnings guidance can reset the thesis quickly."
+      ],
+      verify: [
+        "Check Azure, AI/Copilot, enterprise spending, regulatory, and analyst headlines.",
+        "Compare against GOOGL, AMZN, CRM, ORCL, and QQQ.",
+        "Separate investment thesis from intraday trade levels."
+      ],
+      source: "Built-in MSFT company profile"
+    },
+    GOOGL: {
+      longName: "Alphabet Inc.",
+      sector: "Communication Services",
+      industry: "Internet Content / AI / Advertising",
+      summary: "Alphabet runs Google Search, YouTube, Android, Google Cloud, ads, and AI platforms. The future read depends on search/ad growth, AI competition, cloud profitability, YouTube monetization, regulatory risk, and capital discipline.",
+      drivers: [
+        "Search ads, YouTube, cloud growth, AI product execution, and operating margin drive the core story.",
+        "Gemini/AI adoption and cloud profitability can improve the multiple if growth remains durable.",
+        "Mega-cap tech flows and QQQ direction often shape intraday continuation."
+      ],
+      risks: [
+        "AI search disruption, antitrust remedies, ad market weakness, cloud margin pressure, or heavy capex can hurt sentiment.",
+        "Legal headlines can override chart structure quickly.",
+        "Breakouts need volume confirmation because large-cap tech can fade near prior highs."
+      ],
+      verify: [
+        "Check AI/search, ad spend, antitrust, cloud, earnings, and analyst headlines.",
+        "Compare against META, MSFT, AMZN, and QQQ.",
+        "Use Ground News to compare regulatory and AI headline framing."
+      ],
+      source: "Built-in GOOGL company profile"
+    },
+    SPY: {
+      longName: "SPDR S&P 500 ETF Trust",
+      sector: "ETF",
+      industry: "Large-Cap U.S. Equities",
+      summary: "SPY tracks the S&P 500 and is a broad market proxy. Its future read depends on earnings breadth, rates, inflation, Fed expectations, liquidity, sector leadership, and index-level risk appetite.",
+      drivers: [
+        "Rates, Fed expectations, earnings breadth, market liquidity, and mega-cap leadership drive SPY direction.",
+        "Sector rotation and breadth decide whether breakouts are durable or narrow.",
+        "SPY context should guide risk size for individual stock trades."
+      ],
+      risks: [
+        "Macro headlines, weak breadth, rising VIX, bond yield spikes, or mega-cap weakness can break setups.",
+        "Index chop can make single-name signals less reliable.",
+        "Economic calendar events can override technical levels."
+      ],
+      verify: [
+        "Check SPY, QQQ, VIX, yields, economic calendar, and sector heat.",
+        "Review Ground News for macro headline bias.",
+        "Use SPY as market context, not as a company profile."
+      ],
+      source: "Built-in ETF profile"
+    },
+    QQQ: {
+      longName: "Invesco QQQ Trust",
+      sector: "ETF",
+      industry: "Nasdaq-100 / Growth Equities",
+      summary: "QQQ tracks the Nasdaq-100 and is a growth/mega-cap technology proxy. Its future read depends on rates, AI and software sentiment, semiconductor leadership, mega-cap earnings, and risk appetite.",
+      drivers: [
+        "Rates, mega-cap tech earnings, AI/semiconductor leadership, and liquidity drive QQQ.",
+        "QQQ strength supports long setups in tech and growth names; weakness argues for smaller size or shorts.",
+        "Breadth inside mega-cap tech matters for follow-through."
+      ],
+      risks: [
+        "Rising yields, weak mega-cap guidance, AI disappointment, or VIX spikes can pressure QQQ.",
+        "Narrow leadership can hide weakness underneath the index.",
+        "Macro events can overwhelm single-chart signals."
+      ],
+      verify: [
+        "Check QQQ, SPY, VIX, NVDA, MSFT, AAPL, yields, and economic calendar.",
+        "Compare single-name strength against QQQ before entering.",
+        "Use it as context for risk sizing."
+      ],
+      source: "Built-in ETF profile"
+    }
+  };
+
+  localCompanyProfiles.GOOG = {
+    ...localCompanyProfiles.GOOGL,
+    source: "Built-in GOOG company profile"
+  };
+
+  const cryptoAssetProfiles = {
+    BTC: {
+      longName: "Bitcoin",
+      summary: "Bitcoin is a decentralized digital asset used as a store-of-value, settlement network, and crypto market liquidity anchor. Its future depends on adoption, ETF/institutional flows, miner economics, network security, macro liquidity, regulation, and whether investors continue treating it as digital hard-money collateral.",
+      drivers: [
+        "ETF flows, institutional allocation, macro liquidity, real yields, dollar strength, and risk appetite drive the big BTC trend.",
+        "On-chain activity, miner selling pressure, exchange balances, derivatives funding, and liquidation levels shape shorter-term swings.",
+        "BTC direction often controls risk appetite for altcoins, so a weak BTC tape can ruin otherwise clean crypto setups."
+      ],
+      risks: [
+        "Regulatory shocks, exchange failures, forced liquidations, miner stress, ETF outflows, or a macro risk-off move can overwhelm the chart.",
+        "High leverage can make support breaks violent; stops should account for crypto wick risk.",
+        "If volume fades while price pushes resistance, breakout failure risk rises."
+      ],
+      verify: [
+        "Check BTC ETF flows, funding rates, liquidation heatmap, exchange volume, macro calendar, and dollar/yield direction.",
+        "Compare BTC against ETH and total crypto market cap to see whether the move is broad or isolated.",
+        "Use 24/7 crypto news plus the chart reaction before sizing."
+      ]
+    },
+    ETH: {
+      longName: "Ethereum",
+      summary: "Ethereum is a smart-contract network that supports DeFi, stablecoins, NFTs, tokenization, layer-2 ecosystems, and decentralized applications. Its future depends on network usage, fees, scaling, staking economics, developer activity, ETF/institutional demand, and competition from faster or cheaper chains.",
+      drivers: [
+        "Layer-2 adoption, DeFi activity, stablecoin settlement, staking yield, protocol upgrades, and ETF/institutional demand drive the ETH thesis.",
+        "ETH/BTC relative strength matters; ETH can lag if BTC dominates flows or outperform when risk appetite moves down the crypto curve.",
+        "Gas fees, total value locked, active addresses, and developer momentum help confirm whether usage supports the chart."
+      ],
+      risks: [
+        "Regulation, smart-contract exploits, L2 fragmentation, fee weakness, validator/staking concerns, or faster chain competition can pressure ETH.",
+        "If ETH cannot outperform BTC during crypto strength, altcoin setups usually deserve smaller size.",
+        "Thin weekend liquidity can create false breaks."
+      ],
+      verify: [
+        "Check ETH/BTC trend, L2 activity, ETF/news flows, gas fees, DeFi TVL, funding, and liquidation zones.",
+        "Confirm whether the move is supported by broad crypto risk appetite.",
+        "Use support/resistance and funding data before entering."
+      ]
+    },
+    SOL: {
+      longName: "Solana",
+      summary: "Solana is a high-throughput smart-contract network used for DeFi, consumer crypto apps, token launches, NFTs, payments experiments, and high-speed trading activity. Its future depends on developer adoption, network reliability, ecosystem liquidity, transaction demand, validator decentralization, and whether apps create durable non-hype usage.",
+      drivers: [
+        "Network usage, app launches, DEX volume, stablecoin flows, developer activity, and ecosystem liquidity drive SOL follow-through.",
+        "SOL often behaves like a high-beta crypto risk asset, so BTC/ETH direction and market liquidity matter heavily.",
+        "Breakouts need volume confirmation because social momentum can fade quickly."
+      ],
+      risks: [
+        "Network outages, meme-token cycle weakness, bridge/exploit risk, regulation, validator centralization concerns, or liquidity rotation can break the thesis.",
+        "High beta means stops need to account for wider intraday swings.",
+        "If BTC weakens, SOL setups can unwind faster than large-cap crypto."
+      ],
+      verify: [
+        "Check Solana ecosystem volume, chain uptime, token unlocks, BTC/ETH trend, funding, and major ecosystem headlines.",
+        "Compare SOL against ETH and other L1s.",
+        "Avoid chasing if the move is only social hype without volume."
+      ]
+    },
+    DOGE: {
+      longName: "Dogecoin",
+      summary: "Dogecoin is a meme-origin proof-of-work cryptocurrency that trades heavily on liquidity, social momentum, exchange accessibility, and broader crypto risk appetite. Its future depends less on traditional business fundamentals and more on community attention, market liquidity, payments/use-case headlines, and whether large crypto flows rotate into meme assets.",
+      drivers: [
+        "Social momentum, exchange volume, BTC trend, meme-coin risk appetite, and major platform/payment headlines drive DOGE.",
+        "When crypto liquidity is broad and speculative, DOGE can move quickly; when BTC weakens, it can lose support fast.",
+        "Volume confirmation matters more than narrative because DOGE moves can be sentiment-led."
+      ],
+      risks: [
+        "Hype reversals, whale selling, broad crypto weakness, regulatory headlines, or thin liquidity can create sharp pullbacks.",
+        "DOGE has no company earnings base, so price can detach from conventional valuation logic.",
+        "Late entries after vertical candles are especially risky."
+      ],
+      verify: [
+        "Check BTC direction, DOGE volume, funding, liquidation levels, social/news catalyst, and exchange liquidity.",
+        "Confirm the move has follow-through rather than one headline candle.",
+        "Use smaller size if support is far below entry."
+      ]
+    },
+    XRP: {
+      longName: "XRP",
+      summary: "XRP is a digital asset tied to the XRP Ledger and cross-border settlement narrative. Its future depends on regulatory clarity, institutional/payment adoption, exchange liquidity, ecosystem development, and whether real transaction demand supports speculative flows.",
+      drivers: [
+        "Regulatory/legal headlines, exchange accessibility, institutional/payment partnerships, liquidity, and crypto beta drive XRP.",
+        "XRP can move suddenly on legal or listing news, so headline risk is central.",
+        "Relative strength versus BTC and large-cap crypto helps confirm whether the move is isolated."
+      ],
+      risks: [
+        "Regulatory setbacks, weak adoption, exchange restrictions, or broad crypto risk-off moves can pressure XRP.",
+        "Headline spikes can reverse if volume does not sustain.",
+        "Liquidity pockets can cause fast wicks around support and resistance."
+      ],
+      verify: [
+        "Check legal/regulatory updates, exchange volume, partnership news, BTC trend, and liquidation zones.",
+        "Use Ground News or crypto news to compare headline framing.",
+        "Confirm levels before sizing because XRP can gap on news."
+      ]
+    },
+    ADA: {
+      longName: "Cardano",
+      summary: "Cardano is a proof-of-stake smart-contract network focused on research-driven development, staking, governance, and decentralized applications. Its future depends on developer adoption, DeFi/activity growth, governance progress, liquidity, and whether the ecosystem can compete for real users.",
+      drivers: [
+        "Developer activity, DeFi TVL, staking participation, governance milestones, exchange liquidity, and BTC/ETH trend drive ADA.",
+        "ADA often needs broad altcoin strength to sustain breakouts.",
+        "Volume and relative strength are important because narrative alone can lag faster ecosystems."
+      ],
+      risks: [
+        "Slow ecosystem growth, weak liquidity, regulatory pressure, competitor chain momentum, or broad crypto weakness can pressure ADA.",
+        "If ADA underperforms while BTC/ETH rise, the setup deserves lower confidence.",
+        "Thin volume can create failed breakouts."
+      ],
+      verify: [
+        "Check Cardano ecosystem activity, governance updates, staking metrics, BTC/ETH trend, and exchange volume.",
+        "Compare ADA against SOL, ETH, and other L1s.",
+        "Require volume confirmation before treating resistance breaks as real."
+      ]
+    }
+  };
+
+  function buildCompanyRead(rawSymbol, analysis = {}, profile = null) {
+    const symbol = cleanSymbol(rawSymbol);
+    const builtIn = localCompanyProfiles[symbol] || null;
+    const metrics = analysis.metrics || {};
+    const rating = analysis.rating || "WAIT";
+    const confidence = Number.isFinite(Number(analysis.confidence)) ? `${Math.round(Number(analysis.confidence))}/100` : "--";
+    const support = metrics.support || "--";
+    const resistance = metrics.resistance || "--";
+    const rr = metrics.rr || "--";
+    const technicalLine = rating === "LIVE"
+      ? `The chart is live; the deeper read improves when candle data and profile data both load.`
+      : `Current technical read is ${rating} with confidence ${confidence}; the setup needs price to respect ${support} and make progress through ${resistance}.`;
+
+    if (cryptoDataMap[symbol]) {
+      const cryptoBase = String(cryptoDataMap[symbol] || symbol).replace(/USDT$/, "");
+      const cryptoProfile = cryptoAssetProfiles[symbol] || cryptoAssetProfiles[cryptoBase] || null;
+      const assetName = cryptoProfile?.longName || symbol;
+      return {
+        title: "Asset / Future Read",
+        source: cryptoProfile ? `Built-in ${symbol} crypto profile` : "Crypto asset profile",
+        summary: cryptoProfile?.summary || `${assetName} is a crypto asset, not a company. The useful summary is token purpose, network usage, liquidity, supply schedule, exchange access, developer/community activity, and whether BTC/ETH market direction supports risk-taking.`,
+        drivers: (cryptoProfile?.drivers || [
+          `Adoption and real usage are the biggest future driver; confirm whether the network or token has growing volume, users, fees, or integrations.`,
+          `Liquidity matters: stronger BTC/ETH trend and heavier exchange volume usually improve follow-through on crypto setups.`,
+          `A clean break above ${resistance} with volume supports upside continuation; failure there can turn the move into a fade.`
+        ]).concat([technicalLine]).slice(0, 4),
+        risks: (cryptoProfile?.risks || [
+          `Loss of ${support} weakens the near-term structure and can trigger fast liquidation-driven downside.`,
+          `Token unlocks, exchange delistings, regulatory headlines, bridge/exploit risk, or thin liquidity can override the chart.`,
+          `If the move is only social hype without volume confirmation, size should stay small or paper-only.`
+        ]).slice(0, 4),
+        verify: (cryptoProfile?.verify || [
+          `Check tokenomics, unlock calendar, recent protocol updates, exchange volume, and BTC/ETH direction.`,
+          `Use Ground News or a trusted crypto news feed for headline bias, then confirm the chart reaction.`,
+          `Define entry, stop, target, and max loss before treating the signal as actionable.`
+        ]).slice(0, 4)
+      };
+    }
+
+    const companyName = profile?.longName || builtIn?.longName || symbol;
+    const sectorLine = [profile?.sector || builtIn?.sector, profile?.industry || builtIn?.industry].filter(Boolean).join(" / ");
+    const summary = profile?.summary
+      ? truncateText(profile.summary)
+      : builtIn?.summary || `${companyName} is being treated as a stock or ETF candidate. Use the chart levels above for trade timing, then verify the business through filings, earnings, sector trend, liquidity, and same-day news before building a bigger thesis.`;
+    const growthLine = profile?.revenueGrowth || profile?.profitMargins || profile?.grossMargins
+      ? `Growth/margins snapshot: revenue growth ${profile?.revenueGrowth || "not available"}, gross margin ${profile?.grossMargins || "not available"}, profit margin ${profile?.profitMargins || "not available"}.`
+      : `Watch revenue growth, margins, free cash flow, and guidance to see whether the business story supports the chart.`;
+    const balanceLine = profile?.totalCash || profile?.totalDebt
+      ? `Balance-sheet check: cash ${profile?.totalCash || "not available"} versus debt ${profile?.totalDebt || "not available"}.`
+      : `Balance-sheet quality matters if growth slows; check cash, debt, dilution, and financing needs.`;
+    const analystLine = profile?.targetMeanPrice
+      ? `Analyst mean target in the profile feed is ${profile.targetMeanPrice}${profile.analystCount ? ` from ${profile.analystCount} opinions` : ""}; use it as context, not as an entry trigger.`
+      : `Analyst targets and estimate revisions are useful context, but the chart still decides timing.`;
+    const hasCompanyProfile = Boolean(profile?.summary || builtIn);
+
+    if (!hasCompanyProfile) {
+      const mappedSector = sectorLine || "Company / Sector To Verify";
+      return {
+        title: "Company / Future Read",
+        source: "Live profile needed",
+        summary: `${companyName} company summary is not in the built-in offline profile pack yet. In this local static version, treat it as a tradable equity and build the company read around business model, revenue growth, margins, cash flow, balance sheet, management guidance, sector strength, and whether today's move is company-specific or market beta. Sector/industry: ${mappedSector}.`,
+        drivers: [
+          `${companyName}'s future read should focus on revenue growth, margin trend, free cash flow, balance-sheet strength, management guidance, and whether the company has a durable reason to keep gaining demand.`,
+          `For an intraday setup, the business story only matters if it matches price action: buyers need to defend ${support}, push through ${resistance}, and do it with enough volume to prove institutions are involved.`,
+          `For a longer hold, compare ${companyName} against direct competitors, sector ETFs, analyst estimate revisions, product cycle headlines, and earnings-call language.`,
+          technicalLine
+        ],
+        risks: [
+          `Chart risk: a clean loss of ${support} weakens the thesis; rejection near ${resistance} can turn the idea into a range trade or failed breakout.`,
+          `Business risk: earnings misses, guidance cuts, slowing demand, margin compression, dilution, debt pressure, lawsuits, regulation, or weak sector demand can break the story.`,
+          `Information risk: if you cannot explain what the company does, what catalyst is moving it, and why the level matters today, keep it paper-only or reduce size.`
+        ],
+        verify: [
+          `Open the latest earnings release, 10-Q/10-K, investor presentation, and same-day company headlines before treating this as more than a chart trade.`,
+          `Check sector strength, SPY/QQQ direction, relative volume, short interest if relevant, and whether the move is company-specific or just index flow.`,
+          `Use Ground News for headline bias, but use filings, earnings, and the chart reaction to decide whether the story has tradeable confirmation.`
+        ]
+      };
+    }
+
+    return {
+      title: "Company / Future Read",
+      source: profile?.source || builtIn?.source || "Local company read",
+      summary: sectorLine ? `${summary} Sector/industry: ${sectorLine}.` : summary,
+      drivers: (builtIn?.drivers || [
+        sectorLine ? `${companyName}'s future depends on execution in ${sectorLine}, including demand, pricing power, competition, and product cycle strength.` : `${companyName}'s future read needs company filings, earnings calls, guidance, and sector trend confirmation.`,
+        growthLine,
+        analystLine,
+        technicalLine
+      ]).concat(builtIn ? [technicalLine] : []).slice(0, 4),
+      risks: (builtIn?.risks || [
+        balanceLine,
+        `Chart risk: a clean loss of ${support} weakens the thesis; rejection near ${resistance} can turn the setup into a range trade.`,
+        `Business risk: earnings misses, guidance cuts, dilution, lawsuits, regulation, or weaker sector demand can break the story even if the chart looked strong.`
+      ]).concat(builtIn ? [`Chart risk: a clean loss of ${support} weakens the thesis; rejection near ${resistance} can turn the setup into a range trade.`] : []).slice(0, 4),
+      verify: (builtIn?.verify || [
+        `Read the latest earnings release, 10-Q/10-K, guidance, and any same-day company news before making a bigger decision.`,
+        `Compare the ticker against its sector and nearest competitors so you know whether the move is company-specific or just market beta.`,
+        `For trades, use the stop/target/R:R here. For investing, build a separate multi-month thesis instead of relying on one signal.`
+      ]).slice(0, 4)
+    };
+  }
+
+  async function fetchCompanyRead(rawSymbol, analysis = {}) {
+    const symbol = cleanSymbol(rawSymbol);
+    if (cryptoDataMap[symbol]) return buildCompanyRead(symbol, analysis);
+    const modules = "assetProfile,financialData,defaultKeyStatistics,summaryDetail,recommendationTrend,earningsTrend,price";
+    const url = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(symbol)}?modules=${modules}`;
+    const data = await fetchJsonWithFallback(url, "Yahoo profile");
+    return buildCompanyRead(symbol, analysis, parseYahooCompanyProfile(data));
+  }
+
+  function resetWidget(id) {
+    const el = document.getElementById(id);
+    el.innerHTML = "";
+    return el;
+  }
+
+  function injectTradingViewScript(container, src, config) {
+    const script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src = src;
+    script.async = true;
+    script.innerHTML = JSON.stringify(config, null, 2);
+    container.appendChild(script);
+  }
+
+  function renderTradingViewWidgets(rawSymbol, candles = [], data = null) {
+    const symbol = tradingViewSymbol(rawSymbol);
+    document.getElementById("tvSymbolLabel").textContent = symbol;
+    renderNativeChart(resetWidget("tvOverview"), rawSymbol, candles, data);
+    renderNativeTechnical(resetWidget("tvTechnical"), data);
+  }
+
+  function chartPath(candles, width = 680, height = 230) {
+    if (!candles.length) return { line: "", area: "", min: 0, max: 0 };
+    const closes = candles.map(c => Number(c.close)).filter(Number.isFinite);
+    const min = Math.min(...closes);
+    const max = Math.max(...closes);
+    const span = max - min || Math.max(max * 0.01, 1);
+    const pad = 14;
+    const points = closes.map((close, index) => {
+      const x = pad + (index / Math.max(closes.length - 1, 1)) * (width - pad * 2);
+      const y = pad + (1 - ((close - min) / span)) * (height - pad * 2);
+      return [x, y];
+    });
+    const line = points.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+    const area = `M${points[0][0].toFixed(1)},${height - pad} L${points.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" L")} L${points[points.length - 1][0].toFixed(1)},${height - pad} Z`;
+    return { line, area, min, max };
+  }
+
+  function renderNativeChart(container, rawSymbol, candles = [], data = null) {
+    const recent = candles.slice(-90);
+    const tvFrame = `<iframe class="tradingview-frame tv-live-frame" src="${tradingViewEmbedUrl(rawSymbol)}" title="TradingView live chart for ${escapeHtml(rawSymbol)}"></iframe>`;
+    const sources = `${sourceDeckHtml(rawSymbol)}<p class="source-note">TradingView is embedded directly in this HTML. Yahoo/Binance candles power the local chart when the browser allows them; Yahoo Finance, CNBC, MarketWatch, Nasdaq, and Ground News open as verification sources.</p>`;
+    if (!recent.length) {
+      container.innerHTML = `<div class="native-widget" style="min-height:0;padding-bottom:0">
+        ${sources}
+      </div>
+      ${tvFrame}
+      <div class="native-empty" style="min-height:74px;padding:10px 14px">TradingView is the primary live visual. Candle-analysis numbers will fill in when Yahoo/proxy or crypto candle data is reachable.</div>`;
+      return;
+    }
+    const chart = chartPath(recent);
+    const last = recent[recent.length - 1]?.close;
+    const first = recent[0]?.close || last;
+    const move = first ? ((last - first) / first) * 100 : 0;
+    const color = move >= 0 ? "var(--dto-green)" : "var(--dto-red)";
+    container.innerHTML = `<div class="native-widget">
+      <svg class="native-chart" viewBox="0 0 680 230" preserveAspectRatio="none" role="img" aria-label="Local candle close chart for ${rawSymbol}">
+        <path d="${chart.area}" fill="${move >= 0 ? "rgba(0,224,138,0.12)" : "rgba(255,61,113,0.12)"}"></path>
+        <polyline points="${chart.line}" fill="none" stroke="${color}" stroke-width="3" vector-effect="non-scaling-stroke"></polyline>
+        <line x1="0" x2="680" y1="115" y2="115" stroke="rgba(220,231,245,0.12)" stroke-dasharray="4 6"></line>
+      </svg>
+      <div class="chart-stats">
+        <div class="chart-stat"><span>Last</span><strong>${fmtPrice(last)}</strong></div>
+        <div class="chart-stat"><span>Range High</span><strong>${fmtPrice(chart.max)}</strong></div>
+        <div class="chart-stat"><span>Range Move</span><strong style="color:${color}">${move >= 0 ? "+" : ""}${move.toFixed(2)}%</strong></div>
+      </div>
+      ${sources}
+    </div>
+    ${tvFrame}`;
+  }
+
+  function renderNativeTechnical(container, data = null) {
+    const score = Number(data?.confidence ?? 50);
+    const rating = data?.rating || "WAIT";
+    const metrics = data?.metrics || {};
+    const rrNum = numberFromDisplay(metrics.rr);
+    const rsiNum = numberFromDisplay(metrics.rsi);
+    const support = metrics.support || "--";
+    const resistance = metrics.resistance || "--";
+    const price = metrics.price || "--";
+    const ringColor = rating === "BUY" ? "var(--dto-green)" : rating === "SELL" ? "var(--dto-red)" : "var(--dto-gold)";
+    const ratingRead = rating === "BUY"
+      ? `Bias is bullish, but the better entry is still near support or after a clean break above ${resistance}.`
+      : rating === "SELL"
+        ? `Bias is bearish, so failed reclaims and rejection near resistance matter more than chasing lows.`
+        : `Bias is neutral/check. Wait for a decisive move through ${resistance} or a reclaim/failure around ${support}.`;
+    const rrRead = rrNum === null
+      ? `R:R is not available yet because one of entry, stop, or target is missing.`
+      : rrNum >= 2
+        ? `${rrNum.toFixed(2)}R clears the planning bar. Now confirm volume and catalyst before sizing.`
+        : `${rrNum.toFixed(2)}R is below the 2R planning bar, so the trade needs a tighter stop, better target, or no entry.`;
+    const rsiRead = rsiNum === null
+      ? `RSI is not loaded yet. Use the chart slope, candle closes, and volume to judge momentum.`
+      : rsiNum >= 70
+        ? `RSI near ${Math.round(rsiNum)} is stretched. Momentum can continue, but late entries are easier to trap.`
+        : rsiNum <= 35
+          ? `RSI near ${Math.round(rsiNum)} is washed out. Look for reversal proof before shorting lows or buying too early.`
+          : `RSI near ${Math.round(rsiNum)} is balanced enough to let levels and volume decide.`;
+    const planRead = `Trade map: current price ${price}; support ${support}; resistance ${resistance}. A good plan defines the invalidation first, then only takes the setup if reward justifies the risk.`;
+    container.innerHTML = `<div class="native-widget rating-dial">
+      <div class="rating-main">
+        <div>
+          <div class="label">Native Technical Rating</div>
+          <strong style="color:${ringColor}">${rating}</strong>
+        </div>
+        <div class="score-ring" style="--score:${score}%;--dto-cyan:${ringColor}"><span>${Number.isFinite(score) ? Math.round(score) : "--"}</span></div>
+      </div>
+      <div class="tech-grid">
+        <div class="tech-stat"><span>Support</span><strong>${metrics.support || "--"}</strong></div>
+        <div class="tech-stat"><span>Resistance</span><strong>${metrics.resistance || "--"}</strong></div>
+        <div class="tech-stat"><span>R:R</span><strong>${metrics.rr || "--"}</strong></div>
+      </div>
+      <div class="tech-line"><label><span>Trend score</span><span>${Number.isFinite(score) ? Math.round(score) + "/100" : "--"}</span></label><div class="tech-track"><div class="tech-fill" style="width:${Number.isFinite(score) ? score : 50}%;background:${ringColor}"></div></div></div>
+      <div class="tech-line"><label><span>RSI</span><span>${metrics.rsi || "--"}</span></label><div class="tech-track"><div class="tech-fill" style="width:${Math.max(5, Math.min(95, Number(metrics.rsi) || 50))}%;background:var(--dto-gold)"></div></div></div>
+      <div class="tech-analysis">
+        <div class="tech-read"><span>Directional Read</span><p>${escapeHtml(ratingRead)}</p></div>
+        <div class="tech-read"><span>Risk / Reward</span><p>${escapeHtml(rrRead)}</p></div>
+        <div class="tech-read"><span>Momentum</span><p>${escapeHtml(rsiRead)}</p></div>
+        <div class="tech-read"><span>Execution Map</span><p>${escapeHtml(planRead)}</p></div>
+      </div>
+    </div>`;
+  }
+
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+    return el;
+  }
+
+  function localActiveUser() {
+    const users = readJson("dtoUsers", []);
+    const activeId = localStorage.getItem("dtoActiveUser");
+    return users.find(user => user.id === activeId) || null;
+  }
+
+  function compactMeta(value, fallback = "--") {
+    if (value === null || value === undefined || value === "") return fallback;
+    const numberValue = Number(value);
+    if (Number.isFinite(numberValue)) return Math.abs(numberValue) >= 10 ? numberValue.toFixed(0) : numberValue.toFixed(2);
+    return String(value);
+  }
+
+  const MARKET_PULSE_BASE_SYMBOLS = ["NVDA", "TSLA", "AMD", "AAPL", "MSFT", "META", "AMZN", "GOOGL", "INTC", "COIN", "MSTR", "SPY", "QQQ", "BTC", "ETH", "SOL"];
+
+  function pulseSymbols() {
+    const setup = readJson("dtoLastSetup", null) || readJson("dtoSetupPacket", null);
+    const saved = readJson("dtoSetupPackets", []);
+    const watchlist = readJson("watchlist", []);
+    const scanner = readJson("dtoScannerWatchlist", []);
+    const raw = [
+      setup?.symbol,
+      ...saved.slice(0, 6).map(item => item?.symbol),
+      ...watchlist.slice(0, 8).map(item => typeof item === "string" ? item : item?.symbol || item?.ticker || item?.name),
+      ...scanner.slice(0, 8).map(item => typeof item === "string" ? item : item?.symbol),
+      ...MARKET_PULSE_BASE_SYMBOLS
+    ];
+    return [...new Set(raw.map(cleanSymbol).filter(Boolean))].slice(0, 18);
+  }
+
+  function pulseFromCandles(symbol, candles) {
+    const clean = cleanSymbol(symbol);
+    const recent = candles.slice(-24);
+    if (recent.length < 2) throw new Error("Not enough candles");
+    const first = recent[0];
+    const last = recent[recent.length - 1];
+    const high = Math.max(...recent.map(candle => Number(candle.high)).filter(Number.isFinite));
+    const low = Math.min(...recent.map(candle => Number(candle.low)).filter(Number.isFinite));
+    const move = first.close ? ((last.close - first.close) / first.close) * 100 : 0;
+    const volatility = last.close ? ((high - low) / last.close) * 100 : 0;
+    const direction = move >= 0 ? "up" : "down";
+    return {
+      symbol: clean,
+      price: last.close,
+      move,
+      volatility,
+      direction,
+      source: candles.source || "candles",
+      delayed: Boolean(candles.delayed)
+    };
+  }
+
+  function renderPulseCard(id, item, label) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (!item) {
+      el.href = "market_workbench.html";
+      el.innerHTML = `<span>${escapeHtml(label)}</span><strong>--</strong><small>No candle result yet</small>`;
+      return;
+    }
+    const moveText = `${item.move >= 0 ? "+" : ""}${item.move.toFixed(2)}%`;
+    const volText = `${item.volatility.toFixed(2)}% range`;
+    const cls = item.move >= 0 ? "pulse-up" : "pulse-down";
+    el.href = signalDashboardUrl({ symbol: item.symbol });
+    el.innerHTML = `<span>${escapeHtml(label)}</span><strong>${escapeHtml(item.symbol)}</strong><small><b class="${cls}">${moveText}</b> / ${volText}</small>`;
+  }
+
+  function renderMarketPulse(results, statusText = "") {
+    const usable = (results || []).filter(item => item && Number.isFinite(item.move) && Number.isFinite(item.volatility));
+    const status = document.getElementById("pulseStatus");
+    if (status) {
+      const delayedCount = usable.filter(item => item.delayed).length;
+      status.textContent = statusText || (usable.length
+        ? `${usable.length} symbols scanned${delayedCount ? ` / ${delayedCount} delayed fallback` : ""}.`
+        : "No mover feed reached yet. Try refresh after deploy/backend is live.");
+    }
+    const best = usable.length ? [...usable].sort((a, b) => b.move - a.move)[0] : null;
+    const worst = usable.length ? [...usable].sort((a, b) => a.move - b.move)[0] : null;
+    const volatile = usable.length ? [...usable].sort((a, b) => b.volatility - a.volatility)[0] : null;
+    renderPulseCard("pulseBest", best, "Best Performer");
+    renderPulseCard("pulseWorst", worst, "Worst Performer");
+    renderPulseCard("pulseVolatile", volatile, "Highest Volatility");
+    const strip = document.getElementById("pulseStrip");
+    if (strip) {
+      strip.innerHTML = usable.length
+        ? [...usable].sort((a, b) => Math.abs(b.move) - Math.abs(a.move)).slice(0, 10).map(item => {
+            const cls = item.move >= 0 ? "pulse-up" : "pulse-down";
+            return `<a class="pulse-chip" href="${escapeHtml(signalDashboardUrl({ symbol: item.symbol }))}">${escapeHtml(item.symbol)} <span class="${cls}">${item.move >= 0 ? "+" : ""}${item.move.toFixed(1)}%</span></a>`;
+          }).join("")
+        : `<span class="pulse-chip">Feed waiting</span><span class="pulse-chip">Deploy backend for best coverage</span>`;
+    }
+  }
+
+  async function mapLimit(items, limit, worker) {
+    const results = [];
+    let index = 0;
+    async function run() {
+      while (index < items.length) {
+        const currentIndex = index;
+        index += 1;
+        try {
+          results[currentIndex] = await worker(items[currentIndex], currentIndex);
+        } catch (error) {
+          results[currentIndex] = null;
+        }
+      }
+    }
+    await Promise.all(Array.from({ length: Math.min(limit, items.length) }, run));
+    return results;
+  }
+
+  async function refreshMarketPulse(force = false) {
+    const cached = readJson("dtoMarketPulse", null);
+    const cacheAge = cached?.createdAt ? Date.now() - new Date(cached.createdAt).getTime() : Infinity;
+    if (cached?.results?.length) renderMarketPulse(cached.results, force ? "Refreshing market pulse..." : "");
+    if (!force && cached?.results?.length && cacheAge < 8 * 60 * 1000) return;
+    const symbols = pulseSymbols();
+    renderMarketPulse(cached?.results || [], `Scanning ${symbols.length} liquid names...`);
+    const results = (await mapLimit(symbols, 4, async symbol => pulseFromCandles(symbol, await fetchCandles(symbol)))).filter(Boolean);
+    if (results.length) {
+      localStorage.setItem("dtoMarketPulse", JSON.stringify({ createdAt: new Date().toISOString(), results }));
+      renderMarketPulse(results);
+    } else {
+      renderMarketPulse(cached?.results || [], "Market pulse feed is blocked in this browser session.");
+    }
+  }
+
+  function updateHeroWorkflow({ setup, watchlist, paper, grade }) {
+    const positions = Array.isArray(paper?.positions) ? paper.positions : [];
+    const hasSetup = Boolean(setup?.symbol);
+    const hasLevels = Boolean(Number(setup?.entry) && Number(setup?.stop) && Number(setup?.target));
+    const hasPlan = hasSetup && (Number(setup?.rr) >= 2 || String(setup?.thesis || "").length > 80 || grade?.score >= 68);
+    const hasPaper = positions.length > 0 || (Array.isArray(paper?.log) && paper.log.length > 0);
+    const steps = [
+      { key: "scan", label: "Scan", href: "market_workbench.html", done: watchlist.length > 0 || hasSetup, active: !hasSetup },
+      { key: "analyze", label: "Analyze", done: hasSetup, active: hasSetup && !hasLevels },
+      { key: "plan", label: "Plan", href: "trade_planner.html", done: hasPlan, active: hasLevels && !hasPlan },
+      { key: "size", label: "Size", href: "execution_workbench.html", done: hasLevels && Number(setup?.rr) >= 2, active: hasPlan && Number(setup?.rr) < 2 },
+      { key: "paper", label: "Paper", href: "practice_workbench.html", done: hasPaper, active: hasPlan && Number(setup?.rr) >= 2 && !hasPaper }
+    ];
+    const flow = document.getElementById("heroWorkflow");
+    if (!flow) return;
+    flow.innerHTML = steps.map(step => {
+      const cls = step.done ? "is-done" : step.active ? "is-active" : "";
+      if (step.key === "analyze") {
+        return `<button class="command-step ${cls}" type="button" data-flow-step="analyze">${escapeHtml(step.label)}</button>`;
+      }
+      const href = setup?.symbol ? workflowUrl(step.href, setup) : step.href;
+      return `<a class="command-step ${cls}" href="${escapeHtml(href)}" data-flow-step="${escapeHtml(step.key)}">${escapeHtml(step.label)}</a>`;
+    }).join("");
+  }
+
+  function updateSnapshot() {
+    const trades = readJson("trades", []);
+    const watchlist = readJson("watchlist", []);
+    const stats = window.DTO?.missionStats ? window.DTO.missionStats() : {};
+    const setup = stats.setup || readJson("dtoSetupPacket", null) || readJson("dtoLastSetup", null);
+    const grade = stats.grade || (setup && window.DTO?.gradeSetup ? window.DTO.gradeSetup(setup) : null);
+    const savedSetups = stats.savedSetups || readJson("dtoSetupPackets", []);
+    const paper = stats.paper || readJson("dtoPaperTradingAccount", { startingCash: 100000, cash: 100000, positions: [], log: [], realized: 0, quotes: {} });
+    const positions = Array.isArray(paper.positions) ? paper.positions : [];
+    const history = stats.history || window.DTO?.tradeHistory?.() || trades;
+    const pnl = trades.reduce((sum, trade) => sum + Number(trade.pnl || 0), 0);
+    const closed = history.filter(trade => Number.isFinite(Number(trade.pnl)));
+    const wins = closed.filter(trade => Number(trade.pnl) > 0).length;
+    const winRate = closed.length ? Math.round((wins / closed.length) * 100) : 0;
+    const paperOpenPnl = Number(stats.openPnl || 0);
+    const paperRealized = Number(paper.realized || 0);
+    const paperTotal = paperOpenPnl + paperRealized;
+    setText("tradeCount", trades.length);
+    setText("watchCount", watchlist.length);
+    const pnlEl = document.getElementById("netPnl");
+    if (pnlEl) {
+      pnlEl.textContent = formatMoney(pnl);
+      pnlEl.style.color = pnl < 0 ? "var(--dto-red)" : "var(--dto-green)";
+    }
+    const user = window.DTO?.activeUser ? window.DTO.activeUser() : localActiveUser();
+    const mode = window.DTO?.profileMode ? window.DTO.profileMode(user) : String(user?.experience || "beginner");
+    const displayUser = user ? (user.username || user.name || "Trader") : "Guest";
+    setText("heroProfileMode", `${displayUser} / ${String(mode || "beginner").toUpperCase()}`);
+    if (setup?.symbol) {
+      const rrText = Number.isFinite(Number(setup.rr)) ? `${Number(setup.rr).toFixed(2)}R` : "R:R --";
+      setText("heroActiveSetup", cleanSymbol(setup.symbol));
+      setText("heroSetupMeta", `${String(setup.rating || "CHECK").toUpperCase()} / ${rrText} / ${String(setup.assetType || "asset").toUpperCase()}`);
+      if (!Number(setup.entry) || !Number(setup.stop) || !Number(setup.target)) {
+        setText("heroNextAction", `${cleanSymbol(setup.symbol)}: mark entry, stop, target, support, and resistance.`);
+        setText("heroCommandNote", "Open Trade Builder or the chart, tighten the levels, then save the setup packet again.");
+      } else if (Number(setup.rr) < 2) {
+        setText("heroNextAction", `${cleanSymbol(setup.symbol)}: improve the setup before sizing risk.`);
+        setText("heroCommandNote", `Current reward/risk is ${Number(setup.rr).toFixed(2)}R. Build a cleaner target, tighter invalidation, or keep it paper-only.`);
+      } else if (String(setup.rating || "").toUpperCase().match(/HOLD|CHECK|WAIT/)) {
+        setText("heroNextAction", `${cleanSymbol(setup.symbol)}: confirm catalyst and chart direction.`);
+        setText("heroCommandNote", "The packet has levels, but the rating still needs confirmation before any serious sizing.");
+      } else {
+        setText("heroNextAction", `${cleanSymbol(setup.symbol)} is ready to size and paper trade.`);
+        setText("heroCommandNote", "Use Open in Risk to verify position size, then paper trade and journal the outcome.");
+      }
+    } else {
+      setText("heroActiveSetup", "None");
+      setText("heroSetupMeta", "Analyze a symbol to create the shared setup packet.");
+      setText("heroNextAction", "Analyze a symbol to start the workflow.");
+      setText("heroCommandNote", "Use the signal box on the right, then save the setup packet so every tool stays linked.");
+    }
+    setText("heroSavedSetups", savedSetups.length);
+    setText("heroSavedMeta", savedSetups.length ? `${cleanSymbol(savedSetups[0]?.symbol || "")} is the latest saved plan.` : "Practice plans stored in this browser.");
+    const paperEl = setText("heroPaperPnl", formatMoney(paperTotal));
+    if (paperEl) paperEl.style.color = paperTotal < 0 ? "var(--dto-red)" : "var(--dto-green)";
+    setText("heroPaperMeta", `${positions.length} open / realized ${formatMoney(paperRealized)}.`);
+    setText("heroJournalEdge", `${winRate}%`);
+    setText("heroJournalMeta", closed.length ? `${closed.length} closed trades / net ${formatMoney(stats.net || pnl)}.` : "No closed trades logged yet.");
+    updateHeroWorkflow({ setup, watchlist, paper, grade });
+  }
+
+  function updateClock() {
+    const et = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
+    const pad = value => String(value).padStart(2, "0");
+    const mins = et.getHours() * 60 + et.getMinutes();
+    const day = et.getDay();
+    document.getElementById("clock").textContent = `${pad(et.getHours())}:${pad(et.getMinutes())} ET`;
+    let state = "Closed";
+    if (day > 0 && day < 6 && mins >= 240 && mins < 570) state = "Pre-market";
+    if (day > 0 && day < 6 && mins >= 570 && mins < 960) state = "Market open";
+    if (day > 0 && day < 6 && mins >= 960 && mins < 1200) state = "After-hours";
+    document.getElementById("marketState").textContent = state;
+  }
+
+  function widgetOnlyAnalysis(rawSymbol) {
+    const symbol = cleanSymbol(rawSymbol);
+    const fallback = {
+      symbol,
+      name: "TradingView chart is live. Static hosts can show the chart immediately; automatic candle calculations need a reachable data feed.",
+      rating: "CHECK",
+      confidence: 50,
+      price: null,
+      changePercent: null,
+      volume: null,
+      metrics: {
+        price: "Chart",
+        support: "Set Level",
+        resistance: "Set Level",
+        stop: "Builder",
+        target: "Builder",
+        top: "Set Level",
+        bottom: "Set Level",
+        rr: "--",
+        rsi: "--",
+        news: "Ground News",
+        risk: "Use Calculator"
+      },
+      rationale: [
+        "TradingView loads the visual chart even when Yahoo/proxy candle data is blocked by the browser or unavailable on static hosting.",
+        "Use the chart to mark support, resistance, stop, and target, then send the setup into Trade Builder or Risk Calculator.",
+        "Automatic levels appear when a browser candle feed or private backend is reachable; otherwise this stays in chart-first planning mode."
+      ],
+      news: ["Use Ground News to compare coverage before reacting to market-moving headlines."],
+      groundNews: {
+        query: `${symbol} market news`,
+        url: "https://ground.news/search"
+      },
+      source: "TradingView live widgets"
+    };
+    fallback.company = buildCompanyRead(symbol, fallback);
+    return fallback;
+  }
+
+  let activeRenderedAnalysis = null;
+
+  function numberFromDisplay(value) {
+    const n = Number(String(value ?? "").replace(/[^0-9.-]/g, ""));
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function roundSetupNumber(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return null;
+    return Number(n.toFixed(n >= 1 ? 4 : 8));
+  }
+
+  function setupFromAnalysis(data) {
+    const metrics = data?.metrics || {};
+    const raw = data?.raw || {};
+    const entry = roundSetupNumber(raw.price ?? numberFromDisplay(metrics.price));
+    const stop = roundSetupNumber(raw.stop ?? numberFromDisplay(metrics.stop || metrics.bottom));
+    const target = roundSetupNumber(raw.target ?? numberFromDisplay(metrics.target || metrics.top));
+    const support = roundSetupNumber(raw.support ?? numberFromDisplay(metrics.support));
+    const resistance = roundSetupNumber(raw.resistance ?? numberFromDisplay(metrics.resistance));
+    const rating = data?.rating || "WAIT";
+    const side = rating.includes("SELL") || (entry && stop && stop > entry) ? "short" : "long";
+    const thesisParts = [
+      data?.name,
+      ...(data?.rationale || []).slice(0, 3),
+      data?.company?.summary
+    ].filter(Boolean);
+    return {
+      symbol: cleanSymbol(data?.symbol || "AAPL"),
+      assetType: cryptoDataMap[cleanSymbol(data?.symbol || "AAPL")] ? "crypto" : "stock",
+      side,
+      rating,
+      confidence: data?.confidence ?? null,
+      timeframe: "intraday",
+      entry,
+      stop,
+      target,
+      support,
+      resistance,
+      rr: raw.rr ?? numberFromDisplay(metrics.rr),
+      rsi: raw.rsi ?? numberFromDisplay(metrics.rsi),
+      catalysts: data?.news?.slice?.(0, 3)?.map(item => typeof item === "string" ? item : item.title) || [],
+      riskNotes: data?.company?.risks?.slice?.(0, 3) || [],
+      sourcePage: "index.html",
+      source: data?.source || "Command Center",
+      thesis: thesisParts.join(" "),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  function localSetupGrade(setup) {
+    const n = value => {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    };
+    const rr = n(setup.rr);
+    const conf = n(setup.confidence);
+    const entry = n(setup.entry);
+    const stop = n(setup.stop);
+    const target = n(setup.target);
+    const support = n(setup.support);
+    const resistance = n(setup.resistance);
+    const side = String(setup.side || "long").toLowerCase();
+    const rating = String(setup.rating || "CHECK").toUpperCase();
+    const notes = [];
+    const warnings = [];
+    let score = 45;
+
+    if (rating.includes("BUY") || rating.includes("SELL")) {
+      score += 12;
+      notes.push(`${rating} signal is directional, so it is ready to plan but not auto-enter.`);
+    } else {
+      score -= 4;
+      warnings.push(`${rating} rating needs extra confirmation before execution.`);
+    }
+
+    if (rr !== null && rr >= 2) {
+      score += 20;
+      notes.push(`Reward/risk is ${rr.toFixed(2)}R, which clears the 2R planning bar.`);
+    } else if (rr !== null) {
+      score -= 18;
+      warnings.push(`Reward/risk is only ${rr.toFixed(2)}R. Improve target, tighten stop, or skip.`);
+    } else {
+      warnings.push("Reward/risk is missing until entry, stop, and target are clear.");
+    }
+
+    if (entry !== null && stop !== null && target !== null && entry !== stop && entry !== target) {
+      score += 14;
+      const targetWrongWay = side === "long" ? target <= entry : target >= entry;
+      const stopWrongWay = side === "long" ? stop >= entry : stop <= entry;
+      if (targetWrongWay) {
+        score -= 18;
+        warnings.push("Target is on the wrong side of entry for this trade direction.");
+      }
+      if (stopWrongWay) {
+        score -= 18;
+        warnings.push("Stop is on the wrong side of entry for this trade direction.");
+      }
+    } else {
+      score -= 12;
+      warnings.push("Entry, stop, or target is missing, so the setup is not execution-ready.");
+    }
+
+    if (support !== null && resistance !== null && entry !== null) {
+      score += 8;
+      const nearResistance = resistance > 0 && Math.abs(resistance - entry) / Math.max(Math.abs(entry), 1) < 0.007;
+      const nearSupport = support > 0 && Math.abs(entry - support) / Math.max(Math.abs(entry), 1) < 0.007;
+      if (side === "long" && nearResistance) warnings.push("Long setup is close to resistance, so breakout proof matters.");
+      if (side === "short" && nearSupport) warnings.push("Short setup is close to support, so downside may be crowded.");
+      if (nearSupport || nearResistance) score -= 4;
+    } else {
+      warnings.push("Support/resistance map is incomplete.");
+    }
+
+    if (conf !== null && conf >= 70) score += 9;
+    if (conf !== null && conf < 55) {
+      score -= 8;
+      warnings.push("Confidence is below 55, so keep it paper-only until structure improves.");
+    }
+    if ((setup.thesis || "").length > 100) score += 5;
+    if ((setup.catalysts || []).length) score += 4;
+    else warnings.push("No catalyst is attached yet; check news, earnings, macro, and sector/crypto beta.");
+
+    score = Math.max(0, Math.min(100, Math.round(score)));
+    const label = score >= 80 ? "A Setup" : score >= 68 ? "B Setup" : score >= 55 ? "C Setup" : "Paper Only";
+    const primary = warnings[0] || notes[0] || "Review trend, levels, risk/reward, catalyst quality, and liquidity before sizing.";
+    return {
+      score,
+      label,
+      notes,
+      warnings,
+      setup,
+      modeText: {
+        beginner: `${label}: ${primary}`,
+        pro: `${label}. RR ${rr === null ? "--" : rr.toFixed(2)}R, confidence ${conf === null ? "--" : Math.round(conf)}, asset ${setup.assetType || "asset"}.`,
+        expert: `Score ${score}/100 from rating, RR, levels, catalyst, and risk structure.`
+      }
+    };
+  }
+
+  function safeGradeAnalysis(data) {
+    let setup;
+    try {
+      setup = setupFromAnalysis(data);
+      const dtoGrade = window.DTO?.gradeSetup?.(setup);
+      if (dtoGrade && Number.isFinite(Number(dtoGrade.score))) return dtoGrade;
+    } catch (error) {
+      if (!setup) setup = {
+        symbol: cleanSymbol(data?.symbol || "AAPL"),
+        assetType: cryptoDataMap[cleanSymbol(data?.symbol || "AAPL")] ? "crypto" : "stock",
+        rating: data?.rating || "CHECK"
+      };
+    }
+    return localSetupGrade(setup || setupFromAnalysis(data));
+  }
+
+  function writeLastSetup(setup) {
+    if (window.DTO) setup = window.DTO.saveSetup(setup);
+    else localStorage.setItem("dtoLastSetup", JSON.stringify(setup));
+    renderProductionPath(setup);
+    if (window.DTO) window.DTO.renderMissionControl();
+    try { updateSnapshot(); } catch (error) {}
+    refreshSignalLinks(setup);
+    return setup;
+  }
+
+  function saveVisibleSetup() {
+    const setup = writeLastSetup(setupFromAnalysis(activeRenderedAnalysis || widgetOnlyAnalysis(document.getElementById("assetInput").value)));
+    const note = document.getElementById("liveStatus");
+    if (note) note.textContent = `${setup.symbol} setup saved into the Production Path.`;
+    return setup;
+  }
+
+  function setupUrlParams(setup) {
+    const params = new URLSearchParams();
+    ["symbol", "side", "rating", "entry", "stop", "target", "support", "resistance", "rr"].forEach(key => {
+      if (setup[key] !== null && setup[key] !== undefined && setup[key] !== "--") params.set(key, setup[key]);
+    });
+    if (setup.thesis) params.set("thesis", setup.thesis.slice(0, 700));
+    return params.toString();
+  }
+
+  function workflowUrl(page, setup = readJson("dtoLastSetup", null)) {
+    if (!setup) setup = saveVisibleSetup();
+    return `${page}?${setupUrlParams(setup)}`;
+  }
+
+  function signalDashboardUrl(setup = readJson("dtoLastSetup", null)) {
+    if (!setup && activeRenderedAnalysis) setup = setupFromAnalysis(activeRenderedAnalysis);
+    const inputSymbol = cleanSymbol(document.getElementById("assetInput")?.value || "");
+    if ((!setup || !setup.symbol) && inputSymbol) setup = { symbol: inputSymbol };
+    return setup?.symbol ? `signal_dashboard.html?${setupUrlParams(setup)}` : "signal_dashboard.html";
+  }
+
+  function refreshSignalLinks(setup = readJson("dtoLastSetup", null)) {
+    const url = signalDashboardUrl(setup);
+    document.querySelectorAll("[data-signal-link]").forEach(link => {
+      link.href = url;
+    });
+  }
+
+  function openWorkflow(page) {
+    const setup = saveVisibleSetup();
+    location.href = workflowUrl(page, setup);
+  }
+
+  function renderProductionPath(setup = readJson("dtoLastSetup", null)) {
+    const el = document.getElementById("productionPath");
+    if (!el) return;
+    const hasSetup = setup && setup.symbol;
+    const symbol = hasSetup ? escapeHtml(setup.symbol) : "No setup";
+    const rating = hasSetup ? escapeHtml(setup.rating || "WAIT") : "Search first";
+    const entry = hasSetup && setup.entry ? fmtPrice(setup.entry) : "--";
+    const stop = hasSetup && setup.stop ? fmtPrice(setup.stop) : "--";
+    const target = hasSetup && setup.target ? fmtPrice(setup.target) : "--";
+    const rr = hasSetup && setup.rr ? `${Number(setup.rr).toFixed(2)}R` : "--";
+    const marketUrl = hasSetup ? workflowUrl("market_workbench.html", setup) : "market_workbench.html";
+    const riskUrl = hasSetup ? workflowUrl("execution_workbench.html", setup) : "execution_workbench.html";
+    const strategyUrl = hasSetup ? workflowUrl("trade_planner.html", setup) : "trade_planner.html";
+    const paperUrl = hasSetup ? workflowUrl("practice_workbench.html", setup) : "practice_workbench.html";
+    const reviewUrl = hasSetup ? workflowUrl("review_workbench.html", setup) : "review_workbench.html";
+    const signalUrl = hasSetup ? signalDashboardUrl(setup) : "signal_dashboard.html";
+    el.innerHTML = `
+      <div class="op">
+        <strong>1. Market Intelligence</strong>
+        <span>Scan watchlists, context, catalysts, and alerts before choosing the setup.</span>
+        <div class="op-data">${symbol} / ${rating}</div>
+        <div class="op-actions"><a href="${escapeHtml(marketUrl)}">Open Market Desk</a><a data-signal-link href="${escapeHtml(signalUrl)}">Signals</a></div>
+      </div>
+      <div class="op">
+        <strong>2. Trade Planner</strong>
+        <span>Load the setup into guided strategy thinking before forcing a trade.</span>
+        <div class="op-data">Entry ${escapeHtml(entry)} / R:R ${escapeHtml(rr)}</div>
+        <div class="op-actions"><a href="${escapeHtml(strategyUrl)}">Plan Trade</a><button type="button" onclick="saveVisibleSetup()">Save Current</button></div>
+      </div>
+      <div class="op">
+        <strong>3. Execution Desk</strong>
+        <span>Prefill entry, stop, target, side, and symbol for risk sizing and hedge planning.</span>
+        <div class="op-data">Stop ${escapeHtml(stop)} / Target ${escapeHtml(target)}</div>
+        <div class="op-actions"><a href="${escapeHtml(riskUrl)}">Size Risk</a><a href="broker_execution_plan.html">Broker Plan</a></div>
+      </div>
+      <div class="op">
+        <strong>4. Practice + Review</strong>
+        <span>Paper trade, replay, journal, and improve before live execution is ever unlocked.</span>
+        <div class="op-data">${hasSetup ? escapeHtml(setup.side || "long").toUpperCase() : "Paper only"}</div>
+        <div class="op-actions"><a href="${escapeHtml(paperUrl)}">Practice</a><a href="${escapeHtml(reviewUrl)}">Review</a></div>
+      </div>`;
+  }
+
+  function renderAnalysis(data) {
+    activeRenderedAnalysis = data;
+    try { refreshSignalLinks(setupFromAnalysis(data)); } catch (error) {}
+    const ratingClass = data.rating === "BUY" || data.rating === "LIVE" ? "buy" : data.rating === "SELL" ? "sell" : "";
+    const metrics = data.metrics || {};
+    const company = data.company || buildCompanyRead(data.symbol || "AAPL", data);
+    const grade = safeGradeAnalysis(data);
+    const companyList = items => (items || []).slice(0, 4).map(item => `<li>${escapeHtml(item)}</li>`).join("");
+    const gradeWarnings = grade?.warnings?.slice(0, 3) || [];
+    const gradeNotes = grade?.notes?.slice(0, 2) || [];
+    const primaryGradeRead = gradeWarnings[0] || gradeNotes[0] || "Review trend, levels, risk/reward, catalyst quality, and liquidity before sizing.";
+    const gradeNoteHtml = gradeWarnings.length || gradeNotes.length
+      ? [
+          ...gradeWarnings.map(item => `<div class="signal-grade-note">${escapeHtml(item)}</div>`),
+          ...gradeNotes.map(item => `<div class="signal-grade-note good">${escapeHtml(item)}</div>`)
+        ].slice(0, 4).join("")
+      : `<div class="signal-grade-note">Save the setup to preserve this grade and send it into Risk, Paper Trading, and Journal.</div>`;
+    const feedNoteHtml = data.feedNote
+      ? `<div class="signal-grade-note ${data.feedDelayed ? "" : "good"}">${escapeHtml(data.feedNote)}</div>`
+      : "";
+    document.getElementById("analysisResult").innerHTML = `
+      <div class="result-top">
+        <div>
+          <div class="symbol">${escapeHtml(data.symbol || "--")}</div>
+          <div class="name">${escapeHtml(data.name || data.source || "Latest available market analysis")}</div>
+        </div>
+        <div class="rating ${ratingClass}">${escapeHtml(data.rating || "WAIT")}</div>
+      </div>
+      ${feedNoteHtml}
+      <div class="metrics">
+        <div class="metric"><div class="label">Price</div><strong>${escapeHtml(metrics.price || "--")}</strong></div>
+        <div class="metric"><div class="label">Support</div><strong>${escapeHtml(metrics.support || "--")}</strong></div>
+        <div class="metric"><div class="label">Resistance</div><strong>${escapeHtml(metrics.resistance || "--")}</strong></div>
+        <div class="metric"><div class="label">Stop</div><strong>${escapeHtml(metrics.stop || metrics.bottom || "--")}</strong></div>
+        <div class="metric"><div class="label">Target</div><strong>${escapeHtml(metrics.target || metrics.top || "--")}</strong></div>
+        <div class="metric"><div class="label">R:R / RSI</div><strong>${escapeHtml(metrics.rr || "--")} / ${escapeHtml(metrics.rsi || "--")}</strong></div>
+      </div>
+      <div class="signal-grade">
+        <div class="signal-grade-head">
+          <h3>Setup Grader</h3>
+          <span class="company-source">${grade ? `${grade.score}/100 ${grade.label}` : "No Grade"}</span>
+        </div>
+        <div class="signal-grade-grid">
+          <div class="signal-grade-card">
+            <h4>Score</h4>
+            <strong>${grade ? `${grade.score}/100` : "--"}</strong>
+            <p>${escapeHtml(grade?.modeText?.expert || "No setup score yet.")}</p>
+          </div>
+          <div class="signal-grade-card">
+            <h4>Quality</h4>
+            <strong>${escapeHtml(grade?.label || "No Grade")}</strong>
+            <p>${escapeHtml(`${grade?.setup?.assetType || "asset"} / ${grade?.setup?.side || "side"} / ${data.rating || "WAIT"}`)}</p>
+          </div>
+          <div class="signal-grade-card">
+            <h4>Main Read</h4>
+            <p>${escapeHtml(grade?.modeText?.beginner || primaryGradeRead)}</p>
+          </div>
+        </div>
+        <div class="signal-grade-list">${gradeNoteHtml}</div>
+      </div>
+      <div class="company-read">
+        <div class="company-read-head">
+          <h3>${escapeHtml(company.title || "Company / Future Read")}</h3>
+          <span class="company-source">${escapeHtml(company.source || "Local read")}</span>
+        </div>
+        <div class="company-grid">
+          <div class="company-card">
+            <h4>What It Is</h4>
+            <p>${escapeHtml(company.summary || "Company context is loading.")}</p>
+          </div>
+          <div class="company-card">
+            <h4>Future Drivers</h4>
+            <ul>${companyList(company.drivers)}</ul>
+          </div>
+          <div class="company-card">
+            <h4>What Can Break It</h4>
+            <ul>${companyList(company.risks)}</ul>
+          </div>
+          <div class="company-card">
+            <h4>Verify First</h4>
+            <ul>${companyList(company.verify)}</ul>
+          </div>
+        </div>
+      </div>
+      <div class="workflow-actions" aria-label="Trade workflow actions">
+        <button class="flow-btn primary" type="button" onclick="saveVisibleSetup()">Save Setup</button>
+        <button class="flow-btn" type="button" onclick="openWorkflow('trade_planner.html')">Plan Strategy</button>
+        <button class="flow-btn" type="button" onclick="openWorkflow('execution_workbench.html')">Size Risk</button>
+        <button class="flow-btn gold" type="button" onclick="openWorkflow('practice_workbench.html')">Paper Trade</button>
+      </div>
+      <div class="live-widgets">
+        <div class="widget-box">
+          <div class="widget-label"><span>Live Quote / Chart</span><span id="tvSymbolLabel">${escapeHtml(tradingViewSymbol(data.symbol || "AAPL"))}</span></div>
+          <div id="tvOverview"></div>
+        </div>
+        <div class="widget-box technical">
+          <div class="widget-label"><span>Technical Rating</span><span>Native</span></div>
+          <div id="tvTechnical"></div>
+        </div>
+      </div>
+      <div class="analysis-body">
+        <div>
+          <h3>Signal Logic</h3>
+          <ul>${(data.rationale || []).slice(0, 7).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+        </div>
+        <div>
+          <h3>Market Context</h3>
+          ${renderMarketContext(data)}
+        </div>
+      </div>
+      <div class="status-note" id="liveStatus">Live chart, technical rating, and company read refreshed. Review the setup before planning risk.</div>`;
+  }
+
+  let activeAnalysisToken = 0;
+
+  function updateCompanyRead(symbol, analysis, candles, token) {
+    fetchCompanyRead(symbol, analysis)
+      .then(company => {
+        if (token !== activeAnalysisToken) return;
+        analysis.company = company;
+        renderAnalysis(analysis);
+        renderTradingViewWidgets(symbol, candles, analysis);
+        writeLastSetup(setupFromAnalysis(analysis));
+        const note = document.getElementById("liveStatus");
+        if (note) note.textContent = `${company.title} updated from ${company.source}. Use this as context, not a prediction.`;
+      })
+      .catch(() => {});
+  }
+
+  async function analyzeAsset(symbol) {
+    const requestedSymbol = cleanSymbol(symbol);
+    const token = ++activeAnalysisToken;
+    const state = document.getElementById("feedState");
+    state.textContent = "Loading";
+    const loadingAnalysis = widgetOnlyAnalysis(requestedSymbol);
+    renderAnalysis(loadingAnalysis);
+    renderTradingViewWidgets(requestedSymbol, [], loadingAnalysis);
+    try {
+      const candles = await fetchCandles(requestedSymbol);
+      if (token !== activeAnalysisToken) return;
+      const analysis = analyzeCandles(requestedSymbol, candles);
+      analysis.source = candles.source || analysis.source;
+      analysis.feedDelayed = Boolean(candles.delayed);
+      analysis.feedNote = candles.delayed
+        ? `${requestedSymbol} is using delayed fallback candles in this browser. Deploy on Vercel with Alpaca env vars for live intraday candles on every supported ticker.`
+        : `${requestedSymbol} candle analysis loaded from ${candles.source || "the live/backend feed"}.`;
+      analysis.company = buildCompanyRead(requestedSymbol, analysis);
+      renderAnalysis(analysis);
+      renderTradingViewWidgets(requestedSymbol, candles, analysis);
+      state.textContent = candles.delayed ? "Delayed" : "Live";
+      if (candles.delayed) {
+        analysis.rationale = [
+          "Local browser could not reach the live intraday candle feed, so this analysis is using delayed daily fallback candles.",
+          ...(analysis.rationale || [])
+        ].slice(0, 6);
+        renderAnalysis(analysis);
+        renderTradingViewWidgets(requestedSymbol, candles, analysis);
+      }
+      try { writeLastSetup(setupFromAnalysis(analysis)); } catch (setupError) {}
+      updateCompanyRead(requestedSymbol, analysis, candles, token);
+    } catch (error) {
+      if (token !== activeAnalysisToken) return;
+      const fallback = widgetOnlyAnalysis(requestedSymbol);
+      fallback.rating = "CHECK";
+      fallback.name = "TradingView chart is available. Automatic candle levels are blocked in this browser session.";
+      fallback.rationale = [
+        "The chart panel pulls through TradingView immediately for the live visual.",
+        "The Yahoo/proxy candle request did not return, so this result is chart-only instead of stale or fake.",
+        "Open Trade Builder to manually mark entry, stop, target, support, and resistance from the chart."
+      ];
+      fallback.company = buildCompanyRead(requestedSymbol, fallback);
+      state.textContent = "Chart Only";
+      renderAnalysis(fallback);
+      renderTradingViewWidgets(requestedSymbol, [], fallback);
+      try { writeLastSetup(setupFromAnalysis(fallback)); } catch (setupError) {}
+      updateCompanyRead(requestedSymbol, fallback, [], token);
+    } finally {
+      if (token === activeAnalysisToken && state.textContent === "Loading") state.textContent = "Chart Only";
+    }
+  }
+
+  window.commandCenterSubmit = function commandCenterSubmit(event) {
+    event.preventDefault();
+    const input = document.getElementById("assetInput");
+    analyzeAsset(input?.value || "AAPL");
+    return false;
+  };
+
+  const analysisForm = document.getElementById("analysisForm");
+  if (analysisForm) analysisForm.addEventListener("submit", window.commandCenterSubmit);
+  document.getElementById("assetInput")?.addEventListener("input", () => refreshSignalLinks());
+  document.getElementById("refreshPulse")?.addEventListener("click", () => refreshMarketPulse(true));
+  document.getElementById("heroWorkflow")?.addEventListener("click", event => {
+    const control = event.target.closest("[data-flow-step]");
+    if (!control) return;
+    if (control.dataset.flowStep !== "analyze") return;
+    event.preventDefault();
+    const card = document.querySelector(".analysis-card");
+    const input = document.getElementById("assetInput");
+    card?.scrollIntoView({ behavior: "smooth", block: "center" });
+    window.setTimeout(() => {
+      input?.focus();
+      input?.select();
+    }, 260);
+  });
+  window.addEventListener("dto:user-changed", () => updateSnapshot());
+  window.addEventListener("dto:setup-saved", () => updateSnapshot());
+  window.addEventListener("dto:trade-recorded", () => updateSnapshot());
+  window.addEventListener("storage", event => {
+    if (["dtoLastSetup", "dtoSetupPacket", "dtoSetupPackets", "dtoPaperTradingAccount", "dtoUsers", "dtoActiveUser", "trades"].includes(event.key)) updateSnapshot();
+  });
+
+  function bootCommandCenter() {
+    try { updateSnapshot(); } catch (error) {}
+    try { updateClock(); } catch (error) {}
+    try {
+      const bootAnalysis = widgetOnlyAnalysis(document.getElementById("assetInput")?.value || "AAPL");
+      renderAnalysis(bootAnalysis);
+      renderTradingViewWidgets(bootAnalysis.symbol || "AAPL", [], bootAnalysis);
+    } catch (error) {
+      const status = document.getElementById("liveStatus");
+      if (status) status.textContent = "Command Center recovered from a startup render issue. Enter a ticker and analyze again.";
+    }
+    try { renderProductionPath(); } catch (error) {}
+    try { refreshSignalLinks(); } catch (error) {}
+    try {
+      const cachedPulse = readJson("dtoMarketPulse", null);
+      if (cachedPulse?.results?.length) renderMarketPulse(cachedPulse.results);
+      window.setTimeout(() => refreshMarketPulse(false), 300);
+    } catch (error) {}
+  }
+
+  bootCommandCenter();
+  setInterval(updateClock, 30000);
+</script>
+</body>
+</html>
+
