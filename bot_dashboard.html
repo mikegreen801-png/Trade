@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automated Bot Dashboard | Day Trader OS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/daytrader-os.css">
+    <style>
+        :root {
+            --dto-bg: #05070c;
+            --dto-panel: #0b111b;
+            --dto-panel-2: #101826;
+            --dto-border: #24334a;
+            --dto-text: #dce7f5;
+            --dto-muted: #8ea0ba;
+            --dto-cyan: #00d7ff;
+            --dto-green: #00e08a;
+            --dto-gold: #f2b84b;
+            --dto-red: #ff5b6e;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background:
+                linear-gradient(180deg, rgba(0, 215, 255, 0.09), transparent 260px),
+                radial-gradient(circle at 86% 14%, rgba(0, 224, 138, 0.16), transparent 26rem),
+                radial-gradient(circle at 10% 86%, rgba(242, 184, 75, 0.11), transparent 24rem),
+                var(--dto-bg);
+            color: var(--dto-text);
+            font-family: "Barlow Condensed", system-ui, sans-serif;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(220, 231, 245, 0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(220, 231, 245, 0.035) 1px, transparent 1px);
+            background-size: 42px 42px;
+            mask-image: linear-gradient(180deg, #000, transparent 82%);
+        }
+
+        .shell {
+            position: relative;
+            width: min(1380px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 26px 0 36px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+            padding: 12px 0 22px;
+            border-bottom: 1px solid rgba(220, 231, 245, 0.12);
+            margin-bottom: 30px;
+        }
+
+        .brand {
+            font-family: "JetBrains Mono", monospace;
+            font-weight: 800;
+            letter-spacing: 0.22em;
+            color: #ffffff;
+            text-transform: uppercase;
+            text-decoration: none;
+        }
+        .brand span { color: var(--dto-cyan); }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(0, 215, 255, 0.24);
+            border-radius: 999px;
+            padding: 8px 12px;
+            background: rgba(9, 16, 26, 0.76);
+            color: #cfe6f0;
+            font: 700 10px/1 "JetBrains Mono", monospace;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .engine-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--dto-muted);
+        }
+        .engine-status-dot.online {
+            background: var(--dto-green);
+            box-shadow: 0 0 10px var(--dto-green);
+        }
+        .engine-status-dot.offline {
+            background: var(--dto-red);
+            box-shadow: 0 0 10px var(--dto-red);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+        }
+
+        .panel {
+            border: 1px solid rgba(220, 231, 245, 0.13);
+            border-radius: 8px;
+            background: linear-gradient(180deg, rgba(17, 25, 39, 0.94), rgba(8, 13, 21, 0.95));
+            padding: 24px;
+            box-shadow: 0 20px 70px rgba(0, 0, 0, 0.26);
+        }
+
+        .panel-kicker {
+            font-family: "JetBrains Mono", monospace;
+            color: var(--dto-cyan);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        h2 {
+            margin: 0 0 20px;
+            color: #ffffff;
+            font-size: 32px;
+            line-height: 0.95;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .bot-state {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .state-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(3, 8, 15, 0.44);
+            border: 1px solid rgba(220, 231, 245, 0.08);
+            border-radius: 6px;
+        }
+
+        .state-label {
+            font-family: "JetBrains Mono", monospace;
+            font-size: 10px;
+            font-weight: 800;
+            color: var(--dto-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .state-value {
+            font-family: "JetBrains Mono", monospace;
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .btn-action {
+            width: 100%;
+            border: 0;
+            border-radius: 6px;
+            padding: 16px;
+            font: 800 12px/1 "JetBrains Mono", monospace;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-start {
+            background: var(--dto-green);
+            color: #03120c;
+        }
+        .btn-start:hover { box-shadow: 0 0 15px rgba(0, 224, 138, 0.4); }
+
+        .btn-stop {
+            background: var(--dto-red);
+            color: #190307;
+        }
+        .btn-stop:hover { box-shadow: 0 0 15px rgba(255, 91, 110, 0.4); }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: "JetBrains Mono", monospace;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px;
+            color: var(--dto-muted);
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border-bottom: 1px solid rgba(220, 231, 245, 0.1);
+        }
+
+        td {
+            padding: 14px 12px;
+            font-size: 12px;
+            color: #d8e2ef;
+            border-bottom: 1px solid rgba(220, 231, 245, 0.06);
+        }
+
+        .buy { color: var(--dto-green); }
+        .sell { color: var(--dto-red); }
+
+        .api-error-banner {
+            display: none;
+            margin-bottom: 20px;
+            padding: 14px;
+            background: rgba(255, 91, 110, 0.1);
+            border: 1px solid rgba(255, 91, 110, 0.3);
+            border-radius: 6px;
+            color: var(--dto-red);
+            font: 600 12px/1.4 "JetBrains Mono", monospace;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 900px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <header class="topbar">
+            <a href="index.html" class="brand">Day<span>Trader</span>OS</a>
+            <div class="status-pill">
+                <span id="engine-dot" class="engine-status-dot"></span>
+                <span id="connection-text">Engine: Offline</span>
+            </div>
+        </header>
+
+        <div id="api-error" class="api-error-banner">
+            <strong>Critical Error:</strong> Connection to Trading Engine Failed (Port 8000)
+        </div>
+
+        <div class="grid">
+            <aside class="panel">
+                <div class="panel-kicker">Automation Control</div>
+                <h2>Bot Engine</h2>
+                
+                <div class="bot-state">
+                    <div class="state-item">
+                        <span class="state-label">Status</span>
+                        <span id="bot-status" class="state-value">Unknown</span>
+                    </div>
+                    <div class="state-item">
+                        <span class="state-label">Watchlist</span>
+                        <span id="active-symbols" class="state-value">-</span>
+                    </div>
+                    <div class="state-item">
+                        <span class="state-label">Active Algos</span>
+                        <span id="active-strategies" class="state-value">-</span>
+                    </div>
+                </div>
+
+                <div id="control-buttons">
+                    <button id="btn-start" class="btn-action btn-start" onclick="toggleBot(true)">Start Monitoring</button>
+                    <button id="btn-stop" class="btn-action btn-stop" onclick="toggleBot(false)" style="display: none;">Halt Operations</button>
+                </div>
+            </aside>
+
+            <main class="panel">
+                <div class="panel-kicker">Persistent Logs</div>
+                <h2>Trade History</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Strategy</th>
+                                <th>Symbol</th>
+                                <th>Side</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="trades-body">
+                            <tr><td colspan="7" style="text-align: center; color: var(--dto-muted); padding: 40px;">Syncing ledger...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const ENGINE_URL = 'http://localhost:8000/api/bot';
+
+        async function fetchStatus() {
+            try {
+                const res = await fetch(`${ENGINE_URL}/status`);
+                if (!res.ok) throw new Error('Engine unreachable');
+                const data = await res.json();
+                
+                document.getElementById('api-error').style.display = 'none';
+                document.getElementById('engine-dot').className = 'engine-status-dot online';
+                document.getElementById('connection-text').innerText = 'Engine: Connected';
+                
+                const isRunning = data.is_running;
+                document.getElementById('bot-status').innerText = isRunning ? 'RUNNING' : 'STOPPED';
+                document.getElementById('bot-status').style.color = isRunning ? 'var(--dto-green)' : 'var(--dto-red)';
+                
+                document.getElementById('btn-start').style.display = isRunning ? 'none' : 'block';
+                document.getElementById('btn-stop').style.display = isRunning ? 'block' : 'none';
+                
+                document.getElementById('active-strategies').innerText = data.strategies.join(', ').replace(/_/g, ' ');
+                document.getElementById('active-symbols').innerText = data.active_symbols.join(', ');
+                
+            } catch (error) {
+                console.error(error);
+                document.getElementById('api-error').style.display = 'block';
+                document.getElementById('engine-dot').className = 'engine-status-dot offline';
+                document.getElementById('connection-text').innerText = 'Engine: Offline';
+                document.getElementById('bot-status').innerText = 'OFFLINE';
+            }
+        }
+
+        async function fetchTrades() {
+            try {
+                const res = await fetch(`${ENGINE_URL}/trades`);
+                if (!res.ok) throw new Error();
+                const trades = await res.json();
+                
+                const tbody = document.getElementById('trades-body');
+                tbody.innerHTML = '';
+                
+                if (trades.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--dto-muted); padding: 40px;">No trades recorded in database.</td></tr>';
+                    return;
+                }
+                
+                trades.forEach(t => {
+                    const tr = document.createElement('tr');
+                    const sideClass = t.side.toLowerCase() === 'buy' ? 'buy' : 'sell';
+                    const date = new Date(t.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+                    
+                    tr.innerHTML = `
+                        <td>${date}</td>
+                        <td style="color:var(--dto-cyan)">${t.strategy_name.replace(/_/g, ' ')}</td>
+                        <td style="font-weight:700">${t.symbol}</td>
+                        <td class="${sideClass}">${t.side.toUpperCase()}</td>
+                        <td>${t.qty}</td>
+                        <td>$${t.price ? t.price.toFixed(2) : '---'}</td>
+                        <td style="opacity:0.7; font-size:10px">${t.status.toUpperCase()}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                // Background sync failure
+            }
+        }
+
+        async function toggleBot(start) {
+            const endpoint = start ? '/start' : '/stop';
+            try {
+                await fetch(`${ENGINE_URL}${endpoint}`, { method: 'POST' });
+                await fetchStatus();
+            } catch (error) {
+                alert('Command execution failed. Check backend logs.');
+            }
+        }
+
+        // Poll every 2 seconds for ultra-responsive feel
+        fetchStatus();
+        fetchTrades();
+        setInterval(() => {
+            fetchStatus();
+            fetchTrades();
+        }, 2000);
+    </script>
+</body>
+</html>

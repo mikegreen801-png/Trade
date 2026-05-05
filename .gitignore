@@ -1,0 +1,7 @@
+.env
+node_modules/
+trading_engine/trades.db
+__pycache__/
+*.pyc
+.DS_Store
+package-lock.json
