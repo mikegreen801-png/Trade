@@ -334,7 +334,7 @@
         </div>
         <div class="mode-row">
           <button class="primary" type="button" id="paperMode">Paper Trade</button>
-          <button class="primary" type="button" id="liveMode" onclick="window.alpacaAPI?.setLiveMode(true) || alert('Connect Alpaca keys first')">Live Trade (Alpaca)</button>
+          <button class="primary" type="button" id="liveMode" onclick="if(!window.alpacaAPI) { alert('Integration script missing - please hard refresh the page (Ctrl+Shift+R) to load the latest changes.'); } else { window.alpacaAPI.setLiveMode(true); }">Live Trade (Alpaca)</button>
         </div>
         <div class="warning" style="margin-top:14px">Public market data can be available to every logged-in or guest visitor. Trading access stays separate: each real order path needs account auth, buying-power checks, preview, and confirmation.</div>
         <div class="flow-grid" style="margin-top:14px">
