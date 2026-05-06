@@ -5,7 +5,9 @@
   "description": "Render web service host for Day Trader OS static app + API routes",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "start:engine": "cd trading_engine && uvicorn main:app --host 0.0.0.0 --port 8000 --reload",
+    "start:all": "concurrently --names \"WEB,BOT\" --prefix-colors \"cyan,yellow\" \"npm run start\" \"npm run start:engine\""
   },
   "engines": {
     "node": ">=18"
@@ -13,5 +15,8 @@
   "dependencies": {
     "dotenv": "^17.4.2",
     "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }

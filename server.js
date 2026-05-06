@@ -55,6 +55,42 @@ app.use("/.netlify/functions/:name", async (req, res, next) => {
   }
 });
 
+// ── Python Trading Engine Proxy ──
+const http = require("http");
+const _botUrl = new URL((process.env.PYTHON_BOT_URL || "http://localhost:8000").replace(/\/$/, ""));
+const BOT_HOSTNAME = _botUrl.hostname;
+const BOT_PORT = Number(_botUrl.port) || 8000;
+const BOT_HOST = _botUrl.host;
+
+app.all("/api/bot/*", (req, res) => {
+  const target = new URL(req.url, "http://localhost");
+  const options = {
+    hostname: BOT_HOSTNAME,
+    port: BOT_PORT,
+    path: target.pathname + target.search,
+    method: req.method,
+    headers: { ...req.headers, host: BOT_HOST },
+  };
+
+  const proxy = http.request(options, (pythonRes) => {
+    res.status(pythonRes.statusCode);
+    Object.entries(pythonRes.headers).forEach(([k, v]) => {
+      if (!["transfer-encoding", "connection"].includes(k.toLowerCase())) res.setHeader(k, v);
+    });
+    pythonRes.pipe(res, { end: true });
+  });
+
+  proxy.on("error", (err) => {
+    console.error("[DayTraderOS] Python bot proxy error:", err.message);
+    res.status(502).json({ ok: false, error: "Trading engine unavailable", detail: err.message });
+  });
+
+  if (req.body && ["POST", "PUT", "PATCH"].includes(req.method)) {
+    proxy.write(JSON.stringify(req.body));
+  }
+  proxy.end();
+});
+
 // Minimal API bridge that executes extracted-files/api/*.js handlers
 app.all("/api/:name", async (req, res, next) => {
   if (req.params.name === "alerts") return next(); // Handled below

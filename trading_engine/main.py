@@ -10,10 +10,11 @@ from strategies.momentum import MomentumTracker
 
 app = FastAPI(title="Trading Engine API")
 
-# Allow requests from the Node.js frontend
+_NODE_ORIGIN = os.getenv("NODE_ORIGIN", "http://localhost:3000")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, restrict this
+    allow_origins=[_NODE_ORIGIN],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
