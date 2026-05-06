@@ -505,6 +505,7 @@
     bar.setAttribute("aria-label", "Day Trader OS workflow actions");
     bar.innerHTML = `
       <button type="button" data-dto-action="save">Save Setup</button>
+      <button type="button" data-dto-action="theme">Toggle Theme</button>
       <a data-dto-link="risk" href="execution_workbench.html">Open in Risk</a>
       <a data-dto-link="paper" href="practice_workbench.html">Paper Trade</a>
       <a data-dto-link="journal" href="review_workbench.html">Journal Result</a>
@@ -516,6 +517,12 @@
       bar.querySelector('[data-dto-action="save"]').textContent = `${setup.symbol} Saved`;
       setTimeout(() => { bar.querySelector('[data-dto-action="save"]').textContent = "Save Setup"; }, 1400);
       updateGlobalLinks();
+    });
+    bar.querySelector('[data-dto-action="theme"]').addEventListener("click", () => {
+      const current = document.documentElement.getAttribute("data-theme") || "dark";
+      const next = current === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      localStorage.setItem("dtoTheme", next);
     });
     const homeAction = bar.querySelector("[data-dto-home-action]");
     if (page === "index.html" && homeAction) {
@@ -767,6 +774,30 @@ html.dto-unified {
   --red: var(--dto-red);
 }
 
+html.dto-unified[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f0f4f8;
+  --panel: #ffffff;
+  --panel2: #f4f8fc;
+  --line: #cbd5e1;
+  --text: #0a0e17;
+  --muted: #374151;
+  --cyan: #0369a1;
+  --green: #15803d;
+  --gold: #b45309;
+  --red: #b91c1c;
+  --dto-bg: #f0f4f8;
+  --dto-panel: #ffffff;
+  --dto-panel-2: #f4f8fc;
+  --dto-border: #cbd5e1;
+  --dto-text: #0a0e17;
+  --dto-muted: #374151;
+  --dto-cyan: #0369a1;
+  --dto-green: #15803d;
+  --dto-gold: #b45309;
+  --dto-red: #b91c1c;
+}
+
 html.dto-unified *,
 html.dto-unified *::before,
 html.dto-unified *::after {
@@ -779,11 +810,15 @@ html.dto-unified body {
     linear-gradient(rgba(0, 215, 255, 0.035) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 215, 255, 0.035) 1px, transparent 1px),
     radial-gradient(circle at 84% 12%, rgba(0, 224, 138, 0.12), transparent 34%),
-    #05070c !important;
+    var(--bg, #05070c) !important;
   background-size: 72px 72px, 72px 72px, auto, auto !important;
-  color: var(--dto-text) !important;
+  color: var(--text, var(--dto-text)) !important;
   font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
   letter-spacing: 0 !important;
+}
+
+html.dto-unified[data-theme="light"] body {
+  background: var(--bg) !important;
 }
 
 html.dto-unified main,
@@ -792,14 +827,14 @@ html.dto-unified .wrap,
 html.dto-unified .shell,
 html.dto-unified .container,
 html.dto-unified .page {
-  color: var(--dto-text);
+  color: var(--text, var(--dto-text));
 }
 
 html.dto-unified h1,
 html.dto-unified .title,
 html.dto-unified .symbol,
 html.dto-unified .hero-title {
-  color: #fff !important;
+  color: var(--text, #fff) !important;
   font-family: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif !important;
   font-weight: 900 !important;
   letter-spacing: 0.04em !important;
@@ -812,7 +847,7 @@ html.dto-unified h3,
 html.dto-unified h4,
 html.dto-unified .section-title,
 html.dto-unified .panel-title {
-  color: #fff;
+  color: var(--text, #fff);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -824,7 +859,7 @@ html.dto-unified label,
 html.dto-unified .tool-kicker,
 html.dto-unified .panel-kicker,
 html.dto-unified .dto-panel-kicker {
-  color: var(--dto-cyan) !important;
+  color: var(--cyan, var(--dto-cyan)) !important;
   font-weight: 800;
   letter-spacing: 0.16em !important;
   text-transform: uppercase;
@@ -837,7 +872,15 @@ html.dto-unified .note,
 html.dto-unified .sub,
 html.dto-unified .hint,
 html.dto-unified .muted {
-  color: #a9b8cc;
+  color: var(--muted, #a9b8cc);
+}
+
+html.dto-unified[data-theme="light"] input,
+html.dto-unified[data-theme="light"] select,
+html.dto-unified[data-theme="light"] textarea {
+  background: var(--panel2) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--line) !important;
 }
 
 html.dto-unified .panel,
@@ -861,6 +904,28 @@ html.dto-unified article {
   background: linear-gradient(145deg, rgba(17, 24, 36, 0.96), rgba(7, 11, 18, 0.96)) !important;
   color: var(--dto-text) !important;
   box-shadow: 0 18px 55px rgba(0, 0, 0, 0.18);
+}
+
+html.dto-unified[data-theme="light"] .panel,
+html.dto-unified[data-theme="light"] .card,
+html.dto-unified[data-theme="light"] .hero-card,
+html.dto-unified[data-theme="light"] .tool,
+html.dto-unified[data-theme="light"] .resource,
+html.dto-unified[data-theme="light"] .op,
+html.dto-unified[data-theme="light"] .metric,
+html.dto-unified[data-theme="light"] .widget-box,
+html.dto-unified[data-theme="light"] .company-card,
+html.dto-unified[data-theme="light"] .status-card,
+html.dto-unified[data-theme="light"] .check,
+html.dto-unified[data-theme="light"] .path-step,
+html.dto-unified[data-theme="light"] .scanner-card,
+html.dto-unified[data-theme="light"] .module,
+html.dto-unified[data-theme="light"] section.panel,
+html.dto-unified[data-theme="light"] article {
+  background: var(--panel) !important;
+  color: var(--text) !important;
+  border-color: var(--line) !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
 }
 
 html.dto-unified .tool.featured,
@@ -907,6 +972,15 @@ html.dto-unified a.button {
   letter-spacing: 0.08em !important;
   text-decoration: none !important;
   text-transform: uppercase !important;
+}
+
+html.dto-unified[data-theme="light"] button,
+html.dto-unified[data-theme="light"] .btn,
+html.dto-unified[data-theme="light"] .flow-btn,
+html.dto-unified[data-theme="light"] .action {
+  border-color: var(--line) !important;
+  background: var(--panel2) !important;
+  color: var(--text) !important;
 }
 
 html.dto-unified button:hover,
@@ -1012,12 +1086,74 @@ html.dto-unified ::selection {
     escapeHtml
   };
 
+  const savedTheme = localStorage.getItem("dtoTheme");
+  if (savedTheme) document.documentElement.setAttribute("data-theme", savedTheme);
+
   syncQuerySetup();
   injectUnifiedTheme();
-  injectHomeLink();
   injectGlobalActions();
-  injectAuthControls();
+  injectHomeLink();
   injectSignalNote();
+  injectAuthControls();
+
+  // ── Unified Alert System ──
+  let alertConnection = null;
+  function startAlertSystem() {
+    const alerts = readJson("dtoAlerts", []);
+    if (!alerts.length) return;
+    
+    fetch('/api/alerts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ alerts })
+    }).catch(() => {});
+
+    if (!alertConnection && /^https?:$/.test(location.protocol)) {
+      alertConnection = new EventSource('/api/alerts/stream');
+      alertConnection.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          data.alerts.forEach(alert => {
+            triggerBrowserNotification(data.symbol, data.price, alert);
+          });
+        } catch (err) {}
+      };
+    }
+  }
+
+  function triggerBrowserNotification(symbol, price, alert) {
+    const title = `${symbol} Alert: $${price}`;
+    const body = `${alert.trigger} ${alert.level ? 'near ' + alert.level : ''}. ${alert.note || ''}`;
+    
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+      gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      oscillator.start();
+      gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
+      oscillator.stop(audioCtx.currentTime + 0.5);
+    } catch (e) {}
+
+    if (Notification.permission === 'granted') {
+      new Notification(title, { body });
+    }
+  }
+
+  window.addEventListener('storage', event => {
+    if (event.key === 'dtoAlerts') startAlertSystem();
+  });
+
+  document.addEventListener('click', () => {
+    if (Notification.permission === 'default') Notification.requestPermission();
+  }, { once: true });
+
+  startAlertSystem();
+
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => {
       renderMissionControl();

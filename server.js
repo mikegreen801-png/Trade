@@ -56,7 +56,8 @@ app.use("/.netlify/functions/:name", async (req, res, next) => {
 });
 
 // Minimal API bridge that executes extracted-files/api/*.js handlers
-app.all("/api/:name", async (req, res) => {
+app.all("/api/:name", async (req, res, next) => {
+  if (req.params.name === "alerts") return next(); // Handled below
   try {
     const apiPath = path.join(webRoot, "api", `${req.params.name}.js`);
     delete require.cache[require.resolve(apiPath)];
@@ -72,6 +73,66 @@ app.all("/api/:name", async (req, res) => {
     return res.status(500).json({ ok: false, error: error.message || "API error" });
   }
 });
+
+// ── Alert System SSE & State ──
+let activeAlerts = {}; // { symbol: [ {id, price, direction, message} ] }
+let sseClients = new Set();
+
+app.post("/api/alerts", (req, res) => {
+  const alerts = req.body.alerts || [];
+  activeAlerts = {};
+  alerts.forEach(a => {
+    if (!a.symbol || !a.price) return;
+    if (!activeAlerts[a.symbol]) activeAlerts[a.symbol] = [];
+    activeAlerts[a.symbol].push(a);
+  });
+  res.json({ ok: true, count: alerts.length });
+});
+
+app.get("/api/alerts/stream", (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+
+  sseClients.add(res);
+  req.on("close", () => sseClients.delete(res));
+});
+
+// Poll prices every 30s and check alerts
+setInterval(async () => {
+  if (sseClients.size === 0) return;
+  const symbols = Object.keys(activeAlerts);
+  if (!symbols.length) return;
+
+  for (const sym of symbols) {
+    try {
+      const candlesMod = require(path.join(webRoot, "api", "candles.js"));
+      // We simulate a req/res to call the candles handler directly
+      let candleData = null;
+      await candlesMod(
+        { query: { symbol: sym, limit: 1 } },
+        { json: (data) => { candleData = data; }, status: () => ({ json: () => {} }) }
+      );
+      
+      if (candleData && candleData.candles && candleData.candles.length) {
+        const currentPrice = candleData.candles[0].close;
+        const matchedAlerts = activeAlerts[sym].filter(a => {
+          if (a.direction === "above" && currentPrice >= a.price) return true;
+          if (a.direction === "below" && currentPrice <= a.price) return true;
+          return false;
+        });
+
+        if (matchedAlerts.length > 0) {
+          const payload = JSON.stringify({ symbol: sym, price: currentPrice, alerts: matchedAlerts });
+          sseClients.forEach(client => client.write(`data: ${payload}\n\n`));
+        }
+      }
+    } catch (e) {
+      // Ignore poll errors
+    }
+  }
+}, 30000);
 
 // Friendly routes without .html
 app.get("/:page", (req, res, next) => {

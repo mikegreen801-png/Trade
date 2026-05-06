@@ -383,9 +383,19 @@
     <div class="panel">
       <div class="panel-head">
         <h2 class="panel-title">Broker Mode</h2>
-        <span class="pill">Alpaca first</span>
+        <span class="pill" id="accountTypePill">Select Account Type</span>
       </div>
       <div class="panel-body">
+        <div style="margin-bottom:14px">
+          <div style="font:800 10px/1 'JetBrains Mono',monospace;color:var(--muted);letter-spacing:0.13em;text-transform:uppercase;margin-bottom:8px">Account Type</div>
+          <div class="seg">
+            <button type="button" id="cashBtn" onclick="selectAccountType('cash')">Cash Account</button>
+            <button type="button" id="marginBtn" onclick="selectAccountType('margin')">Margin Account</button>
+          </div>
+          <div id="accountTypeNote" style="margin-top:10px;padding:10px 12px;border-radius:7px;border:1px solid rgba(145,163,186,0.2);background:rgba(18,27,40,0.7);color:#9fb0c6;font:11px/1.6 'JetBrains Mono',monospace">
+            Select Cash or Margin to see how buying power and risk sizing rules apply to your Alpaca account.
+          </div>
+        </div>
         <div class="mode-row">
           <button class="primary" type="button" id="paperMode">Paper Preview</button>
           <button class="locked" type="button" title="Live orders require backend and final confirmation" disabled>Live Locked</button>
@@ -797,9 +807,41 @@ function loadFromSetup() {
   } catch (error) {}
 }
 
+function selectAccountType(type) {
+  const notes = {
+    cash: `<strong style="color:#00e08a">Cash Account Selected</strong><br>
+      • Buying power = settled cash only. Funds from a sale take T+1 to settle.<br>
+      • No margin, no leverage — you can only buy with money you have.<br>
+      • No PDT (Pattern Day Trader) rule concern for true cash accounts, but violating "free riding" (selling unsettled purchases) is restricted.<br>
+      • Best for: conservative accounts, smaller balances, swing trading with settled funds.<br>
+      • Alpaca cash accounts: set <code>ALPACA_TRADING_BASE_URL=https://paper-api.alpaca.markets</code> and paper trade first.`,
+    margin: `<strong style="color:#00d9ff">Margin Account Selected</strong><br>
+      • Buying power = settled cash + margin. Alpaca typically offers 4:1 intraday / 2:1 overnight leverage.<br>
+      • PDT rule applies: if your account is under $25,000, you are limited to 3 round-trip day trades per rolling 5-business-day period.<br>
+      • Margin calls can force liquidations if equity drops below maintenance margin (~25%).<br>
+      • Best for: active traders, larger balances, strategies that need intraday flexibility.<br>
+      • Requires: enough equity to avoid PDT restrictions or a balance ≥ $25,000 for unlimited day trades.`
+  };
+  const pill = document.getElementById('accountTypePill');
+  const note = document.getElementById('accountTypeNote');
+  const cashBtn = document.getElementById('cashBtn');
+  const marginBtn = document.getElementById('marginBtn');
+  if (pill) pill.textContent = type === 'cash' ? 'Cash Account' : 'Margin Account';
+  if (note) note.innerHTML = notes[type] || '';
+  if (cashBtn) cashBtn.classList.toggle('active', type === 'cash');
+  if (marginBtn) marginBtn.classList.toggle('active', type === 'margin');
+  try { localStorage.setItem('dtoBrokerAccountType', type); } catch(e) {}
+}
+
 loadFromSetup();
 updateChain();
 updatePreview();
+
+// Restore saved account type selection
+try {
+  const saved = localStorage.getItem('dtoBrokerAccountType');
+  if (saved === 'cash' || saved === 'margin') selectAccountType(saved);
+} catch(e) {}
 </script>
 <script src="assets/daytrader-os.js?v=20260504-vercel1" defer></script>
 </body>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio - Day Trader OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=JetBrains+Mono:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/daytrader-os.css?v=20260504-vercel1">
+<link rel="stylesheet" href="assets/ultra-tools.css?v=20260504-vercel1">
+<style>
+  .metric-row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+  .metric-card { flex: 1; min-width: 150px; background: var(--dto-panel-2); border: 1px solid var(--dto-border); padding: 16px; border-radius: 8px; }
+  .metric-card span { display: block; font: 12px "JetBrains Mono", monospace; color: var(--dto-muted); text-transform: uppercase; margin-bottom: 8px; }
+  .metric-card strong { display: block; font: 900 28px "Barlow Condensed", sans-serif; color: var(--dto-text); }
+  .chart-container { background: var(--dto-panel); border: 1px solid var(--dto-border); border-radius: 8px; padding: 16px; margin-bottom: 24px; height: 300px; position: relative; }
+  .chart-container canvas { width: 100% !important; height: 100% !important; }
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+  th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--dto-border); font-family: "JetBrains Mono", monospace; font-size: 13px; }
+  th { color: var(--dto-cyan); font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
+  .green { color: var(--dto-green); }
+  .red { color: var(--dto-red); }
+</style>
+</head>
+<body>
+<main class="ultra-shell">
+  <header class="ultra-top">
+    <div>
+      <div class="kicker">Performance Tracking</div>
+      <h1>Portfolio & P&L</h1>
+      <p class="sub">Aggregated view of open positions and closed trades from your paper account, journal, and bot engine.</p>
+    </div>
+    <nav class="ultra-flow" aria-label="Workflow">
+      <a href="index.html">Home</a>
+      <a href="bot_dashboard.html">Bot Engine</a>
+      <a href="signal_dashboard.html">Signals</a>
+      <a href="market_workbench.html">Market</a>
+      <a href="portfolio.html" class="active" style="border-color:var(--dto-cyan); color:var(--dto-cyan)">Portfolio</a>
+    </nav>
+  </header>
+
+  <section class="metric-row">
+    <div class="metric-card"><span>Total Equity</span><strong id="totalEquity">--</strong></div>
+    <div class="metric-card"><span>Open P&L</span><strong id="openPnl">--</strong></div>
+    <div class="metric-card"><span>Realized P&L</span><strong id="realizedPnl">--</strong></div>
+    <div class="metric-card"><span>Win Rate</span><strong id="winRate">--</strong></div>
+  </section>
+
+  <section class="chart-container">
+    <canvas id="equityChart"></canvas>
+  </section>
+
+  <section class="ultra-grid">
+    <article class="panel span-12">
+      <div class="panel-head">
+        <div><div class="kicker">Active Exposure</div><h2>Open Positions</h2></div>
+      </div>
+      <div style="overflow-x:auto">
+        <table id="openPositionsTable">
+          <thead><tr><th>Symbol</th><th>Side</th><th>Qty</th><th>Entry</th><th>Current</th><th>P&L</th><th>Source</th></tr></thead>
+          <tbody><tr><td colspan="7" class="muted" style="text-align:center">Loading positions...</td></tr></tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="panel span-12">
+      <div class="panel-head">
+        <div><div class="kicker">Trade History</div><h2>Closed Trades</h2></div>
+      </div>
+      <div style="overflow-x:auto">
+        <table id="closedTradesTable">
+          <thead><tr><th>Date</th><th>Symbol</th><th>Side</th><th>Qty</th><th>Entry</th><th>Exit</th><th>P&L</th><th>Source</th></tr></thead>
+          <tbody><tr><td colspan="8" class="muted" style="text-align:center">Loading history...</td></tr></tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<script src="assets/daytrader-os.js?v=20260504-vercel1"></script>
+<script>
+const moneyFormat = val => {
+  const n = Number(val);
+  if (!Number.isFinite(n)) return "--";
+  const sign = n < 0 ? "-" : "";
+  return \`\${sign}$\${Math.abs(n).toFixed(2)}\`;
+};
+
+const pctFormat = val => Number.isFinite(Number(val)) ? \`\${Number(val).toFixed(1)}%\` : "--";
+
+function renderPortfolio() {
+  const paper = readJson("dtoPaperTradingAccount", { cash: 100000, startingCash: 100000, positions: [], log: [], realized: 0, quotes: {} });
+  const journal = readJson("trades", []).map(t => ({
+    id: t.id, time: t.date || new Date().toISOString(), symbol: t.ticker, side: t.dir, qty: t.shares, entry: t.entry, exit: t.exit, pnl: Number(t.pnl) || 0, source: 'journal'
+  }));
+  const paperLog = (paper.log || []).map((t,i) => ({
+    id: \`paper-\${i}\`, time: t.time, symbol: t.symbol, side: t.action, qty: t.qty, entry: t.price, exit: t.exitPrice || t.price, pnl: Number(t.pnl) || 0, source: 'paper'
+  }));
+  
+  const history = [...journal, ...paperLog].sort((a,b) => new Date(b.time) - new Date(a.time));
+  
+  let openPnl = 0;
+  const positionsHtml = paper.positions.length ? paper.positions.map(p => {
+    const currentPrice = paper.quotes?.[p.symbol]?.price || p.entry;
+    const diff = currentPrice - p.entry;
+    const unrealized = diff * p.qty * (p.side === "short" ? -1 : 1);
+    openPnl += unrealized;
+    return \`<tr>
+      <td><strong>\${p.symbol}</strong></td>
+      <td>\${p.side.toUpperCase()}</td>
+      <td>\${p.qty}</td>
+      <td>\${moneyFormat(p.entry)}</td>
+      <td>\${moneyFormat(currentPrice)}</td>
+      <td class="\${unrealized >= 0 ? 'green' : 'red'}">\${moneyFormat(unrealized)}</td>
+      <td>Paper</td>
+    </tr>\`;
+  }).join("") : \`<tr><td colspan="7" class="muted" style="text-align:center">No open positions.</td></tr>\`;
+  
+  document.querySelector("#openPositionsTable tbody").innerHTML = positionsHtml;
+
+  const historyHtml = history.length ? history.slice(0,50).map(t => \`
+    <tr>
+      <td>\${new Date(t.time).toLocaleDateString()} \${new Date(t.time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</td>
+      <td><strong>\${t.symbol}</strong></td>
+      <td>\${t.side.toUpperCase()}</td>
+      <td>\${t.qty || '-'}</td>
+      <td>\${moneyFormat(t.entry)}</td>
+      <td>\${moneyFormat(t.exit)}</td>
+      <td class="\${t.pnl >= 0 ? 'green' : 'red'}">\${moneyFormat(t.pnl)}</td>
+      <td>\${t.source}</td>
+    </tr>
+  \`).join("") : \`<tr><td colspan="8" class="muted" style="text-align:center">No trade history.</td></tr>\`;
+  
+  document.querySelector("#closedTradesTable tbody").innerHTML = historyHtml;
+
+  const realized = history.reduce((sum, t) => sum + (t.pnl || 0), 0);
+  const totalEquity = paper.startingCash + realized + openPnl;
+  const wins = history.filter(t => t.pnl > 0).length;
+
+  document.getElementById("totalEquity").textContent = moneyFormat(totalEquity);
+  document.getElementById("openPnl").textContent = moneyFormat(openPnl);
+  document.getElementById("openPnl").className = openPnl >= 0 ? 'green' : 'red';
+  document.getElementById("realizedPnl").textContent = moneyFormat(realized);
+  document.getElementById("realizedPnl").className = realized >= 0 ? 'green' : 'red';
+  document.getElementById("winRate").textContent = pctFormat(history.length ? (wins / history.length * 100) : 0);
+
+  renderChart(history, paper.startingCash);
+}
+
+function renderChart(history, startingCash) {
+  const ctx = document.getElementById('equityChart');
+  if (window.equityChartInstance) window.equityChartInstance.destroy();
+  
+  const sorted = [...history].sort((a,b) => new Date(a.time) - new Date(b.time));
+  let running = startingCash;
+  const dataPoints = [{ x: sorted.length ? new Date(sorted[0].time).getTime() - 86400000 : Date.now() - 86400000, y: startingCash }];
+  
+  sorted.forEach(t => {
+    running += t.pnl;
+    dataPoints.push({ x: new Date(t.time).getTime(), y: running });
+  });
+  
+  if (dataPoints.length === 1) {
+    dataPoints.push({ x: Date.now(), y: startingCash });
+  }
+
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  const gridColor = isLight ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.05)';
+  const textColor = isLight ? '#64748b' : '#8ea0ba';
+
+  window.equityChartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      datasets: [{
+        label: 'Equity Curve',
+        data: dataPoints,
+        borderColor: '#00d7ff',
+        backgroundColor: 'rgba(0, 215, 255, 0.1)',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.2,
+        pointRadius: 0,
+        pointHitRadius: 10
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { type: 'time', time: { unit: 'day' }, grid: { color: gridColor }, ticks: { color: textColor } },
+        y: { grid: { color: gridColor }, ticks: { color: textColor, callback: v => '$'+v } }
+      }
+    }
+  });
+}
+
+function readJson(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; }
+}
+
+document.addEventListener('DOMContentLoaded', renderPortfolio);
+window.addEventListener('storage', e => { if (e.key === 'dtoPaperTradingAccount' || e.key === 'trades') renderPortfolio(); });
+
+// Listen for theme changes to update chart colors
+const originalSetAttribute = document.documentElement.setAttribute;
+document.documentElement.setAttribute = function(name, value) {
+  originalSetAttribute.call(this, name, value);
+  if (name === 'data-theme') renderPortfolio();
+};
+</script>
+</body>
+</html>

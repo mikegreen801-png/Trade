@@ -139,6 +139,17 @@ class AlpacaClient {
   async isDayTraderCompliant(account) {
     return account.buying_power > 0 && account.portfolio_value >= 25000;
   }
+
+  /**
+   * News
+   */
+  async getNews(symbol, limit = 10) {
+    const sym = String(symbol || '').trim().toUpperCase();
+    const params = sym
+      ? `/v1beta1/news?symbols=${encodeURIComponent(sym)}&limit=${limit}`
+      : `/v1beta1/news?limit=${limit}`;
+    return this.request('GET', params, null, true);
+  }
 }
 
 module.exports = AlpacaClient;
