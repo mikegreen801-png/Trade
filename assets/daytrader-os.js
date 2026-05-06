@@ -1058,6 +1058,46 @@ html.dto-unified ::selection {
   background: rgba(0, 215, 255, 0.35);
   color: #fff;
 }
+
+@media (max-width: 800px) {
+  html.dto-unified .dto-mission-grid {
+    grid-template-columns: 1fr !important;
+  }
+  html.dto-unified .dto-mission-lists {
+    grid-template-columns: 1fr !important;
+  }
+  html.dto-unified .dto-action-row {
+    flex-wrap: wrap;
+  }
+  html.dto-unified .dto-global-actions {
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 6px !important;
+    gap: 4px !important;
+  }
+  html.dto-unified .dto-global-actions button, html.dto-unified .dto-global-actions a {
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+  }
+  html.dto-unified .dto-auth-inline span {
+    display: none;
+  }
+  html.dto-unified .top-right, html.dto-unified .topbar {
+    gap: 8px !important;
+  }
+  html.dto-unified main, html.dto-unified .shell, html.dto-unified .wrap {
+    padding: 10px !important;
+    padding-bottom: 80px !important;
+  }
+  html.dto-unified table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  html.dto-unified .hero-title {
+    font-size: 2.5rem !important;
+  }
+}
 `;
     document.head.appendChild(style);
   }

@@ -612,6 +612,31 @@
         url: context.feeds.groundNews.url
       },
       marketContext: context,
-      source: "Recent candle analysis"
     };
   }
+
+  // --- 5A: WebSocket Streaming ---
+  const activeStreams = new Map();
+  function streamCryptoPrice(rawSymbol, onUpdate) {
+    const symbol = cleanSymbol(rawSymbol);
+    const pair = cryptoDataMap[symbol];
+    if (!pair) return null; // Only Binance crypto supported for free unauthenticated streaming
+    
+    if (activeStreams.has(pair)) {
+      activeStreams.get(pair).close();
+    }
+
+    const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${pair.toLowerCase()}@trade`);
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        const price = Number(data.p);
+        if (onUpdate && !isNaN(price)) onUpdate(price);
+      } catch (e) {}
+    };
+    activeStreams.set(pair, ws);
+    return ws;
+  }
+
+  // Expose globally
+  window.streamCryptoPrice = streamCryptoPrice;
