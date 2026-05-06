@@ -4,8 +4,13 @@ const headers = {
   "cache-control": "no-store"
 };
 
-const ALPACA_KEY = process.env.ALPACA_API_KEY_ID || process.env.APCA_API_KEY_ID || "";
-const ALPACA_SECRET = process.env.ALPACA_API_SECRET_KEY || process.env.APCA_API_SECRET_KEY || "";
+const IS_LIVE = process.env.ALPACA_IS_LIVE === "true";
+const ALPACA_KEY = IS_LIVE
+  ? (process.env.ALPACA_LIVE_API_KEY_ID || process.env.ALPACA_API_KEY_ID || process.env.APCA_API_KEY_ID || "")
+  : (process.env.ALPACA_API_KEY_ID || process.env.APCA_API_KEY_ID || "");
+const ALPACA_SECRET = IS_LIVE
+  ? (process.env.ALPACA_LIVE_API_SECRET_KEY || process.env.ALPACA_API_SECRET_KEY || process.env.APCA_API_SECRET_KEY || "")
+  : (process.env.ALPACA_API_SECRET_KEY || process.env.APCA_API_SECRET_KEY || "");
 const TRADING_BASE_URL = (process.env.ALPACA_TRADING_BASE_URL || "https://paper-api.alpaca.markets").replace(/\/+$/, "");
 const ALLOWED_TRADING_BASES = new Set([
   "https://paper-api.alpaca.markets",

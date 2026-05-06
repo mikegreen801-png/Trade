@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean
 from sqlalchemy.orm import declarative_base, sessionmaker
 from datetime import datetime
 
@@ -20,6 +20,12 @@ class TradeRecord(Base):
     price = Column(Float)
     timestamp = Column(DateTime, default=datetime.utcnow)
     status = Column(String) # 'filled', 'pending', 'failed'
+
+class Watchlist(Base):
+    __tablename__ = "watchlist"
+    id = Column(Integer, primary_key=True, index=True)
+    symbol = Column(String, unique=True, index=True)
+    is_active = Column(Boolean, default=True)
 
 def init_db():
     Base.metadata.create_all(bind=engine)

@@ -44,6 +44,8 @@
             mask-image: linear-gradient(180deg, #000, transparent 82%);
         }
 
+        a { color: inherit; }
+
         .shell {
             position: relative;
             width: min(1380px, calc(100% - 32px));
@@ -51,6 +53,7 @@
             padding: 26px 0 36px;
         }
 
+        /* ── TOPBAR ── */
         .topbar {
             display: flex;
             justify-content: space-between;
@@ -70,6 +73,43 @@
             text-decoration: none;
         }
         .brand span { color: var(--dto-cyan); }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .nav-links a {
+            border: 1px solid rgba(0, 215, 255, 0.24);
+            border-radius: 999px;
+            padding: 8px 10px;
+            background: rgba(9, 16, 26, 0.76);
+            color: #cfe6f0;
+            font: 700 10px/1 "JetBrains Mono", monospace;
+            letter-spacing: 0.1em;
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: all 0.15s;
+        }
+        .nav-links a:hover {
+            border-color: rgba(0, 215, 255, 0.72);
+            background: rgba(0, 215, 255, 0.14);
+            color: #ffffff;
+        }
+        .nav-links a.active {
+            border-color: rgba(0, 224, 138, 0.65);
+            background: linear-gradient(135deg, var(--dto-cyan), var(--dto-green));
+            color: #061017;
+        }
+
+        .top-right {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
 
         .status-pill {
             display: inline-flex;
@@ -94,17 +134,26 @@
         .engine-status-dot.online {
             background: var(--dto-green);
             box-shadow: 0 0 10px var(--dto-green);
+            animation: pulse-glow 2s ease-in-out infinite;
         }
         .engine-status-dot.offline {
             background: var(--dto-red);
             box-shadow: 0 0 10px var(--dto-red);
         }
 
-        .grid {
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 10px var(--dto-green); }
+            50% { box-shadow: 0 0 18px var(--dto-green), 0 0 30px rgba(0, 224, 138, 0.3); }
+        }
+
+        /* ── LAYOUT ── */
+        .grid-main {
             display: grid;
             grid-template-columns: 1fr 2fr;
             gap: 20px;
         }
+
+        .sidebar { display: grid; gap: 20px; align-content: start; }
 
         .panel {
             border: 1px solid rgba(220, 231, 245, 0.13);
@@ -133,6 +182,9 @@
             text-transform: uppercase;
         }
 
+        h2.small { font-size: 24px; margin-bottom: 16px; }
+
+        /* ── BOT STATE ── */
         .bot-state {
             display: flex;
             flex-direction: column;
@@ -182,17 +234,127 @@
             background: var(--dto-green);
             color: #03120c;
         }
-        .btn-start:hover { box-shadow: 0 0 15px rgba(0, 224, 138, 0.4); }
+        .btn-start:hover { box-shadow: 0 0 15px rgba(0, 224, 138, 0.4); transform: translateY(-1px); }
 
         .btn-stop {
             background: var(--dto-red);
             color: #190307;
         }
-        .btn-stop:hover { box-shadow: 0 0 15px rgba(255, 91, 110, 0.4); }
+        .btn-stop:hover { box-shadow: 0 0 15px rgba(255, 91, 110, 0.4); transform: translateY(-1px); }
 
-        .table-container {
-            overflow-x: auto;
+        /* ── WATCHLIST EDITOR ── */
+        .watch-form {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
         }
+
+        .watch-form input {
+            flex: 1;
+            min-width: 0;
+            border: 1px solid rgba(0, 215, 255, 0.35);
+            border-radius: 6px;
+            background: #050a12;
+            color: #ffffff;
+            padding: 12px 14px;
+            font: 700 13px/1 "JetBrains Mono", monospace;
+            letter-spacing: 0.1em;
+            outline: none;
+            text-transform: uppercase;
+        }
+        .watch-form input:focus {
+            border-color: var(--dto-cyan);
+            box-shadow: 0 0 0 3px rgba(0, 215, 255, 0.09);
+        }
+
+        .watch-form button {
+            border: 0;
+            border-radius: 6px;
+            background: var(--dto-cyan);
+            color: #031018;
+            padding: 0 16px;
+            font: 800 11px/1 "JetBrains Mono", monospace;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .watch-form button:hover { background: #00b8d4; }
+
+        .watch-cap {
+            font: 600 10px/1.3 "JetBrains Mono", monospace;
+            color: var(--dto-muted);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .watch-list {
+            display: grid;
+            gap: 8px;
+        }
+
+        .watch-item {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 12px;
+            background: rgba(3, 8, 15, 0.44);
+            border: 1px solid rgba(220, 231, 245, 0.08);
+            border-radius: 6px;
+            transition: border-color 0.15s;
+        }
+        .watch-item:hover { border-color: rgba(0, 215, 255, 0.35); }
+
+        .watch-symbol {
+            font: 800 14px/1 "JetBrains Mono", monospace;
+            color: #ffffff;
+            letter-spacing: 0.08em;
+        }
+
+        .watch-meta {
+            font: 600 11px/1.3 "JetBrains Mono", monospace;
+            color: var(--dto-muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .watch-signal {
+            border: 1px solid rgba(0, 215, 255, 0.24);
+            border-radius: 999px;
+            padding: 6px 10px;
+            font: 800 10px/1 "JetBrains Mono", monospace;
+            letter-spacing: 0.08em;
+            text-decoration: none;
+            text-transform: uppercase;
+            color: var(--dto-cyan);
+            transition: all 0.15s;
+        }
+        .watch-signal:hover { background: rgba(0, 215, 255, 0.12); color: #fff; }
+
+        .watch-remove {
+            border: 1px solid rgba(255, 91, 110, 0.2);
+            border-radius: 4px;
+            padding: 5px 8px;
+            background: transparent;
+            color: var(--dto-muted);
+            font: 700 10px/1 "JetBrains Mono", monospace;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .watch-remove:hover { border-color: var(--dto-red); color: var(--dto-red); }
+
+        .watch-empty {
+            text-align: center;
+            padding: 20px;
+            color: var(--dto-muted);
+            font: 600 12px/1.6 "JetBrains Mono", monospace;
+        }
+
+        /* ── TABLE ── */
+        .table-container { overflow-x: auto; }
 
         table {
             width: 100%;
@@ -234,7 +396,9 @@
         }
 
         @media (max-width: 900px) {
-            .grid { grid-template-columns: 1fr; }
+            .grid-main { grid-template-columns: 1fr; }
+            .topbar { flex-direction: column; align-items: flex-start; }
+            .top-right { justify-content: flex-start; }
         }
     </style>
 </head>
@@ -242,9 +406,19 @@
     <div class="shell">
         <header class="topbar">
             <a href="index.html" class="brand">Day<span>Trader</span>OS</a>
-            <div class="status-pill">
-                <span id="engine-dot" class="engine-status-dot"></span>
-                <span id="connection-text">Engine: Offline</span>
+            <div class="top-right">
+                <nav class="nav-links" aria-label="Main navigation">
+                    <a href="index.html">Home</a>
+                    <a href="bot_dashboard.html" class="active">Bot Engine</a>
+                    <a href="signal_dashboard.html">Signals</a>
+                    <a href="market_workbench.html">Market Desk</a>
+                    <a href="trade_planner.html">Planner</a>
+                    <a href="execution_workbench.html">Execution</a>
+                </nav>
+                <div class="status-pill">
+                    <span id="engine-dot" class="engine-status-dot"></span>
+                    <span id="connection-text">Engine: Offline</span>
+                </div>
             </div>
         </header>
 
@@ -252,32 +426,76 @@
             <strong>Critical Error:</strong> Connection to Trading Engine Failed (Port 8000)
         </div>
 
-        <div class="grid">
-            <aside class="panel">
-                <div class="panel-kicker">Automation Control</div>
-                <h2>Bot Engine</h2>
-                
-                <div class="bot-state">
-                    <div class="state-item">
-                        <span class="state-label">Status</span>
-                        <span id="bot-status" class="state-value">Unknown</span>
+        <div class="grid-main">
+            <div class="sidebar">
+                <!-- Bot Engine Control -->
+                <aside class="panel">
+                    <div class="panel-kicker">Automation Control</div>
+                    <h2>Bot Engine</h2>
+                    
+                    <div class="bot-state">
+                        <div class="state-item">
+                            <span class="state-label">Status</span>
+                            <span id="bot-status" class="state-value">Unknown</span>
+                        </div>
+                        <div class="state-item">
+                            <span class="state-label">Active Algos</span>
+                            <span id="active-strategies" class="state-value">-</span>
+                        </div>
+                        <div class="state-item">
+                            <span class="state-label">Symbols</span>
+                            <span id="active-symbols" class="state-value">-</span>
+                        </div>
                     </div>
-                    <div class="state-item">
-                        <span class="state-label">Watchlist</span>
-                        <span id="active-symbols" class="state-value">-</span>
-                    </div>
-                    <div class="state-item">
-                        <span class="state-label">Active Algos</span>
-                        <span id="active-strategies" class="state-value">-</span>
-                    </div>
-                </div>
 
-                <div id="control-buttons">
-                    <button id="btn-start" class="btn-action btn-start" onclick="toggleBot(true)">Start Monitoring</button>
-                    <button id="btn-stop" class="btn-action btn-stop" onclick="toggleBot(false)" style="display: none;">Halt Operations</button>
-                </div>
-            </aside>
+                    <div id="control-buttons">
+                        <button id="btn-start" class="btn-action btn-start" onclick="toggleBot(true)">Start Monitoring</button>
+                        <button id="btn-stop" class="btn-action btn-stop" onclick="toggleBot(false)" style="display: none;">Halt Operations</button>
+                    </div>
+                </aside>
 
+                <!-- Connection Console -->
+                <aside class="panel">
+                    <div class="panel-kicker">Alpaca Markets</div>
+                    <h2 class="small">Connection Console</h2>
+                    
+                    <div class="bot-state">
+                        <div class="state-item">
+                            <span class="state-label">Mode</span>
+                            <span id="alpaca-mode" class="state-value">-</span>
+                        </div>
+                        <div class="state-item">
+                            <span class="state-label">Buying Power</span>
+                            <span id="alpaca-bp" class="state-value">-</span>
+                        </div>
+                        <div class="state-item">
+                            <span class="state-label">Equity</span>
+                            <span id="alpaca-eq" class="state-value">-</span>
+                        </div>
+                    </div>
+                    
+                    <div id="connection-controls">
+                        <button class="btn-action" style="background:var(--dto-border);color:#fff;" onclick="toggleConnectionMode()">Toggle Paper / Live</button>
+                    </div>
+                </aside>
+
+                <!-- Watchlist Editor -->
+                <aside class="panel">
+                    <div class="panel-kicker">Shared Watchlist</div>
+                    <h2 class="small" style="display:flex; justify-content:space-between; align-items:center;">
+                        Watchlist
+                        <button onclick="clearWatchlist()" style="font-size:10px; padding:4px 8px; background:transparent; border:1px solid var(--dto-red); color:var(--dto-red); border-radius:4px; cursor:pointer;">CLEAR ALL</button>
+                    </h2>
+                    <div class="watch-cap" id="watch-cap">0 / 15 symbols</div>
+                    <form class="watch-form" id="watch-form">
+                        <input id="watch-input" placeholder="AAPL, TSLA..." autocomplete="off">
+                        <button type="submit">Add</button>
+                    </form>
+                    <div class="watch-list" id="watch-list"></div>
+                </aside>
+            </div>
+
+            <!-- Trade History -->
             <main class="panel">
                 <div class="panel-kicker">Persistent Logs</div>
                 <h2>Trade History</h2>
@@ -305,7 +523,108 @@
 
     <script>
         const ENGINE_URL = 'http://localhost:8000/api/bot';
+        const WATCHLIST_KEY = 'dtoScannerWatchlist';
+        const MAX_SYMBOLS = 15;
 
+        // ── Watchlist helpers ──
+        function readWatchlist() {
+            try { return JSON.parse(localStorage.getItem(WATCHLIST_KEY) || '[]'); }
+            catch { return []; }
+        }
+
+        function writeWatchlist(list) {
+            localStorage.setItem(WATCHLIST_KEY, JSON.stringify(list));
+        }
+
+        function cleanSymbol(raw) {
+            return String(raw || '').trim().toUpperCase().replace(/[^A-Z0-9.-]/g, '');
+        }
+
+        function watchlistSymbols() {
+            return readWatchlist().map(item =>
+                typeof item === 'string' ? item : (item?.symbol || '')
+            ).filter(Boolean);
+        }
+
+        function addToWatchlist(rawSymbol) {
+            const symbol = cleanSymbol(rawSymbol);
+            if (!symbol) return;
+            const list = readWatchlist();
+            // Check if already exists
+            if (list.some(item => (typeof item === 'string' ? item : item?.symbol) === symbol)) return;
+            if (list.length >= MAX_SYMBOLS) {
+                alert(`Watchlist is capped at ${MAX_SYMBOLS} symbols. Remove one first.`);
+                return;
+            }
+            list.unshift({ symbol, type: 'Watch', level: '', note: '', savedAt: new Date().toISOString() });
+            writeWatchlist(list);
+            renderWatchlist();
+            syncWatchlistToEngine();
+        }
+
+        function removeFromWatchlist(symbol) {
+            const list = readWatchlist().filter(item =>
+                (typeof item === 'string' ? item : item?.symbol) !== symbol
+            );
+            writeWatchlist(list);
+            renderWatchlist();
+            syncWatchlistToEngine();
+        }
+
+        function clearWatchlist() {
+            if (!confirm("Are you sure you want to clear the entire watchlist?")) return;
+            writeWatchlist([]);
+            renderWatchlist();
+            syncWatchlistToEngine();
+        }
+
+        function renderWatchlist() {
+            const list = readWatchlist();
+            const symbols = list.map(item => typeof item === 'string' ? item : item?.symbol).filter(Boolean);
+            document.getElementById('watch-cap').textContent = `${symbols.length} / ${MAX_SYMBOLS} symbols`;
+            const container = document.getElementById('watch-list');
+            
+            if (!symbols.length) {
+                container.innerHTML = '<div class="watch-empty">No symbols in watchlist.<br>Add tickers above or use Market Desk.</div>';
+                return;
+            }
+
+            container.innerHTML = symbols.map(sym => {
+                const meta = list.find(item => (typeof item === 'string' ? item : item?.symbol) === sym);
+                const note = typeof meta === 'object' ? (meta.type || '') : '';
+                return `<div class="watch-item">
+                    <span class="watch-symbol">${sym}</span>
+                    <span class="watch-meta">${note}</span>
+                    <a class="watch-signal" href="signal_dashboard.html?symbol=${encodeURIComponent(sym)}">Signal</a>
+                    <button class="watch-remove" onclick="removeFromWatchlist('${sym}')" title="Remove">✕</button>
+                </div>`;
+            }).join('');
+        }
+
+        async function syncWatchlistToEngine() {
+            const symbols = watchlistSymbols();
+            if (!symbols.length) return;
+            try {
+                await fetch(`${ENGINE_URL}/watchlist`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ symbols })
+                });
+            } catch {
+                // Engine offline — localStorage is the source of truth
+            }
+        }
+
+        document.getElementById('watch-form').addEventListener('submit', e => {
+            e.preventDefault();
+            const input = document.getElementById('watch-input');
+            // Support comma-separated input
+            const raw = input.value.split(/[,\s]+/).filter(Boolean);
+            raw.forEach(sym => addToWatchlist(sym));
+            input.value = '';
+        });
+
+        // ── Bot status ──
         async function fetchStatus() {
             try {
                 const res = await fetch(`${ENGINE_URL}/status`);
@@ -326,12 +645,39 @@
                 document.getElementById('active-strategies').innerText = data.strategies.join(', ').replace(/_/g, ' ');
                 document.getElementById('active-symbols').innerText = data.active_symbols.join(', ');
                 
+                if (data.alpaca) {
+                    const modeSpan = document.getElementById('alpaca-mode');
+                    modeSpan.textContent = data.alpaca.mode.toUpperCase();
+                    modeSpan.style.color = data.alpaca.mode === 'live' ? 'var(--dto-red)' : 'var(--dto-gold)';
+                    
+                    document.getElementById('alpaca-bp').textContent = data.alpaca.buying_power ? '$' + data.alpaca.buying_power.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '$0.00';
+                    document.getElementById('alpaca-eq').textContent = data.alpaca.equity ? '$' + data.alpaca.equity.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '$0.00';
+                }
+                
             } catch (error) {
-                console.error(error);
                 document.getElementById('api-error').style.display = 'block';
                 document.getElementById('engine-dot').className = 'engine-status-dot offline';
                 document.getElementById('connection-text').innerText = 'Engine: Offline';
                 document.getElementById('bot-status').innerText = 'OFFLINE';
+            }
+        }
+
+        async function toggleConnectionMode() {
+            const currentMode = document.getElementById('alpaca-mode').textContent.toLowerCase();
+            if (currentMode === '-') return;
+            const targetMode = currentMode === 'paper' ? 'live' : 'paper';
+            if (targetMode === 'live') {
+                if (!confirm("WARNING: Switching to LIVE mode will execute real trades with real money. Proceed?")) return;
+            }
+            try {
+                await fetch(`${ENGINE_URL}/connection`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mode: targetMode })
+                });
+                fetchStatus();
+            } catch (e) {
+                alert("Failed to toggle connection mode.");
             }
         }
 
@@ -380,9 +726,16 @@
             }
         }
 
-        // Poll every 2 seconds for ultra-responsive feel
+        // Listen for watchlist changes from other pages
+        window.addEventListener('storage', event => {
+            if (event.key === WATCHLIST_KEY) renderWatchlist();
+        });
+
+        // Boot
+        renderWatchlist();
         fetchStatus();
         fetchTrades();
+        syncWatchlistToEngine();
         setInterval(() => {
             fetchStatus();
             fetchTrades();
