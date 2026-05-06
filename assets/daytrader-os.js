@@ -506,9 +506,9 @@
     bar.innerHTML = `
       <button type="button" data-dto-action="save">Save Setup</button>
       <button type="button" data-dto-action="theme">Toggle Theme</button>
-      <a data-dto-link="risk" href="execution_workbench.html">Open in Risk</a>
-      <a data-dto-link="paper" href="practice_workbench.html">Paper Trade</a>
-      <a data-dto-link="journal" href="review_workbench.html">Journal Result</a>
+      ${page !== "execution_workbench.html" ? `<a data-dto-link="risk" href="execution_workbench.html">Open in Risk</a>` : ''}
+      ${page !== "practice_workbench.html" ? `<a data-dto-link="paper" href="practice_workbench.html">Paper Trade</a>` : ''}
+      ${page !== "review_workbench.html" ? `<a data-dto-link="journal" href="review_workbench.html">Journal Result</a>` : ''}
       <a data-dto-home-action href="${page === "index.html" ? "#home" : "index.html"}">${page === "index.html" ? "Back to Top" : "Back to Home"}</a>`;
     document.body.appendChild(bar);
     bar.querySelector('[data-dto-action="save"]').addEventListener("click", () => {

@@ -312,71 +312,7 @@
       <span>Market Data API</span>
       <strong>Public Live Feed</strong>
       <div class="fine">Every visitor can receive quote, candle, volume, and volatility analysis through the site's protected feed layer. Alpaca keys stay private; the browser only receives clean market data.</div>
-      <div class="access-actions"><a class="primary" href="index.html">Open Signal</a><a href="scanner_hub.html">Scanner</a></div>
     </article>
-    <article class="flow-card">
-      <span>Trading API</span>
-      <strong>Owner Account</strong>
-      <div class="fine">Use this for your own Alpaca paper account first: account status, order previews, buying-power checks, and eventually manual-confirmed owner trades.</div>
-      <div class="access-actions"><button type="button" onclick="testOwnerConnection()">Test Owner Connection</button><a href="https://app.alpaca.markets/" target="_blank" rel="noopener">Open Alpaca</a></div>
-    </article>
-    <article class="flow-card">
-      <span>Broker API</span>
-      <strong>User Broker Access</strong>
-      <div class="fine">Future public path: site signup/login, experience profile, broker onboarding, KYC/agreements, funding, and account-specific order routing for each user.</div>
-      <div class="access-actions"><button type="button" class="locked" disabled>Broker Onboarding Locked</button></div>
-    </article>
-    <article class="flow-card">
-      <span>Site Access</span>
-      <strong>Visitor Login</strong>
-      <div class="fine">People access the OS like you do: sign up, choose beginner/pro/expert, save setups, paper trade, and get personalized feedback. Live market data can be public; live orders require their own broker connection.</div>
-      <div class="access-actions"><button type="button" onclick="window.DTO?.openAuthModal('signup')">Sign Up</button><button type="button" onclick="window.DTO?.openAuthModal('login')">Log In</button></div>
-    </article>
-    <article class="flow-card full">
-      <span>AI / MCP Admin</span>
-      <strong>Alpaca MCP Server</strong>
-      <div class="fine">Use the Alpaca MCP server for your private AI/operator workflow: account checks, market data tools, order research, and admin automation from an MCP-capable assistant. Public visitors should still access the site through signup/login; MCP is an owner/admin connection, not a shared browser key.</div>
-      <div class="access-actions"><a class="primary" href="https://github.com/alpacahq/alpaca-mcp-server" target="_blank" rel="noopener">Open Repo</a><button type="button" onclick="showAdminConnect()">Admin Connection Steps</button></div>
-    </article>
-  </section>
-
-  <section class="panel connection-console" aria-label="Connection console">
-    <div class="panel-head">
-      <h2 class="panel-title">Connection Console</h2>
-      <span class="pill" id="connectionPill">Server check</span>
-    </div>
-    <div class="panel-body">
-      <div class="connection-grid">
-        <div class="connection-card warn" id="feedCard">
-          <span>Public feed</span>
-          <strong>Untested</strong>
-          <p>Tests the public `/api/analyze` route visitors will use.</p>
-        </div>
-        <div class="connection-card warn" id="ownerCard">
-          <span>Owner Alpaca</span>
-          <strong>Untested</strong>
-          <p>Checks server-side Alpaca paper/live account access.</p>
-        </div>
-        <div class="connection-card good" id="visitorCard">
-          <span>Visitor profile</span>
-          <strong>Ready</strong>
-          <p>Signup/login profiles stay independent per visitor.</p>
-        </div>
-        <div class="connection-card warn" id="orderCard">
-          <span>Live orders</span>
-          <strong>Locked</strong>
-          <p>Submit remains disabled until broker auth and confirmation exist.</p>
-        </div>
-      </div>
-      <div class="access-actions">
-        <button class="primary" type="button" onclick="testPublicFeed()">Test Public Feed</button>
-        <button type="button" onclick="testOwnerConnection()">Test Owner Alpaca</button>
-        <button type="button" onclick="openSiteStatus()">Open Server Status</button>
-        <button type="button" onclick="copyEnvChecklist()">Copy Env Checklist</button>
-        <a href="https://app.alpaca.markets/" target="_blank" rel="noopener">Alpaca Dashboard</a>
-      </div>
-      <div class="connection-output" id="connectionOutput">Run a connection test after the site is deployed on Vercel. Local file mode can show the plan, but server checks need the hosted public URL.</div>
-    </div>
   </section>
 
   <section class="grid">
@@ -409,22 +345,9 @@
         </div>
       </div>
     </div>
-
-    <div class="panel">
-      <div class="panel-head">
-        <h2 class="panel-title">Unlock Steps</h2>
-        <span class="pill locked">Feed first</span>
-      </div>
-      <div class="panel-body">
-        <div class="step-list">
-          <div class="step-row"><span>1</span><div><strong>Create Alpaca Access</strong><p>Open an Alpaca account, start with paper keys, and decide whether the first release needs market data only or owner paper trading too.</p></div></div>
-          <div class="step-row"><span>2</span><div><strong>Keep Keys Private</strong><p>Add Alpaca credentials inside the hosting provider's environment settings. Never place keys in HTML, JavaScript, screenshots, or downloadable files.</p></div></div>
-          <div class="step-row"><span>3</span><div><strong>Turn On Public Data</strong><p>Connect the protected feed layer so Home, Signal, Market Pulse, Scanner, Chart Analyzer, and Risk can all use the same public live data response.</p></div></div>
-          <div class="step-row"><span>4</span><div><strong>Lock Trading Until Ready</strong><p>Keep live submit hidden until user broker auth, order preview, buying-power check, request logging, and final manual confirmation are complete.</p></div></div>
-        </div>
-      </div>
-    </div>
   </section>
+
+
 
   <section class="grid">
     <div class="panel">
