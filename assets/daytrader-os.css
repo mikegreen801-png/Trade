@@ -637,3 +637,23 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* --- LIVE SITE MODE INDICATORS --- */
+body.dto-live-site-mode {
+  border-top: 4px solid var(--dto-red);
+  border-bottom: 4px solid var(--dto-red);
+}
+
+.dto-live-banner {
+  width: 100%;
+  background: var(--dto-red);
+  color: #fff;
+  text-align: center;
+  font: 900 12px/1 system-ui, -apple-system, sans-serif;
+  letter-spacing: 0.1em;
+  padding: 8px;
+  text-transform: uppercase;
+  position: relative;
+  z-index: 10000;
+  box-shadow: 0 4px 12px rgba(255, 91, 110, 0.4);
+}

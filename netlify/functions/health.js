@@ -7,6 +7,7 @@ exports.handler = async () => ({
   body: JSON.stringify({
     ok: true,
     service: "Day Trader OS live functions",
+    siteMode: process.env.DTO_SITE_MODE || "paper",
     now: new Date().toISOString()
   })
 });

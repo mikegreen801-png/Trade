@@ -1213,4 +1213,17 @@ html.dto-unified ::selection {
     updateGlobalLinks();
     renderAuthControls();
   }
+
+  // Check if this deployed site is specifically configured as a Live Site via .env
+  fetch('/api/health').then(r => r.json()).then(data => {
+    if (data && data.siteMode === 'live') {
+      document.body.classList.add('dto-live-site-mode');
+      if (window.alpacaAPI) window.alpacaAPI.liveMode = true;
+      
+      const banner = document.createElement('div');
+      banner.className = 'dto-live-banner';
+      banner.innerHTML = '⚠️ DEDICATED LIVE TRADING DOMAIN ⚠️ Real money execution active.';
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+  }).catch(() => {});
 })();
