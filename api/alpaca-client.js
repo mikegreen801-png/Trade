@@ -6,14 +6,23 @@
 const https = require('https');
 
 class AlpacaClient {
-  constructor() {
-    this.apiKey = process.env.ALPACA_API_KEY_ID;
-    this.secretKey = process.env.ALPACA_API_SECRET_KEY;
-    this.baseUrl = process.env.ALPACA_TRADING_BASE_URL || 'https://paper-api.alpaca.markets';
+  constructor(isLive = false) {
+    this.isLive = isLive === 'true' || isLive === true;
+    
+    if (this.isLive) {
+      this.apiKey = process.env.ALPACA_LIVE_API_KEY_ID || process.env.ALPACA_API_KEY_ID;
+      this.secretKey = process.env.ALPACA_LIVE_API_SECRET_KEY || process.env.ALPACA_API_SECRET_KEY;
+      this.baseUrl = process.env.ALPACA_LIVE_BASE_URL || 'https://api.alpaca.markets';
+    } else {
+      this.apiKey = process.env.ALPACA_PAPER_API_KEY_ID || process.env.ALPACA_API_KEY_ID;
+      this.secretKey = process.env.ALPACA_PAPER_API_SECRET_KEY || process.env.ALPACA_API_SECRET_KEY;
+      this.baseUrl = process.env.ALPACA_PAPER_BASE_URL || process.env.ALPACA_TRADING_BASE_URL || 'https://paper-api.alpaca.markets';
+    }
+    
     this.dataBaseUrl = process.env.ALPACA_DATA_BASE_URL || 'https://data.alpaca.markets';
     
     if (!this.apiKey || !this.secretKey) {
-      throw new Error('Missing ALPACA_API_KEY_ID or ALPACA_API_SECRET_KEY in environment');
+      throw new Error(`Missing Alpaca API keys for ${this.isLive ? 'LIVE' : 'PAPER'} environment`);
     }
   }
 

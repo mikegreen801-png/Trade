@@ -6,8 +6,13 @@
 const AlpacaClient = require('./alpaca-client');
 
 module.exports = async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ ok: false, error: 'Method not allowed' });
+  }
+
   try {
-    const client = new AlpacaClient();
+    const isLive = req.query.isLive === 'true';
+    const client = new AlpacaClient(isLive);
     const action = req.query.action || 'submit';
 
     switch (action) {

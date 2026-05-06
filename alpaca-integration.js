@@ -17,6 +17,7 @@ const alpacaAPI = {
    * Generic API call wrapper
    */
   async call(endpoint, method = 'GET', body = null, query = {}) {
+    query.isLive = this.liveMode;
     const params = new URLSearchParams(query).toString();
     const url = `${this.baseUrl}${endpoint}${params ? '?' + params : ''}`;
 
