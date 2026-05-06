@@ -656,6 +656,13 @@
               <option value="live"${user.alpacaMode === "live" ? " selected" : ""}>Live Trading (Real Money)</option>
             </select></label>
           </div>
+          <div class="dto-auth-grid" style="margin-top:16px; border-top:1px solid rgba(0,217,255,0.1); padding-top:16px;">
+            <div style="grid-column:1/-1; font-size:0.7em; color:var(--dto-cyan); letter-spacing:2px; margin-bottom:8px;">POLYMARKET L2 API</div>
+            <label>API Key<input name="polyApiKey" value="${escapeHtml(user.polyApiKey || "")}" placeholder="Polymarket L2 key"></label>
+            <label>API Secret<input name="polyApiSecret" type="password" placeholder="Leave blank to keep current"></label>
+            <label>Passphrase<input name="polyPassphrase" type="password" placeholder="Leave blank to keep current"></label>
+            <label style="grid-column:1/-1">Funder Address<input name="polyFunderAddress" value="${escapeHtml(user.polyFunderAddress || "")}" placeholder="0x... (Polygon wallet address)"></label>
+          </div>
           <button type="submit" class="dto-auth-submit">Save Profile</button>
           <div class="dto-auth-message" data-dto-auth-message></div>
         </form>`;
@@ -723,6 +730,12 @@
           };
           const alpacaSecret = String(formData.get("alpacaApiSecret") || "").trim();
           if (alpacaSecret) user.alpacaApiSecret = alpacaSecret;
+          user.polyApiKey = String(formData.get("polyApiKey") || "").trim();
+          user.polyFunderAddress = String(formData.get("polyFunderAddress") || "").trim();
+          const polySecret = String(formData.get("polyApiSecret") || "").trim();
+          if (polySecret) user.polyApiSecret = polySecret;
+          const polyPassphrase = String(formData.get("polyPassphrase") || "").trim();
+          if (polyPassphrase) user.polyPassphrase = polyPassphrase;
           const password = String(formData.get("password") || "");
           if (password) {
             if (password.length < 6) throw new Error("New password must be at least 6 characters.");
