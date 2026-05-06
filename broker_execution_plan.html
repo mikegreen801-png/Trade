@@ -333,15 +333,15 @@
           </div>
         </div>
         <div class="mode-row">
-          <button class="primary" type="button" id="paperMode">Paper Preview</button>
-          <button class="locked" type="button" title="Live orders require backend and final confirmation" disabled>Live Locked</button>
+          <button class="primary" type="button" id="paperMode">Paper Trade</button>
+          <button class="primary" type="button" id="liveMode" onclick="window.alpacaAPI?.setLiveMode(true) || alert('Connect Alpaca keys first')">Live Trade (Alpaca)</button>
         </div>
         <div class="warning" style="margin-top:14px">Public market data can be available to every logged-in or guest visitor. Trading access stays separate: each real order path needs account auth, buying-power checks, preview, and confirmation.</div>
         <div class="flow-grid" style="margin-top:14px">
           <div class="flow-card"><span>1</span><strong>Public Feed</strong><div class="fine">Signal, Market Pulse, Scanner, and Chart Analyzer can all read the same protected live data layer.</div></div>
           <div class="flow-card"><span>2</span><strong>Profiles</strong><div class="fine">Users sign up, pick beginner/pro/expert, save setups, and get independent feedback.</div></div>
-          <div class="flow-card"><span>3</span><strong>Paper First</strong><div class="fine">Every account practices with fake-money execution before any broker connection appears.</div></div>
-          <div class="flow-card"><span>4</span><strong>Live Later</strong><div class="fine">Connect Alpaca only after previews, warnings, logs, and confirmations are built.</div></div>
+          <div class="flow-card"><span>3</span><strong>Paper Sandbox</strong><div class="fine">Every account can practice with fake-money execution to test strategies safely.</div></div>
+          <div class="flow-card"><span>4</span><strong>Live Active</strong><div class="fine">Link directly to Alpaca for immediate live execution and portfolio sync.</div></div>
         </div>
       </div>
     </div>
