@@ -648,6 +648,11 @@
             <label>New Password<input name="password" type="password" autocomplete="new-password" placeholder="Leave blank to keep current"></label>
             <label class="dto-auth-wide">Feedback Focus<textarea name="focus" rows="3" placeholder="Examples: options hedging, scalping, beginner basics, risk control">${escapeHtml(user.focus || "")}</textarea></label>
           </div>
+          <div class="dto-auth-grid" style="margin-top:16px; border-top:1px solid rgba(0,217,255,0.1); padding-top:16px;">
+            <div class="dto-auth-wide" style="color:var(--dto-cyan); font-size:11px; text-transform:uppercase; letter-spacing:0.1em; font-weight:800; margin-bottom:8px;">Broker Connection (BYOK)</div>
+            <label>Alpaca Live Key ID<input name="alpacaApiKey" value="${escapeHtml(user.alpacaApiKey || "")}" placeholder="PK..."></label>
+            <label>Alpaca Live Secret<input name="alpacaApiSecret" type="password" value="${escapeHtml(user.alpacaApiSecret || "")}" placeholder="Leave blank to keep current secret if saved"></label>
+          </div>
           <button type="submit" class="dto-auth-submit">Save Profile</button>
           <div class="dto-auth-message" data-dto-auth-message></div>
         </form>`;
@@ -709,8 +714,11 @@
             name: String(formData.get("name") || "").trim(),
             experience: normalizeExperience(formData.get("experience")),
             focus: String(formData.get("focus") || "").trim(),
+            alpacaApiKey: String(formData.get("alpacaApiKey") || "").trim(),
             updatedAt: new Date().toISOString()
           };
+          const alpacaSecret = String(formData.get("alpacaApiSecret") || "").trim();
+          if (alpacaSecret) user.alpacaApiSecret = alpacaSecret;
           const password = String(formData.get("password") || "");
           if (password) {
             if (password.length < 6) throw new Error("New password must be at least 6 characters.");

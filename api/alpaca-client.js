@@ -6,10 +6,18 @@
 const https = require('https');
 
 class AlpacaClient {
-  constructor(isLive = false) {
+  constructor(isLive = false, headers = {}) {
     this.isLive = isLive === 'true' || isLive === true;
     
-    if (this.isLive) {
+    // BYOK (Bring Your Own Key) support via custom headers
+    const byokKey = headers['x-alpaca-key-id'];
+    const byokSecret = headers['x-alpaca-secret-key'];
+    
+    if (byokKey && byokSecret) {
+      this.apiKey = byokKey;
+      this.secretKey = byokSecret;
+      this.baseUrl = this.isLive ? 'https://api.alpaca.markets' : 'https://paper-api.alpaca.markets';
+    } else if (this.isLive) {
       this.apiKey = process.env.ALPACA_LIVE_API_KEY_ID || process.env.ALPACA_API_KEY_ID;
       this.secretKey = process.env.ALPACA_LIVE_API_SECRET_KEY || process.env.ALPACA_API_SECRET_KEY;
       this.baseUrl = process.env.ALPACA_LIVE_BASE_URL || 'https://api.alpaca.markets';

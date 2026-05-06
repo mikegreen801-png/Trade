@@ -8,7 +8,7 @@ const AlpacaClient = require('./alpaca-client');
 module.exports = async function handler(req, res) {
   try {
     const isLive = req.query.isLive === 'true';
-    const client = new AlpacaClient(isLive);
+    const client = new AlpacaClient(isLive, req.headers);
     const action = req.query.action || 'info';
 
     switch (action) {

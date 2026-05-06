@@ -29,6 +29,17 @@ const alpacaAPI = {
         }
       };
 
+      try {
+        const userJson = localStorage.getItem('dtoActiveUser');
+        if (userJson) {
+          const user = JSON.parse(userJson);
+          if (user.alpacaApiKey && user.alpacaApiSecret) {
+            options.headers['X-Alpaca-Key-Id'] = user.alpacaApiKey;
+            options.headers['X-Alpaca-Secret-Key'] = user.alpacaApiSecret;
+          }
+        }
+      } catch(e) {}
+
       if (body) {
         options.body = JSON.stringify(body);
       }
