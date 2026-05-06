@@ -1519,6 +1519,47 @@
     .hint { text-align: left; }
     .wl-grid { grid-template-columns: 1fr 1fr; }
   }
+
+  /* ── TAB LAYOUT ── */
+  .dto-tab-nav {
+    display: flex;
+    gap: 8px;
+    margin: 32px 0 24px;
+    border-bottom: 1px solid rgba(220, 231, 245, 0.1);
+    padding-bottom: 8px;
+    overflow-x: auto;
+  }
+  .dto-tab-nav button {
+    background: transparent !important;
+    border: none !important;
+    color: var(--dto-muted) !important;
+    font: 800 13px/1 "JetBrains Mono", monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    padding: 10px 16px;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+    border-bottom: 2px solid transparent !important;
+  }
+  .dto-tab-nav button:hover {
+    color: #e7f9ff !important;
+  }
+  .dto-tab-nav button.is-active {
+    color: var(--dto-cyan) !important;
+    border-bottom: 2px solid var(--dto-cyan) !important;
+  }
+  .dto-tab-content {
+    display: none;
+    animation: fadeIn 0.2s ease;
+  }
+  .dto-tab-content.is-active {
+    display: block;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 </style>
 </head>
 <body>
@@ -1549,7 +1590,7 @@
     <div class="hero-copy">
       <div>
         <div class="eyebrow">Trading toolkit home</div>
-        <h1>Command Center</h1>
+        <h1>Brokerage Command Center</h1>
         <p class="subtitle">Search any stock or crypto for an instant educational signal, then jump into prep, risk sizing, chart review, replay practice, or journaling without losing the home screen.</p>
         <div class="command-snapshot" aria-label="Command Center mission snapshot">
           <div class="command-head">
@@ -1650,12 +1691,12 @@
           </div>
           <div class="live-widgets">
             <div class="widget-box">
-              <div class="widget-label"><span>Live Quote / Chart</span><span id="tvSymbolLabel">NASDAQ:AAPL</span></div>
-              <div id="tvOverview"></div>
+              <div class="widget-label"><span>Live Quote / Chart</span><span class="tvSymbolLabel">NASDAQ:AAPL</span></div>
+              <div class="tvOverview"></div>
             </div>
             <div class="widget-box technical">
               <div class="widget-label"><span>Technical Rating</span><span>Native</span></div>
-              <div id="tvTechnical"></div>
+              <div class="tvTechnical"></div>
             </div>
           </div>
           <div class="analysis-body">
@@ -1709,7 +1750,15 @@
     </div>
   </section>
 
-  <section id="mission">
+  <nav class="dto-tab-nav" aria-label="Home sections">
+    <button class="is-active" data-tab-target="mission">Mission Control</button>
+    <button data-tab-target="tools">Ultra Tools</button>
+    <button data-tab-target="resources">External Resources</button>
+    <button data-tab-target="production">Production Path</button>
+    <button data-tab-target="alpaca-guide">Alpaca Login Guide</button>
+  </nav>
+
+  <section id="mission" class="dto-tab-content is-active">
     <div class="section-head">
       <h2>Mission Control</h2>
       <div class="hint">The active setup packet, paper P&L, saved plans, journal edge, and next workflow step in one place.</div>
@@ -1744,7 +1793,7 @@
     </div>
   </section>
 
-  <section id="tools">
+  <section id="tools" class="dto-tab-content">
     <div class="section-head">
       <h2>Ultra Tools</h2>
       <div class="hint">Five stronger workbenches replace the overlapping single-purpose tools.</div>
@@ -1761,7 +1810,7 @@
     </div>
   </section>
 
-  <section id="resources">
+  <section id="resources" class="dto-tab-content">
     <div class="section-head">
       <h2>External Resources</h2>
       <div class="hint">Curated links that work alongside the OS — open in a new tab while keeping your setup active here.</div>
@@ -1776,7 +1825,7 @@
     </div>
   </section>
 
-  <section>
+  <section id="production" class="dto-tab-content">
     <div class="section-head">
       <h2>Production Path</h2>
       <div class="hint">One connected workflow: Scan, Analyze, Plan, Size, Practice, Review.</div>
@@ -1788,7 +1837,69 @@
       <div class="op"><strong>4. Practice + Review</strong><span>Paper trade, replay, journal, and improve, or connect directly to Alpaca for live execution.</span></div>
     </div>
   </section>
+
+  <section id="alpaca-guide" class="dto-tab-content">
+    <div class="section-head">
+      <h2>Alpaca Login Guide</h2>
+      <div class="hint">How to connect your broker account to trade on this platform.</div>
+    </div>
+    <div class="analysis-card" style="margin-top: 16px;">
+      <div class="analysis-body">
+        <div>
+          <h3 style="color: var(--dto-cyan); margin-bottom: 8px;">Bring Your Own Key (User Mode)</h3>
+          <p>You can securely connect your own Alpaca account to trade directly from your browser. Your keys are saved locally in your browser and are never sent to our database.</p>
+          <ol style="color: var(--dto-muted); font-size: 13px; line-height: 1.6; padding-left: 20px; margin-top: 12px; font-family: 'JetBrains Mono', monospace;">
+            <li style="margin-bottom: 8px;">Log in to the <a href="https://app.alpaca.markets/" target="_blank" style="color: var(--dto-cyan);">Alpaca Dashboard</a> and generate your API Keys.</li>
+            <li style="margin-bottom: 8px;">Create an account or log in to this site.</li>
+            <li style="margin-bottom: 8px;">Click your <strong>Profile</strong> (or the button below).</li>
+            <li style="margin-bottom: 8px;">Scroll down to the <strong>Broker Connection (BYOK)</strong> section in the modal.</li>
+            <li style="margin-bottom: 8px;">Paste your <strong>Alpaca API Key ID</strong> and <strong>Alpaca API Secret</strong>.</li>
+            <li style="margin-bottom: 8px;">Select <strong>Paper Trading</strong> or <strong>Live Trading</strong> from the Trading Mode dropdown, then click <strong>Save Profile</strong>.</li>
+            <li>You are now connected! Open the <a href="broker_execution_plan.html" style="color: var(--dto-cyan);">Broker Console</a> to test your connection.</li>
+          </ol>
+          <div style="margin-top: 20px;">
+            <button class="flow-btn primary" type="button" onclick="window.DTO && window.DTO.openAuthModal ? window.DTO.openAuthModal('profile') : alert('Please sign up or log in first!')">Open Profile Settings Now</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 </main>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const tabs = document.querySelectorAll('.dto-tab-nav button');
+    const contents = document.querySelectorAll('.dto-tab-content');
+    
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('is-active'));
+        contents.forEach(c => c.classList.remove('is-active'));
+        
+        tab.classList.add('is-active');
+        const targetId = tab.getAttribute('data-tab-target');
+        const targetContent = document.getElementById(targetId);
+        if (targetContent) targetContent.classList.add('is-active');
+      });
+    });
+    
+    // Handle main nav links to jump to tabs instead of scrolling
+    document.querySelectorAll('.nav-links a[href^="#"]').forEach(link => {
+      link.addEventListener('click', (e) => {
+        const targetId = link.getAttribute('href').substring(1);
+        const tabButton = document.querySelector(`.dto-tab-nav button[data-tab-target="${targetId}"]`);
+        if (tabButton) {
+          e.preventDefault();
+          tabButton.click();
+          // Adjust scroll position to account for sticky header if there is one
+          const offset = 80;
+          const topPos = tabButton.getBoundingClientRect().top + window.scrollY - offset;
+          window.scrollTo({ top: topPos, behavior: 'smooth' });
+        }
+      });
+    });
+  });
+</script>
 
 <script src="assets/daytrader-os.js?v=20260504-vercel1"></script>
 <script src="assets/dto-core.js"></script>
@@ -1843,6 +1954,7 @@
       if (activeRenderedAnalysis) {
         activeRenderedAnalysis.news = newsItems;
         renderAnalysis(activeRenderedAnalysis);
+        renderTradingViewWidgets(activeRenderedAnalysis.symbol, activeRenderedAnalysis.candles || [], activeRenderedAnalysis);
       }
     } catch (e) { /* silently skip if news unavailable */ }
   }
@@ -2321,8 +2433,7 @@
     return buildCompanyRead(symbol, analysis, parseYahooCompanyProfile(data));
   }
 
-  function resetWidget(id) {
-    const el = document.getElementById(id);
+  function resetElement(el) {
     el.innerHTML = "";
     return el;
   }
@@ -2338,9 +2449,13 @@
 
   function renderTradingViewWidgets(rawSymbol, candles = [], data = null) {
     const symbol = tradingViewSymbol(rawSymbol);
-    document.getElementById("tvSymbolLabel").textContent = symbol;
-    renderNativeChart(resetWidget("tvOverview"), rawSymbol, candles, data);
-    renderNativeTechnical(resetWidget("tvTechnical"), data);
+    document.querySelectorAll(".tvSymbolLabel").forEach(el => el.textContent = symbol);
+    document.querySelectorAll(".tvOverview").forEach(el => {
+      renderNativeChart(resetElement(el), rawSymbol, candles, data);
+    });
+    document.querySelectorAll(".tvTechnical").forEach(el => {
+      renderNativeTechnical(resetElement(el), data);
+    });
   }
 
   function chartPath(candles, width = 680, height = 230) {
@@ -3060,12 +3175,12 @@
       </div>
       <div class="live-widgets">
         <div class="widget-box">
-          <div class="widget-label"><span>Live Quote / Chart</span><span id="tvSymbolLabel">${escapeHtml(tradingViewSymbol(data.symbol || "AAPL"))}</span></div>
-          <div id="tvOverview"></div>
+          <div class="widget-label"><span>Live Quote / Chart</span><span class="tvSymbolLabel">${escapeHtml(tradingViewSymbol(data.symbol || "AAPL"))}</span></div>
+          <div class="tvOverview"></div>
         </div>
         <div class="widget-box technical">
           <div class="widget-label"><span>Technical Rating</span><span>Native</span></div>
-          <div id="tvTechnical"></div>
+          <div class="tvTechnical"></div>
         </div>
       </div>
       <div class="analysis-body">
@@ -3103,12 +3218,14 @@
     const state = document.getElementById("feedState");
     state.textContent = "Loading";
     const loadingAnalysis = widgetOnlyAnalysis(requestedSymbol);
+    loadingAnalysis.candles = [];
     renderAnalysis(loadingAnalysis);
     renderTradingViewWidgets(requestedSymbol, [], loadingAnalysis);
     try {
       const candles = await fetchCandles(requestedSymbol);
       if (token !== activeAnalysisToken) return;
       const analysis = analyzeCandles(requestedSymbol, candles);
+      analysis.candles = candles;
       analysis.source = candles.source || analysis.source;
       analysis.feedDelayed = Boolean(candles.delayed);
       analysis.feedNote = candles.delayed

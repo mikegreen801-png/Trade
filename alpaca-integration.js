@@ -17,7 +17,16 @@ const alpacaAPI = {
    * Generic API call wrapper
    */
   async call(endpoint, method = 'GET', body = null, query = {}) {
-    query.isLive = this.liveMode;
+    let currentLiveMode = this.liveMode;
+    try {
+      const userJson = localStorage.getItem('dtoActiveUser');
+      if (userJson) {
+        const user = JSON.parse(userJson);
+        if (user.alpacaMode === 'live') currentLiveMode = true;
+      }
+    } catch(e) {}
+    
+    query.isLive = currentLiveMode;
     const params = new URLSearchParams(query).toString();
     const url = `${this.baseUrl}${endpoint}${params ? '?' + params : ''}`;
 

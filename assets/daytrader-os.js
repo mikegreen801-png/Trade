@@ -649,9 +649,12 @@
             <label class="dto-auth-wide">Feedback Focus<textarea name="focus" rows="3" placeholder="Examples: options hedging, scalping, beginner basics, risk control">${escapeHtml(user.focus || "")}</textarea></label>
           </div>
           <div class="dto-auth-grid" style="margin-top:16px; border-top:1px solid rgba(0,217,255,0.1); padding-top:16px;">
-            <div class="dto-auth-wide" style="color:var(--dto-cyan); font-size:11px; text-transform:uppercase; letter-spacing:0.1em; font-weight:800; margin-bottom:8px;">Broker Connection (BYOK)</div>
-            <label>Alpaca Live Key ID<input name="alpacaApiKey" value="${escapeHtml(user.alpacaApiKey || "")}" placeholder="PK..."></label>
-            <label>Alpaca Live Secret<input name="alpacaApiSecret" type="password" value="${escapeHtml(user.alpacaApiSecret || "")}" placeholder="Leave blank to keep current secret if saved"></label>
+            <label>Alpaca API Key ID<input name="alpacaApiKey" value="${escapeHtml(user.alpacaApiKey || "")}" placeholder="PK..."></label>
+            <label>Alpaca API Secret<input name="alpacaApiSecret" type="password" value="${escapeHtml(user.alpacaApiSecret || "")}" placeholder="Leave blank to keep current secret if saved"></label>
+            <label>Trading Mode<select name="alpacaMode">
+              <option value="paper"${user.alpacaMode !== "live" ? " selected" : ""}>Paper Trading</option>
+              <option value="live"${user.alpacaMode === "live" ? " selected" : ""}>Live Trading (Real Money)</option>
+            </select></label>
           </div>
           <button type="submit" class="dto-auth-submit">Save Profile</button>
           <div class="dto-auth-message" data-dto-auth-message></div>
@@ -715,6 +718,7 @@
             experience: normalizeExperience(formData.get("experience")),
             focus: String(formData.get("focus") || "").trim(),
             alpacaApiKey: String(formData.get("alpacaApiKey") || "").trim(),
+            alpacaMode: String(formData.get("alpacaMode") || "paper"),
             updatedAt: new Date().toISOString()
           };
           const alpacaSecret = String(formData.get("alpacaApiSecret") || "").trim();
@@ -1216,14 +1220,21 @@ html.dto-unified ::selection {
 
   // Check if this deployed site is specifically configured as a Live Site via .env
   fetch('/api/health').then(r => r.json()).then(data => {
+    const mainTitle = document.querySelector('.hero-copy h1');
     if (data && data.siteMode === 'live') {
       document.body.classList.add('dto-live-site-mode');
       if (window.alpacaAPI) window.alpacaAPI.liveMode = true;
+      if (mainTitle) mainTitle.textContent = 'Live Command Center';
       
       const banner = document.createElement('div');
       banner.className = 'dto-live-banner';
       banner.innerHTML = '⚠️ DEDICATED LIVE TRADING DOMAIN ⚠️ Real money execution active.';
       document.body.insertBefore(banner, document.body.firstChild);
+    } else {
+      if (mainTitle) mainTitle.textContent = 'Paper Command Center';
     }
-  }).catch(() => {});
+  }).catch(() => {
+    const mainTitle = document.querySelector('.hero-copy h1');
+    if (mainTitle) mainTitle.textContent = 'Paper Command Center';
+  });
 })();
