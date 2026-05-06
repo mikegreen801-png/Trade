@@ -1148,28 +1148,43 @@ html.dto-unified ::selection {
   injectSignalNote();
   injectAuthControls();
 
-  // ── Unified Alert System ──
-  let alertConnection = null;
+  // ── Alert System (real-time, WebSocket-powered) ──
+  let _alertStreamCleanup = [];
+
   function startAlertSystem() {
+    _alertStreamCleanup.forEach(fn => fn());
+    _alertStreamCleanup = [];
+
     const alerts = readJson("dtoAlerts", []);
     if (!alerts.length) return;
-    
-    fetch('/api/alerts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ alerts })
-    }).catch(() => {});
 
-    if (!alertConnection && /^https?:$/.test(location.protocol)) {
-      alertConnection = new EventSource('/api/alerts/stream');
-      alertConnection.onmessage = (e) => {
-        try {
-          const data = JSON.parse(e.data);
-          data.alerts.forEach(alert => {
-            triggerBrowserNotification(data.symbol, data.price, alert);
-          });
-        } catch (err) {}
+    const bySymbol = {};
+    alerts.forEach(a => {
+      if (!a.symbol || !a.price) return;
+      (bySymbol[a.symbol] = bySymbol[a.symbol] || []).push(a);
+    });
+
+    for (const [sym, symAlerts] of Object.entries(bySymbol)) {
+      const onPrice = (price) => {
+        symAlerts.forEach(a => {
+          const hit = (a.direction === 'above' && price >= a.price) ||
+                      (a.direction === 'below' && price <= a.price);
+          if (hit) triggerBrowserNotification(sym, price, a);
+        });
       };
+
+      let streamed = false;
+      if (window.streamCryptoPrice) {
+        const ws = window.streamCryptoPrice(sym, onPrice);
+        if (ws) {
+          streamed = true;
+          _alertStreamCleanup.push(() => { if (window.stopStream) window.stopStream(sym); });
+        }
+      }
+      if (!streamed && window.streamStockPrice) {
+        window.streamStockPrice(sym, onPrice);
+        _alertStreamCleanup.push(() => { if (window.stopStream) window.stopStream(sym); });
+      }
     }
   }
 

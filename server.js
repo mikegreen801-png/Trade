@@ -2,6 +2,7 @@ require("dotenv").config();
 const path = require("path");
 const fs = require("fs");
 const express = require("express");
+const { WebSocket: NodeWS, WebSocketServer } = require("ws");
 
 const app = express();
 const port = Number(process.env.PORT || 3000);
@@ -183,7 +184,93 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(webRoot, "index.html"));
 });
 
-app.listen(port, () => {
+// ── HTTP server shared by Express + WebSocket ──
+const server = http.createServer(app);
+
+// ── Stock price WebSocket proxy ──
+const wss = new WebSocketServer({ server });
+
+let alpacaWs = null;
+const stockSubs = new Map();  // symbol -> Set<browser ws>
+const clientSubs = new Map(); // browser ws -> Set<symbol>
+
+function ensureAlpacaConnection() {
+  if (alpacaWs && alpacaWs.readyState === NodeWS.OPEN) return;
+  const key = process.env.ALPACA_PAPER_API_KEY_ID || process.env.ALPACA_API_KEY_ID || "";
+  const secret = process.env.ALPACA_PAPER_API_SECRET_KEY || process.env.ALPACA_API_SECRET_KEY || "";
+  if (!key || !secret) {
+    console.warn("[DayTraderOS] No Alpaca keys — stock WebSocket proxy disabled");
+    return;
+  }
+  alpacaWs = new NodeWS("wss://stream.data.alpaca.markets/v2/iex");
+  alpacaWs.on("open", () => {
+    alpacaWs.send(JSON.stringify({ action: "auth", key, secret }));
+  });
+  alpacaWs.on("message", (raw) => {
+    let msgs;
+    try { msgs = JSON.parse(raw); } catch { return; }
+    if (!Array.isArray(msgs)) msgs = [msgs];
+    for (const msg of msgs) {
+      if (msg.T === "success" && msg.msg === "authenticated") {
+        const all = [...stockSubs.keys()];
+        if (all.length) alpacaWs.send(JSON.stringify({ action: "subscribe", quotes: all }));
+      }
+      if (msg.T === "q" && msg.S && msg.ap != null) {
+        const payload = JSON.stringify({ symbol: msg.S, price: msg.ap, type: "stock" });
+        (stockSubs.get(msg.S) || []).forEach(c => {
+          if (c.readyState === NodeWS.OPEN) c.send(payload);
+        });
+      }
+    }
+  });
+  alpacaWs.on("close", () => { alpacaWs = null; });
+  alpacaWs.on("error", (err) => console.error("[DayTraderOS] Alpaca WSS error:", err.message));
+}
+
+wss.on("connection", (ws) => {
+  clientSubs.set(ws, new Set());
+  ws.on("message", (raw) => {
+    let msg; try { msg = JSON.parse(raw); } catch { return; }
+    if (msg.action === "subscribe" && Array.isArray(msg.symbols)) {
+      const newSyms = [];
+      for (const s of msg.symbols) {
+        const sym = String(s).toUpperCase();
+        if (!stockSubs.has(sym)) { stockSubs.set(sym, new Set()); newSyms.push(sym); }
+        stockSubs.get(sym).add(ws);
+        clientSubs.get(ws).add(sym);
+      }
+      if (newSyms.length) {
+        ensureAlpacaConnection();
+        if (alpacaWs && alpacaWs.readyState === NodeWS.OPEN)
+          alpacaWs.send(JSON.stringify({ action: "subscribe", quotes: newSyms }));
+      }
+    }
+    if (msg.action === "unsubscribe" && Array.isArray(msg.symbols)) {
+      const drop = [];
+      for (const s of msg.symbols) {
+        const sym = String(s).toUpperCase();
+        stockSubs.get(sym)?.delete(ws);
+        clientSubs.get(ws)?.delete(sym);
+        if (!stockSubs.get(sym)?.size) { stockSubs.delete(sym); drop.push(sym); }
+      }
+      if (drop.length && alpacaWs?.readyState === NodeWS.OPEN)
+        alpacaWs.send(JSON.stringify({ action: "unsubscribe", quotes: drop }));
+    }
+  });
+  ws.on("close", () => {
+    const mySyms = clientSubs.get(ws) || new Set();
+    const drop = [];
+    for (const sym of mySyms) {
+      stockSubs.get(sym)?.delete(ws);
+      if (!stockSubs.get(sym)?.size) { stockSubs.delete(sym); drop.push(sym); }
+    }
+    clientSubs.delete(ws);
+    if (drop.length && alpacaWs?.readyState === NodeWS.OPEN)
+      alpacaWs.send(JSON.stringify({ action: "unsubscribe", quotes: drop }));
+  });
+});
+
+server.listen(port, () => {
   console.log(`[DayTraderOS] Web service running on port ${port}`);
   console.log(`[DayTraderOS] webRoot source: ${selected.source}`);
   console.log(`[DayTraderOS] webRoot path: ${webRoot}`);

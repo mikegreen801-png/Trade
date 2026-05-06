@@ -617,26 +617,78 @@
 
   // --- 5A: WebSocket Streaming ---
   const activeStreams = new Map();
+
   function streamCryptoPrice(rawSymbol, onUpdate) {
     const symbol = cleanSymbol(rawSymbol);
     const pair = cryptoDataMap[symbol];
-    if (!pair) return null; // Only Binance crypto supported for free unauthenticated streaming
-    
-    if (activeStreams.has(pair)) {
-      activeStreams.get(pair).close();
-    }
-
+    if (!pair) return null;
+    if (activeStreams.has(pair)) { try { activeStreams.get(pair).close(); } catch(e){} }
     const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${pair.toLowerCase()}@trade`);
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
         const price = Number(data.p);
         if (onUpdate && !isNaN(price)) onUpdate(price);
-      } catch (e) {}
+      } catch(e) {}
     };
+    ws.onerror = () => {};
     activeStreams.set(pair, ws);
     return ws;
   }
 
-  // Expose globally
+  let _stockWs = null;
+  const _stockCallbacks = new Map();
+
+  function _ensureStockWs() {
+    if (_stockWs && (_stockWs.readyState === WebSocket.OPEN || _stockWs.readyState === WebSocket.CONNECTING)) return;
+    const proto = location.protocol === "https:" ? "wss:" : "ws:";
+    _stockWs = new WebSocket(`${proto}//${location.host}`);
+    _stockWs.onopen = () => {
+      const syms = [..._stockCallbacks.keys()];
+      if (syms.length) _stockWs.send(JSON.stringify({ action: "subscribe", symbols: syms }));
+    };
+    _stockWs.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        if (msg.type === "stock" && msg.symbol && msg.price != null) {
+          const cb = _stockCallbacks.get(msg.symbol);
+          if (cb) cb(Number(msg.price));
+        }
+      } catch(e) {}
+    };
+    _stockWs.onerror = () => {};
+    _stockWs.onclose = () => {
+      _stockWs = null;
+      if (_stockCallbacks.size > 0) setTimeout(_ensureStockWs, 3000);
+    };
+  }
+
+  function streamStockPrice(rawSymbol, onUpdate) {
+    const symbol = cleanSymbol(rawSymbol);
+    _stockCallbacks.set(symbol, onUpdate);
+    _ensureStockWs();
+    if (_stockWs && _stockWs.readyState === WebSocket.OPEN)
+      _stockWs.send(JSON.stringify({ action: "subscribe", symbols: [symbol] }));
+  }
+
+  function stopStream(rawSymbol) {
+    const symbol = cleanSymbol(rawSymbol);
+    const pair = cryptoDataMap[symbol];
+    if (pair && activeStreams.has(pair)) {
+      try { activeStreams.get(pair).close(); } catch(e) {}
+      activeStreams.delete(pair);
+    }
+    if (_stockCallbacks.has(symbol)) {
+      _stockCallbacks.delete(symbol);
+      if (_stockWs && _stockWs.readyState === WebSocket.OPEN)
+        _stockWs.send(JSON.stringify({ action: "unsubscribe", symbols: [symbol] }));
+      if (_stockCallbacks.size === 0 && _stockWs) {
+        try { _stockWs.close(); } catch(e) {}
+        _stockWs = null;
+      }
+    }
+  }
+
   window.streamCryptoPrice = streamCryptoPrice;
+  window.streamStockPrice = streamStockPrice;
+  window.stopStream = stopStream;
