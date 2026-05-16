@@ -35,19 +35,27 @@ async function handleMarkets(req, res) {
   const category = String(req.query.category || "").toLowerCase();
   const q        = String(req.query.q || "").trim();
 
+  // When a query is present, fetch more and filter server-side (Gamma's _c param is unreliable)
+  const fetchLimit = q ? 50 : limit;
   const params = new URLSearchParams({
-    limit: String(limit),
+    limit: String(fetchLimit),
     active: "true",
     closed: "false",
     order: "volume24hr",
     ascending: "false",
   });
-  if (q)        params.set("_c", q);       // Gamma full-text search param
   if (category && CATEGORY_TAG_MAP[category]) params.set("tag", CATEGORY_TAG_MAP[category]);
 
   try {
     const data = await fetchJson(`${GAMMA_BASE}/markets?${params}`);
-    const markets = (Array.isArray(data) ? data : data.markets || []).map(m => ({
+    let raw = (Array.isArray(data) ? data : data.markets || []);
+    // Client-side keyword filter when query present
+    if (q) {
+      const ql = q.toLowerCase();
+      raw = raw.filter(m => (m.question || "").toLowerCase().includes(ql));
+      raw = raw.slice(0, limit);
+    }
+    const markets = raw.map(m => ({
       id:            m.id,
       conditionId:   m.conditionId,
       question:      m.question,

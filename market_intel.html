@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Intelligence — Day Trader OS</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&family=Barlow+Condensed:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#f5f5f7; --s1:#ffffff; --s2:#f5f5f7; --s3:#ebebf0;
+  --border:rgba(0,0,0,0.06); --border2:rgba(0,0,0,0.10);
+  --cyan:#0066ff; --cyan2:#0052cc;
+  --green:#00c805; --red:#ff3b30;
+  --gold:#ff9500; --purple:#5e5ce6;
+  --blue:#0066ff; --orange:#ff9500;
+  --text:#3a3a3c; --bright:#1d1d1f; --muted:#6e6e73; --white:#1d1d1f;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;min-height:100vh;overflow-x:hidden;}
+.wrap{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh;}
+
+/* HEADER — dark chrome */
+.header{display:flex;justify-content:space-between;align-items:center;padding:14px 28px;border-bottom:1px solid rgba(255,255,255,0.08);background:#0f0f12;backdrop-filter:blur(20px);position:sticky;top:0;z-index:100;}
+.logo{font-family:-apple-system,"SF Pro Display","Inter",system-ui,sans-serif;font-size:1em;font-weight:700;color:#f5f5f7;letter-spacing:-0.01em;}
+.logo a{color:inherit;text-decoration:none;}
+.logo-accent{color:#00c805;}
+.header-right{display:flex;align-items:center;gap:10px;}
+.sync-btn{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.78em;padding:7px 14px;border:1px solid rgba(255,255,255,0.12);border-radius:8px;background:rgba(255,255,255,0.07);color:#f5f5f7;cursor:pointer;transition:background .15s;}
+.sync-btn:hover{background:rgba(255,255,255,0.12);}
+.clock{font-family:-apple-system,"SF Mono","Fira Code",monospace;font-size:0.75em;color:rgba(245,245,247,0.5);min-width:60px;text-align:right;}
+.back-link{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.75em;color:rgba(245,245,247,0.7);text-decoration:none;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:6px 12px;transition:background .15s,color .15s;}
+.back-link:hover{background:rgba(255,255,255,0.08);color:#f5f5f7;}
+
+/* PAGE NAV — dark chrome */
+.page-nav{display:flex;border-bottom:1px solid rgba(255,255,255,0.06);background:#0f0f12;padding:0 28px;}
+.page-nav-link{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.72em;color:rgba(245,245,247,0.5);text-decoration:none;padding:9px 16px;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;}
+.page-nav-link:hover{color:rgba(245,245,247,0.8);}
+.page-nav-link.active{color:#f5f5f7;border-bottom-color:#00c805;}
+
+/* TICKER STRIP — slightly elevated light */
+.ticker-strip{height:30px;overflow:hidden;background:#ffffff;border-bottom:1px solid rgba(0,0,0,0.06);position:sticky;top:80px;z-index:99;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+.ticker-track{display:flex;gap:40px;align-items:center;height:100%;white-space:nowrap;padding:0 20px;animation:tickerScroll 80s linear infinite;}
+.ticker-track:hover{animation-play-state:paused;}
+@keyframes tickerScroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ticker-item{font-family:-apple-system,"SF Mono","Fira Code",monospace;font-size:0.68em;flex-shrink:0;display:flex;align-items:center;gap:5px;font-variant-numeric:tabular-nums;}
+.t-sym{color:#1d1d1f;font-weight:700;}
+.t-price{color:#3a3a3c;}
+.t-up{color:#006800;}
+.t-down{color:#c00;}
+.t-flat{color:#aeaeb2;}
+.ticker-sep{color:#d1d1d6;font-size:0.9em;}
+
+/* PAGE TITLE */
+.page-title-bar{padding:20px 28px 0;display:flex;align-items:baseline;gap:16px;}
+.page-title{font-family:-apple-system,"SF Pro Display","Inter",system-ui,sans-serif;font-size:1.3em;font-weight:700;color:#1d1d1f;letter-spacing:-0.02em;}
+.page-sub{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.78em;color:#aeaeb2;}
+
+/* CONTENT */
+.content{padding:16px 28px 32px;display:flex;flex-direction:column;gap:0;}
+
+/* SECTION — white cards */
+.intel-section{border:1px solid rgba(0,0,0,0.06);border-radius:12px;margin-bottom:14px;overflow:hidden;background:#ffffff;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 2px 8px rgba(0,0,0,0.03);}
+.section-header{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#ffffff;border-bottom:1px solid rgba(0,0,0,0.05);cursor:pointer;user-select:none;transition:background .12s;}
+.section-header:hover{background:#f9f9fb;}
+.section-accent{width:3px;height:18px;border-radius:2px;flex-shrink:0;}
+.section-icon{font-size:1em;}
+.section-name{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.8em;font-weight:600;color:#1d1d1f;flex:1;letter-spacing:0.01em;}
+.section-meta{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.72em;color:#aeaeb2;}
+.section-badge{font-family:-apple-system,"SF Mono","Fira Code",monospace;font-size:0.72em;padding:2px 8px;border-radius:10px;font-weight:700;min-width:24px;text-align:center;}
+.section-refresh{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.72em;padding:4px 10px;border:1px solid rgba(0,0,0,0.1);border-radius:6px;background:#f5f5f7;color:#6e6e73;cursor:pointer;transition:background .12s,border-color .12s;flex-shrink:0;}
+.section-refresh:hover{background:#ebebf0;border-color:rgba(0,0,0,0.18);}
+.section-toggle{font-size:0.65em;color:#aeaeb2;flex-shrink:0;transition:transform .2s;}
+.section-toggle.open{transform:rotate(180deg);}
+.halt-count-lg{font-family:-apple-system,"SF Pro Display","Inter",system-ui,sans-serif;font-size:2em;font-weight:800;color:#ff3b30;line-height:1;margin-left:auto;margin-right:8px;letter-spacing:-0.02em;}
+
+/* TABLE — clean light */
+.section-body{background:#ffffff;}
+.section-body[hidden]{display:none;}
+.data-table{width:100%;border-collapse:collapse;}
+.data-table th{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.68em;letter-spacing:0.04em;color:#6e6e73;text-transform:uppercase;padding:8px 16px;text-align:left;border-bottom:1px solid #e5e5ea;background:#fafafa;white-space:nowrap;font-weight:500;}
+.data-table td{font-family:-apple-system,"SF Mono","Fira Code",monospace;font-size:0.78em;padding:9px 16px;border-bottom:1px solid rgba(0,0,0,0.04);color:#3a3a3c;vertical-align:middle;font-variant-numeric:tabular-nums;}
+.data-table tr:last-child td{border-bottom:none;}
+.data-table tr:nth-child(even) td{background:rgba(0,0,0,0.012);}
+.data-table tr:hover td{background:rgba(0,0,0,0.025);}
+.data-table a{color:#0066ff;text-decoration:none;}
+.data-table a:hover{text-decoration:underline;}
+
+/* CELL VARIANTS */
+.c-bright{color:#1d1d1f;}
+.c-green{color:#006800;}
+.c-red{color:#c00;}
+.c-gold{color:#a85800;}
+.c-blue{color:#0052cc;}
+.c-purple{color:#3634a3;}
+.c-orange{color:#a85800;}
+.c-muted{color:#aeaeb2;}
+.badge-pill{display:inline-block;padding:2px 7px;border-radius:5px;font-size:0.85em;font-weight:600;font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;}
+.badge-call{background:rgba(0,200,5,0.1);color:#006800;}
+.badge-put{background:rgba(255,59,48,0.1);color:#c00;}
+.badge-bmo{background:rgba(0,102,255,0.08);color:#0052cc;}
+.badge-amc{background:rgba(255,149,0,0.1);color:#a85800;}
+.halt-T1,.halt-T2{color:#a85800;}
+.halt-T5,.halt-T6,.halt-MWC1,.halt-MWC2,.halt-MWC3{color:#c00;}
+.halt-LUDP,.halt-LUDS{color:#a85800;}
+.halt-IPO1{color:#0052cc;}
+
+/* SECTION CONTROLS */
+.section-controls{display:flex;align-items:center;gap:8px;padding:8px 16px;background:#fafafa;border-bottom:1px solid rgba(0,0,0,0.05);}
+.filter-btn{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.72em;padding:4px 10px;border:1px solid rgba(0,0,0,0.1);border-radius:6px;background:#ffffff;color:#6e6e73;cursor:pointer;transition:all .12s;}
+.filter-btn.active{border-color:rgba(0,200,5,0.3);color:#006800;background:rgba(0,200,5,0.06);}
+.filter-btn:hover:not(.active){background:#f5f5f7;}
+.sort-label{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.72em;color:#aeaeb2;margin-left:auto;}
+.sort-select{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.72em;background:#ffffff;border:1px solid rgba(0,0,0,0.1);border-radius:6px;color:#3a3a3c;padding:3px 8px;outline:none;cursor:pointer;}
+
+/* FEATURED SWEEP */
+.featured-sweep{display:flex;align-items:center;gap:12px;padding:10px 16px;background:linear-gradient(90deg,rgba(0,200,5,0.05) 0%,transparent 100%);border-bottom:1px solid rgba(0,0,0,0.04);}
+.fs-label{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.65em;color:#006800;letter-spacing:0.06em;text-transform:uppercase;flex-shrink:0;font-weight:600;}
+.fs-sym{font-family:-apple-system,"SF Mono","Fira Code",monospace;font-size:1em;font-weight:700;color:#1d1d1f;}
+.fs-info{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.78em;color:#6e6e73;}
+.fs-premium{font-family:-apple-system,"SF Mono","Fira Code",monospace;font-size:0.9em;font-weight:700;color:#006800;margin-left:auto;}
+
+/* SHOW MORE */
+.show-more-row{padding:10px 16px;text-align:center;border-top:1px solid rgba(0,0,0,0.04);background:#fafafa;}
+.show-more-btn{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.78em;color:#6e6e73;background:none;border:none;cursor:pointer;transition:color .15s;}
+.show-more-btn:hover{color:#0066ff;}
+
+/* EMPTY / LOADING / ERROR */
+.state-row td{text-align:center;padding:24px 16px;color:#aeaeb2;font-size:0.82em;font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid #e5e5ea;border-top-color:#5e5ce6;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* SECTION FOOTER NOTE */
+.section-note{padding:6px 16px;font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.72em;color:#aeaeb2;background:#fafafa;border-top:1px solid rgba(0,0,0,0.04);}
+
+/* PAGE FOOTER */
+.page-footer{display:flex;justify-content:space-between;align-items:center;padding:12px 28px;border-top:1px solid rgba(0,0,0,0.06);font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.72em;color:#aeaeb2;margin-top:auto;}
+
+@media(max-width:768px){
+  .content{padding:12px 12px 24px;}
+  .data-table th,.data-table td{padding:6px 10px;font-size:0.6em;}
+  .section-header{padding:10px 12px;}
+  .ticker-strip{display:none;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="header">
+    <div class="logo"><a href="index.html">DAYTRADER<span class="logo-accent">_OS</span></a></div>
+    <div class="header-right">
+      <button class="sync-btn" id="syncAllBtn">⟳ SYNC ALL</button>
+      <div class="clock" id="clock">—</div>
+      <a href="index.html" class="back-link">← HOME</a>
+    </div>
+  </header>
+
+  <nav class="page-nav">
+    <a href="polymarket.html" class="page-nav-link">⬡ Prediction Markets</a>
+    <a href="market_intel.html" class="page-nav-link active">◈ Market Intel</a>
+  </nav>
+
+  <div class="ticker-strip">
+    <div class="ticker-track" id="tickerTrack">
+      <span style="color:var(--muted);font-size:0.6em">Loading prices…</span>
+    </div>
+  </div>
+
+  <div class="page-title-bar">
+    <div class="page-title">Market Intelligence</div>
+    <div class="page-sub">Insider · Earnings · Halts · Sweeps · Dark Pool · Demand Zones</div>
+  </div>
+
+  <div class="content">
+
+    <!-- ── 1. HALT SCANNER ── -->
+    <div class="intel-section" id="sec-halts">
+      <div class="section-header" onclick="toggleSection('halts')">
+        <div class="section-accent" style="background:var(--red)"></div>
+        <span class="section-icon">🔴</span>
+        <span class="section-name">HALT SCANNER</span>
+        <span class="section-meta">NASDAQ · 60s refresh</span>
+        <span class="section-badge" id="badge-halts" style="background:rgba(255,61,113,0.1);color:var(--red)">—</span>
+        <span class="halt-count-lg" id="haltCountLg" hidden>0</span>
+        <button class="section-refresh" onclick="event.stopPropagation();loadHalts()">↻</button>
+        <span class="section-toggle open" id="toggle-halts">▲</span>
+      </div>
+      <div class="section-body" id="body-halts">
+        <table class="data-table">
+          <thead><tr>
+            <th>Symbol</th><th>Market</th><th>Code</th><th>Reason</th><th>Halt Time</th><th>Resume Time</th>
+          </tr></thead>
+          <tbody id="rows-halts">
+            <tr class="state-row"><td colspan="6"><span class="spinner"></span>Loading halt data…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── 2. INSIDER TRADES ── -->
+    <div class="intel-section" id="sec-insider">
+      <div class="section-header" onclick="toggleSection('insider')">
+        <div class="section-accent" style="background:var(--gold)"></div>
+        <span class="section-icon">🌑</span>
+        <span class="section-name">INSIDER TRADES</span>
+        <span class="section-meta">SEC Form 4 · last 48h · 5m refresh</span>
+        <span class="section-badge" id="badge-insider" style="background:rgba(255,196,0,0.1);color:var(--gold)">—</span>
+        <button class="section-refresh" onclick="event.stopPropagation();loadInsider()">↻</button>
+        <span class="section-toggle open" id="toggle-insider">▲</span>
+      </div>
+      <div class="section-body" id="body-insider">
+        <table class="data-table">
+          <thead><tr>
+            <th>Company</th><th>Ticker</th><th>Filer</th><th>Filed</th><th>Link</th>
+          </tr></thead>
+          <tbody id="rows-insider">
+            <tr class="state-row"><td colspan="5"><span class="spinner"></span>Loading Form 4 filings…</td></tr>
+          </tbody>
+        </table>
+        <div class="show-more-row" id="more-insider" hidden>
+          <button class="show-more-btn" onclick="showMore('insider')">▼ Show more filings</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 3. EARNINGS THIS WEEK ── -->
+    <div class="intel-section" id="sec-earnings">
+      <div class="section-header" onclick="toggleSection('earnings')">
+        <div class="section-accent" style="background:var(--cyan)"></div>
+        <span class="section-icon">📅</span>
+        <span class="section-name">EARNINGS THIS WEEK</span>
+        <span class="section-meta">Yahoo Finance · 1h refresh</span>
+        <span class="section-badge" id="badge-earnings" style="background:rgba(0,229,255,0.08);color:var(--cyan)">—</span>
+        <button class="section-refresh" onclick="event.stopPropagation();loadEarnings()">↻</button>
+        <span class="section-toggle open" id="toggle-earnings">▲</span>
+      </div>
+      <div class="section-body" id="body-earnings">
+        <div class="section-controls">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:0.58em;color:var(--muted)">Symbols:</span>
+          <input id="earningsSymInput" style="flex:1;background:var(--s2);border:1px solid var(--border2);border-radius:3px;padding:3px 8px;color:var(--bright);font-family:'JetBrains Mono',monospace;font-size:0.6em;outline:none;" placeholder="Add symbols (e.g. RDDT,UBER)" value="">
+          <button class="filter-btn" onclick="addEarningsSymbol()">+ ADD</button>
+        </div>
+        <table class="data-table">
+          <thead><tr>
+            <th>Day</th><th>Symbol</th><th>Time</th><th>EPS Est</th><th>Date</th>
+          </tr></thead>
+          <tbody id="rows-earnings">
+            <tr class="state-row"><td colspan="5"><span class="spinner"></span>Loading earnings calendar…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── 4. GOLDEN SWEEPS ── -->
+    <div class="intel-section" id="sec-sweeps">
+      <div class="section-header" onclick="toggleSection('sweeps')">
+        <div class="section-accent" style="background:var(--green)"></div>
+        <span class="section-icon">⚡</span>
+        <span class="section-name">GOLDEN SWEEPS</span>
+        <span class="section-meta" id="sweeps-meta">Options Flow · Vol/OI ≥ 2.5x · 90s refresh</span>
+        <span class="section-badge" id="badge-sweeps" style="background:rgba(0,230,118,0.08);color:var(--green)">—</span>
+        <button class="section-refresh" onclick="event.stopPropagation();loadSweeps()">↻</button>
+        <span class="section-toggle open" id="toggle-sweeps">▲</span>
+      </div>
+      <div class="section-body" id="body-sweeps">
+        <div class="section-controls">
+          <button class="filter-btn active" id="filter-all" onclick="setSweepFilter('all')">ALL</button>
+          <button class="filter-btn" id="filter-call" onclick="setSweepFilter('call')">CALLS</button>
+          <button class="filter-btn" id="filter-put" onclick="setSweepFilter('put')">PUTS</button>
+          <span class="sort-label">Sort by</span>
+          <select class="sort-select" id="sweepSort" onchange="renderSweeps()">
+            <option value="premium">Premium</option>
+            <option value="vol">Volume</option>
+            <option value="ratio">Vol/OI Ratio</option>
+          </select>
+        </div>
+        <table class="data-table">
+          <thead><tr>
+            <th>Symbol</th><th>Type</th><th>Strike</th><th>Expiry</th>
+            <th>Volume</th><th>OI</th><th>Vol/OI</th><th>Est Premium</th><th>IV</th>
+          </tr></thead>
+          <tbody id="rows-sweeps">
+            <tr class="state-row"><td colspan="9"><span class="spinner"></span>Scanning options flow…</td></tr>
+          </tbody>
+        </table>
+        <div class="show-more-row" id="more-sweeps" hidden>
+          <button class="show-more-btn" onclick="showMore('sweeps')">▼ Show more sweeps</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 5. DARK POOL SIGNALS ── -->
+    <div class="intel-section" id="sec-darkpool">
+      <div class="section-header" onclick="toggleSection('darkpool')">
+        <div class="section-accent" style="background:var(--blue)"></div>
+        <span class="section-icon">🌑</span>
+        <span class="section-name">DARK POOL SIGNALS</span>
+        <span class="section-meta">FINRA ATS · 1 week delayed · 1h refresh</span>
+        <span class="section-badge" id="badge-darkpool" style="background:rgba(68,138,255,0.08);color:var(--blue)">—</span>
+        <button class="section-refresh" onclick="event.stopPropagation();loadDarkPool()">↻</button>
+        <span class="section-toggle open" id="toggle-darkpool">▲</span>
+      </div>
+      <div class="section-body" id="body-darkpool">
+        <table class="data-table">
+          <thead><tr>
+            <th>Symbol</th><th>Dark Pool Vol</th><th>Total Vol</th><th>Dark %</th><th>Signal</th>
+          </tr></thead>
+          <tbody id="rows-darkpool">
+            <tr class="state-row"><td colspan="5"><span class="spinner"></span>Loading FINRA ATS data…</td></tr>
+          </tbody>
+        </table>
+        <div class="section-note">⚠ FINRA ATS data is aggregated weekly — not real-time. Use for trend context only.</div>
+      </div>
+    </div>
+
+    <!-- ── 6. DEMAND ZONES & LIQUIDITY ── -->
+    <div class="intel-section" id="sec-zones">
+      <div class="section-header" onclick="toggleSection('zones')">
+        <div class="section-accent" style="background:var(--purple)"></div>
+        <span class="section-icon">📊</span>
+        <span class="section-name">DEMAND ZONES &amp; LIQUIDITY</span>
+        <span class="section-meta" id="zones-meta">Candle analysis + Binance depth · 10m refresh</span>
+        <span class="section-badge" id="badge-zones" style="background:rgba(179,136,255,0.08);color:var(--purple)">—</span>
+        <button class="section-refresh" onclick="event.stopPropagation();loadZones()">↻</button>
+        <span class="section-toggle open" id="toggle-zones">▲</span>
+      </div>
+      <div class="section-body" id="body-zones">
+        <table class="data-table">
+          <thead><tr>
+            <th>Symbol</th><th>Zone Range</th><th>Strength</th><th>Type</th><th>Detail</th>
+          </tr></thead>
+          <tbody id="rows-zones">
+            <tr class="state-row"><td colspan="5"><span class="spinner"></span>Computing zones…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+
+  <footer class="page-footer">
+    <span>MARKET INTELLIGENCE — Data: SEC EDGAR · NASDAQ · Yahoo Finance · FINRA ATS · Binance</span>
+    <span id="lastSync">—</span>
+  </footer>
+</div>
+
+<script src="assets/dto-animations.js"></script>
+<script>
+// ── Clock ──
+function tickClock() {
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+tickClock();
+setInterval(tickClock, 1000);
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtNum(n) {
+  if (!n && n !== 0) return '—';
+  if (n >= 1e9) return `${(n/1e9).toFixed(1)}B`;
+  if (n >= 1e6) return `${(n/1e6).toFixed(1)}M`;
+  if (n >= 1e3) return `${(n/1e3).toFixed(0)}K`;
+  return String(n);
+}
+function fmtPremium(n) {
+  if (!n) return '—';
+  if (n >= 1e6) return `$${(n/1e6).toFixed(2)}M`;
+  if (n >= 1e3) return `$${(n/1e3).toFixed(0)}K`;
+  return `$${n}`;
+}
+
+// ── Section toggle ──
+function toggleSection(id) {
+  const body = document.getElementById(`body-${id}`);
+  const tog  = document.getElementById(`toggle-${id}`);
+  const isHidden = body.hasAttribute('hidden');
+  if (isHidden) { body.removeAttribute('hidden'); tog.classList.add('open'); }
+  else          { body.setAttribute('hidden',''); tog.classList.remove('open'); }
+}
+
+// ── Badge helper ──
+function setBadge(id, count, hasData) {
+  const el = document.getElementById(`badge-${id}`);
+  if (!el) return;
+  el.textContent = hasData ? String(count) : '!';
+}
+
+// ── Show more ──
+const showMoreState = { insider: 8, sweeps: 8 };
+const allData = { insider: [], sweeps: [] };
+
+function showMore(key) {
+  showMoreState[key] += 10;
+  if (key === 'insider') renderInsiderRows();
+  if (key === 'sweeps')  renderSweeps();
+}
+
+// ── Symbol Pools ──
+const STOCK_POOL = [
+  'SPY','QQQ','AAPL','TSLA','NVDA','AMD','META','MSFT','AMZN','GOOGL',
+  'NFLX','CRM','ORCL','AVGO','QCOM','MU','INTC','TXN','NOW','SNOW',
+  'JPM','GS','BAC','MS','V','MA','PYPL','COIN','HOOD','PLTR',
+];
+const CRYPTO_POOL_SYMBOLS = ['BTC','ETH','SOL','DOGE','XRP','BNB','AVAX','LINK','ADA','MATIC'];
+const CRYPTO_PAIRS = {
+  BTC:'BTCUSDT', ETH:'ETHUSDT', SOL:'SOLUSDT', DOGE:'DOGEUSDT', XRP:'XRPUSDT',
+  BNB:'BNBUSDT', AVAX:'AVAXUSDT', LINK:'LINKUSDT', ADA:'ADAUSDT', MATIC:'MATICUSDT',
+};
+let sweepBatchIdx = 0;
+let zoneBatchIdx  = 0;
+
+function getRotatingBatch(pool, size, idx) {
+  const doubled = [...pool, ...pool];
+  const start = (idx * size) % pool.length;
+  return doubled.slice(start, start + size);
+}
+
+// ── 1. HALT SCANNER ──
+async function loadHalts() {
+  const tbody = document.getElementById('rows-halts');
+  tbody.innerHTML = '<tr class="state-row"><td colspan="6"><span class="spinner"></span>Fetching halts…</td></tr>';
+  try {
+    const resp = await fetch('/api/halts');
+    const data = await resp.json();
+    if (!data.ok) throw new Error(data.error || 'API error');
+    setBadge('halts', data.halts.length, true);
+
+    const lgEl = document.getElementById('haltCountLg');
+    if (data.halts.length > 0) {
+      lgEl.textContent = data.halts.length;
+      lgEl.removeAttribute('hidden');
+    } else {
+      lgEl.setAttribute('hidden','');
+    }
+
+    if (!data.halts.length) {
+      tbody.innerHTML = '<tr class="state-row"><td colspan="6" style="color:var(--green)">✓ No active trading halts</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.halts.map(h => `
+      <tr>
+        <td class="c-bright" style="font-weight:700">${escHtml(h.symbol)}</td>
+        <td class="c-muted">${escHtml(h.market)}</td>
+        <td class="halt-${h.reasonCode}">${escHtml(h.reasonCode)}</td>
+        <td class="${'halt-'+h.reasonCode}">${escHtml(h.reason)}</td>
+        <td>${escHtml(h.haltDate)} ${escHtml(h.haltTime)}</td>
+        <td>${h.resumeTime ? `${escHtml(h.resumeDate)} ${escHtml(h.resumeTime)}` : '<span class="c-muted">Pending</span>'}</td>
+      </tr>`).join('');
+  } catch(e) {
+    setBadge('halts', 0, false);
+    tbody.innerHTML = `<tr class="state-row"><td colspan="6">⚠ ${escHtml(e.message)}</td></tr>`;
+  }
+}
+
+// ── 2. INSIDER TRADES ──
+function renderInsiderRows() {
+  const tbody = document.getElementById('rows-insider');
+  const moreBtn = document.getElementById('more-insider');
+  const rows = allData.insider;
+  const limit = showMoreState.insider;
+  const visible = rows.slice(0, limit);
+  tbody.innerHTML = visible.map(f => `
+    <tr>
+      <td class="c-bright">${escHtml(f.issuer)}</td>
+      <td class="c-gold" style="font-weight:700">${escHtml(f.ticker) || '<span class="c-muted">—</span>'}</td>
+      <td>${escHtml(f.filer) || '<span class="c-muted">—</span>'}</td>
+      <td class="c-muted">${escHtml(f.fileDate)}</td>
+      <td><a href="${escHtml(f.url)}" target="_blank" rel="noopener">View ↗</a></td>
+    </tr>`).join('');
+  if (rows.length > limit) moreBtn.removeAttribute('hidden');
+  else moreBtn.setAttribute('hidden','');
+}
+
+async function loadInsider() {
+  const tbody = document.getElementById('rows-insider');
+  tbody.innerHTML = '<tr class="state-row"><td colspan="5"><span class="spinner"></span>Fetching Form 4 filings…</td></tr>';
+  try {
+    const resp = await fetch('/api/insider?limit=60');
+    const data = await resp.json();
+    if (!data.ok) throw new Error(data.error || 'API error');
+    allData.insider = data.filings;
+    setBadge('insider', data.count, true);
+    if (!data.filings.length) {
+      tbody.innerHTML = '<tr class="state-row"><td colspan="5">No Form 4 filings found in the last 48 hours.</td></tr>';
+      return;
+    }
+    showMoreState.insider = 8;
+    renderInsiderRows();
+  } catch(e) {
+    setBadge('insider', 0, false);
+    tbody.innerHTML = `<tr class="state-row"><td colspan="5">⚠ ${escHtml(e.message)}</td></tr>`;
+  }
+}
+
+// ── 3. EARNINGS ──
+let earningsSymbols = [];
+
+async function loadEarnings() {
+  const tbody = document.getElementById('rows-earnings');
+  tbody.innerHTML = '<tr class="state-row"><td colspan="5"><span class="spinner"></span>Loading earnings calendar…</td></tr>';
+  try {
+    const symParam = earningsSymbols.length ? `?symbols=${earningsSymbols.join(',')}` : '';
+    const resp = await fetch(`/api/earnings${symParam}`);
+    const data = await resp.json();
+    if (!data.ok) throw new Error(data.error || 'API error');
+    setBadge('earnings', data.count, true);
+    if (!data.earnings.length) {
+      tbody.innerHTML = '<tr class="state-row"><td colspan="5">No earnings reports found in the next 7 days for tracked symbols.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.earnings.map(e => `
+      <tr>
+        <td class="c-bright" style="font-weight:700">${escHtml(e.dayName)}</td>
+        <td class="c-gold" style="font-weight:700">${escHtml(e.symbol)}</td>
+        <td><span class="badge-pill badge-${e.when}">${e.when === 'bmo' ? 'Pre-Market' : 'After-Market'}</span></td>
+        <td>${e.epsEstimate !== null ? `<span class="c-green">$${Number(e.epsEstimate).toFixed(2)}</span>` : '<span class="c-muted">—</span>'}</td>
+        <td class="c-muted">${escHtml(e.date)}</td>
+      </tr>`).join('');
+  } catch(e) {
+    setBadge('earnings', 0, false);
+    tbody.innerHTML = `<tr class="state-row"><td colspan="5">⚠ ${escHtml(e.message)}</td></tr>`;
+  }
+}
+
+function addEarningsSymbol() {
+  const input = document.getElementById('earningsSymInput');
+  const val = input.value.trim().toUpperCase();
+  if (!val) return;
+  const syms = val.split(',').map(s => s.trim()).filter(Boolean);
+  earningsSymbols = [...new Set([...earningsSymbols, ...syms])];
+  input.value = '';
+  loadEarnings();
+}
+document.getElementById('earningsSymInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addEarningsSymbol();
+});
+
+// ── 4. GOLDEN SWEEPS (rotating batches) ──
+let sweepFilter = 'all';
+let rawSweeps   = [];
+
+function setSweepFilter(f) {
+  sweepFilter = f;
+  ['all','call','put'].forEach(k => {
+    document.getElementById(`filter-${k}`)?.classList.toggle('active', k === f);
+  });
+  showMoreState.sweeps = 8;
+  renderSweeps();
+}
+
+function renderSweeps() {
+  const tbody = document.getElementById('rows-sweeps');
+  const moreBtn = document.getElementById('more-sweeps');
+  const sortKey = document.getElementById('sweepSort')?.value || 'premium';
+
+  let rows = rawSweeps;
+  if (sweepFilter !== 'all') rows = rows.filter(s => s.type === sweepFilter);
+  rows = [...rows].sort((a, b) => {
+    if (sortKey === 'vol') return b.volume - a.volume;
+    if (sortKey === 'ratio') return b.volOiRatio - a.volOiRatio;
+    return b.premiumEst - a.premiumEst;
+  });
+
+  // Featured top sweep
+  let fsEl = document.querySelector('#body-sweeps .featured-sweep');
+  if (fsEl) fsEl.remove();
+  if (rows.length) {
+    const top = rows[0];
+    const div = document.createElement('div');
+    div.className = 'featured-sweep';
+    div.innerHTML = `<span class="fs-label">TOP SWEEP</span>
+      <span class="fs-sym">${escHtml(top.symbol)}</span>
+      <span class="badge-pill badge-${top.type}" style="margin:0 4px">${top.type.toUpperCase()}</span>
+      <span class="fs-info">$${top.strike} · ${escHtml(top.expiry)}</span>
+      <span class="fs-premium">${fmtPremium(top.premiumEst)}</span>`;
+    const table = document.querySelector('#body-sweeps table');
+    if (table) document.getElementById('body-sweeps').insertBefore(div, table);
+  }
+
+  const limit = showMoreState.sweeps;
+  const visible = rows.slice(0, limit);
+  tbody.innerHTML = visible.map(s => `
+    <tr>
+      <td class="c-bright" style="font-weight:700">${escHtml(s.symbol)}</td>
+      <td><span class="badge-pill badge-${s.type}">${s.type.toUpperCase()}</span></td>
+      <td class="c-bright">$${s.strike}</td>
+      <td class="c-muted">${escHtml(s.expiry)}</td>
+      <td class="${s.type==='call'?'c-green':'c-red'}" style="font-weight:700">${fmtNum(s.volume)}</td>
+      <td class="c-muted">${fmtNum(s.openInterest)}</td>
+      <td class="c-gold" style="font-weight:700">${s.volOiRatio}x</td>
+      <td class="${s.type==='call'?'c-green':'c-red'}" style="font-weight:700">${fmtPremium(s.premiumEst)}</td>
+      <td class="c-muted">${s.impliedVolatility ? s.impliedVolatility+'%' : '—'}</td>
+    </tr>`).join('');
+
+  if (rows.length > limit) moreBtn.removeAttribute('hidden');
+  else moreBtn.setAttribute('hidden','');
+}
+
+async function loadSweeps() {
+  const tbody = document.getElementById('rows-sweeps');
+  tbody.innerHTML = '<tr class="state-row"><td colspan="9"><span class="spinner"></span>Scanning options flow…</td></tr>';
+  try {
+    const batch = getRotatingBatch(STOCK_POOL, 10, sweepBatchIdx);
+    sweepBatchIdx++;
+    const batchNum = sweepBatchIdx;
+    const totalBatches = Math.ceil(STOCK_POOL.length / 10);
+    document.getElementById('sweeps-meta').textContent =
+      `Options Flow · batch ${((batchNum - 1) % totalBatches) + 1}/${totalBatches} · Vol/OI ≥ 2.5x`;
+
+    const resp = await fetch(`/api/options-flow?symbols=${batch.join(',')}`);
+    const data = await resp.json();
+    if (!data.ok) throw new Error(data.error || 'API error');
+    rawSweeps = data.sweeps;
+    setBadge('sweeps', data.count, true);
+    if (!data.sweeps.length) {
+      tbody.innerHTML = '<tr class="state-row"><td colspan="9">No unusual options activity detected in this batch.</td></tr>';
+      // Still update featured sweep removal
+      const fsEl = document.querySelector('#body-sweeps .featured-sweep');
+      if (fsEl) fsEl.remove();
+      return;
+    }
+    showMoreState.sweeps = 8;
+    renderSweeps();
+  } catch(e) {
+    setBadge('sweeps', 0, false);
+    tbody.innerHTML = `<tr class="state-row"><td colspan="9">⚠ ${escHtml(e.message)}</td></tr>`;
+  }
+}
+
+// ── 5. DARK POOL (FINRA ATS via client-side fetch) ──
+async function loadDarkPool() {
+  const tbody = document.getElementById('rows-darkpool');
+  tbody.innerHTML = '<tr class="state-row"><td colspan="5"><span class="spinner"></span>Fetching FINRA ATS data…</td></tr>';
+  try {
+    const filesResp = await fetch('https://api.finra.org/data/group/otcMarket/name/weeklyDownloadFiles', {
+      headers: { 'Accept': 'application/json' }
+    });
+    if (!filesResp.ok) throw new Error('FINRA API unavailable');
+    const filesList = await filesResp.json();
+
+    const consolidated = (filesList || []).find(f =>
+      f.label && f.label.toLowerCase().includes('consolidated') ||
+      f.fileName && f.fileName.toLowerCase().includes('consolidated')
+    ) || filesList?.[0];
+
+    if (!consolidated) throw new Error('No ATS file found');
+    const fileUrl = consolidated.downloadURL || consolidated.url || '';
+    if (!fileUrl) throw new Error('No download URL');
+
+    const csvResp = await fetch(fileUrl);
+    const csv = await csvResp.text();
+    const lines = csv.split(/\r?\n/).filter(Boolean);
+
+    const symTotals = {};
+    const symDark   = {};
+
+    for (let i = 1; i < lines.length; i++) {
+      const parts = lines[i].split(',').map(p => p.replace(/"/g,'').trim());
+      const sym = parts[1] || '';
+      const darkVol  = parseFloat(parts[2]) || 0;
+      const totalVol = parseFloat(parts[3]) || 0;
+      if (!sym || sym.length > 6) continue;
+      symDark[sym]   = (symDark[sym]  || 0) + darkVol;
+      symTotals[sym] = (symTotals[sym]|| 0) + totalVol;
+    }
+
+    const sorted = Object.keys(symTotals)
+      .filter(s => symTotals[s] > 0)
+      .map(s => ({
+        symbol:   s,
+        darkVol:  symDark[s] || 0,
+        totalVol: symTotals[s],
+        darkPct:  symTotals[s] > 0 ? (symDark[s] / symTotals[s]) * 100 : 0,
+      }))
+      .sort((a, b) => b.darkPct - a.darkPct)
+      .slice(0, 25);
+
+    setBadge('darkpool', sorted.length, true);
+    if (!sorted.length) throw new Error('No ATS data parsed');
+
+    tbody.innerHTML = sorted.map(r => {
+      const pct = r.darkPct.toFixed(1);
+      const signal = r.darkPct >= 50 ? '<span class="c-red">VERY HIGH</span>'
+                   : r.darkPct >= 40 ? '<span class="c-orange">HIGH</span>'
+                   : r.darkPct >= 30 ? '<span class="c-gold">MODERATE</span>'
+                   : '<span class="c-muted">LOW</span>';
+      return `
+        <tr>
+          <td class="c-bright" style="font-weight:700">${escHtml(r.symbol)}</td>
+          <td class="c-blue">${fmtNum(r.darkVol)}</td>
+          <td class="c-muted">${fmtNum(r.totalVol)}</td>
+          <td class="c-blue" style="font-weight:700">${pct}%</td>
+          <td>${signal}</td>
+        </tr>`;
+    }).join('');
+
+  } catch(e) {
+    setBadge('darkpool', 0, false);
+    tbody.innerHTML = `<tr class="state-row"><td colspan="5">⚠ FINRA ATS unavailable: ${escHtml(e.message)}</td></tr>`;
+  }
+}
+
+// ── 6. DEMAND ZONES & LIQUIDITY (rotating batches) ──
+async function computeDemandZones(symbol) {
+  const resp = await fetch(`/api/candles?symbol=${symbol}&interval=1d&limit=200`);
+  const data = await resp.json();
+  if (!data.ok || !data.candles || data.candles.length < 30) return null;
+
+  const candles = data.candles;
+  const vols = candles.map(c => c.volume || 0);
+  const avgVol = vols.reduce((a,b) => a+b, 0) / vols.length;
+
+  const zones = [];
+  for (let i = 5; i < candles.length - 5; i++) {
+    const c = candles[i];
+    const body = Math.abs(c.close - c.open);
+    const isGreen = c.close >= c.open;
+    if (!isGreen) continue;
+    if ((c.volume || 0) < avgVol * 1.3) continue;
+
+    const futureHigh = Math.max(...candles.slice(i+1, i+6).map(x => x.close));
+    const rally = (futureHigh - c.close) / c.close;
+    if (rally < 0.04) continue;
+
+    const prior = candles.slice(Math.max(0,i-10), i);
+    const wasDepressed = prior.some(p => p.low <= c.low * 1.01);
+    if (!wasDepressed) continue;
+
+    const zoneHigh = c.open + body * 0.5;
+    const zoneLow  = c.low;
+    const daysAgo  = candles.length - 1 - i;
+    const strength = rally > 0.08 ? 'STRONG' : rally > 0.04 ? 'MODERATE' : 'WEAK';
+    zones.push({ symbol, zoneLow, zoneHigh, strength, daysAgo, type: 'Demand' });
+  }
+
+  return zones.length ? zones[zones.length - 1] : null;
+}
+
+async function fetchBinanceLiqWall(symbol, pair) {
+  const resp = await fetch(`https://api.binance.com/api/v3/depth?symbol=${pair}&limit=20`);
+  const data = await resp.json();
+  if (!data.bids || !data.asks) return null;
+
+  const sumNotional = (arr) => arr.reduce((a, [p, q]) => a + parseFloat(p) * parseFloat(q), 0);
+
+  let bestBid = { notional: 0, price: 0 };
+  for (let i = 0; i < data.bids.length - 3; i++) {
+    const slice = data.bids.slice(i, i + 4);
+    const notional = sumNotional(slice);
+    if (notional > bestBid.notional) bestBid = { notional, price: parseFloat(data.bids[i][0]) };
+  }
+
+  let bestAsk = { notional: 0, price: 0 };
+  for (let i = 0; i < data.asks.length - 3; i++) {
+    const slice = data.asks.slice(i, i + 4);
+    const notional = sumNotional(slice);
+    if (notional > bestAsk.notional) bestAsk = { notional, price: parseFloat(data.asks[i][0]) };
+  }
+
+  const results = [];
+  if (bestBid.notional >= 100000) {
+    results.push({
+      symbol, zoneLow: bestBid.price * 0.9995, zoneHigh: bestBid.price,
+      strength: bestBid.notional >= 1e6 ? 'STRONG' : 'MODERATE',
+      type: `Bid Wall ($${bestBid.notional >= 1e6 ? (bestBid.notional/1e6).toFixed(1)+'M' : (bestBid.notional/1e3).toFixed(0)+'K'})`,
+      daysAgo: null,
+    });
+  }
+  if (bestAsk.notional >= 100000) {
+    results.push({
+      symbol, zoneLow: bestAsk.price, zoneHigh: bestAsk.price * 1.0005,
+      strength: bestAsk.notional >= 1e6 ? 'STRONG' : 'MODERATE',
+      type: `Ask Wall ($${bestAsk.notional >= 1e6 ? (bestAsk.notional/1e6).toFixed(1)+'M' : (bestAsk.notional/1e3).toFixed(0)+'K'})`,
+      daysAgo: null,
+    });
+  }
+  return results;
+}
+
+async function loadZones() {
+  const tbody = document.getElementById('rows-zones');
+  tbody.innerHTML = '<tr class="state-row"><td colspan="5"><span class="spinner"></span>Computing zones…</td></tr>';
+  try {
+    const stockBatch  = getRotatingBatch(STOCK_POOL, 8, zoneBatchIdx);
+    const cryptoBatch = getRotatingBatch(CRYPTO_POOL_SYMBOLS, 3, zoneBatchIdx);
+    zoneBatchIdx++;
+
+    document.getElementById('zones-meta').textContent =
+      `Candle analysis + Binance depth · ${stockBatch.join(', ')} + ${cryptoBatch.join(', ')}`;
+
+    const results = [];
+
+    const stockResults = await Promise.allSettled(
+      stockBatch.map(s => computeDemandZones(s))
+    );
+    stockResults.forEach(r => {
+      if (r.status === 'fulfilled' && r.value) results.push(r.value);
+    });
+
+    const cryptoResults = await Promise.allSettled(
+      cryptoBatch
+        .filter(s => CRYPTO_PAIRS[s])
+        .map(s => fetchBinanceLiqWall(s, CRYPTO_PAIRS[s]).then(arr => arr || []))
+    );
+    cryptoResults.forEach(r => {
+      if (r.status === 'fulfilled') results.push(...r.value);
+    });
+
+    setBadge('zones', results.length, true);
+    if (!results.length) {
+      tbody.innerHTML = '<tr class="state-row"><td colspan="5">No significant demand zones detected in current data.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = results.map(z => {
+      const hi = z.zoneHigh >= 100 ? z.zoneHigh.toFixed(2) : z.zoneHigh.toFixed(4);
+      const lo = z.zoneLow  >= 100 ? z.zoneLow.toFixed(2)  : z.zoneLow.toFixed(4);
+      const strengthColor = z.strength === 'STRONG' ? 'c-green' : z.strength === 'MODERATE' ? 'c-gold' : 'c-muted';
+      const lastTest = z.daysAgo !== null ? (z.daysAgo === 0 ? 'Today' : `${z.daysAgo}d ago`) : 'Live';
+      return `
+        <tr>
+          <td class="c-bright" style="font-weight:700">${escHtml(z.symbol)}</td>
+          <td class="c-purple">$${escHtml(lo)} – $${escHtml(hi)}</td>
+          <td class="${strengthColor}" style="font-weight:700">${escHtml(z.strength)}</td>
+          <td class="c-muted">${escHtml(z.type)}</td>
+          <td class="c-muted">${escHtml(lastTest)}</td>
+        </tr>`;
+    }).join('');
+  } catch(e) {
+    setBadge('zones', 0, false);
+    tbody.innerHTML = `<tr class="state-row"><td colspan="5">⚠ ${escHtml(e.message)}</td></tr>`;
+  }
+}
+
+// ── Ticker Strip ──
+async function loadTicker() {
+  const track = document.getElementById('tickerTrack');
+  const TICKER_STOCKS  = ['SPY','QQQ','AAPL','TSLA','NVDA','MSFT'];
+  const TICKER_CRYPTOS = ['BTCUSDT','ETHUSDT','SOLUSDT'];
+
+  const stockResults = await Promise.allSettled(
+    TICKER_STOCKS.map(sym =>
+      fetch(`/api/candles?symbol=${sym}&interval=1d&limit=2`).then(r => r.json())
+    )
+  );
+  const cryptoResults = await Promise.allSettled(
+    TICKER_CRYPTOS.map(pair =>
+      fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${pair}`).then(r => r.json())
+    )
+  );
+
+  const items = [];
+
+  TICKER_STOCKS.forEach((sym, i) => {
+    const r = stockResults[i];
+    if (r.status !== 'fulfilled' || !r.value.ok || !r.value.candles?.length) return;
+    const candles = r.value.candles;
+    if (candles.length < 2) return;
+    const prev  = candles[candles.length - 2].close;
+    const last  = candles[candles.length - 1].close;
+    const pct   = ((last - prev) / prev * 100).toFixed(2);
+    const cls   = pct > 0 ? 't-up' : pct < 0 ? 't-down' : 't-flat';
+    const sign  = pct > 0 ? '+' : '';
+    const price = last >= 1000 ? last.toFixed(0) : last >= 100 ? last.toFixed(2) : last.toFixed(2);
+    items.push(`<span class="ticker-item"><span class="t-sym">${sym}</span><span class="t-price">$${price}</span><span class="${cls}">${sign}${pct}%</span></span>`);
+  });
+
+  const cryptoLabels = ['BTC','ETH','SOL'];
+  TICKER_CRYPTOS.forEach((pair, i) => {
+    const r = cryptoResults[i];
+    if (r.status !== 'fulfilled' || r.value.code) return;
+    const d    = r.value;
+    const last = parseFloat(d.lastPrice);
+    const pct  = parseFloat(d.priceChangePercent).toFixed(2);
+    const cls  = pct > 0 ? 't-up' : pct < 0 ? 't-down' : 't-flat';
+    const sign = pct > 0 ? '+' : '';
+    const price = last >= 10000 ? last.toFixed(0) : last >= 100 ? last.toFixed(2) : last.toFixed(4);
+    items.push(`<span class="ticker-item"><span class="t-sym">${cryptoLabels[i]}</span><span class="t-price">$${price}</span><span class="${cls}">${sign}${pct}%</span></span>`);
+  });
+
+  if (!items.length) return;
+
+  const sep = '<span class="ticker-sep">·</span>';
+  const content = items.join(sep);
+  track.innerHTML = content + sep + content; // duplicate for seamless loop
+}
+
+// ── Sync All ──
+function syncAll() {
+  loadHalts();
+  loadInsider();
+  loadEarnings();
+  loadSweeps();
+  loadDarkPool();
+  loadZones();
+  loadTicker();
+  const now = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('lastSync').textContent = `Last sync: ${now}`;
+}
+
+document.getElementById('syncAllBtn').addEventListener('click', syncAll);
+
+// ── Auto-refresh intervals ──
+setInterval(loadHalts,    60000);
+setInterval(loadSweeps,   90000);
+setInterval(loadInsider,  300000);
+setInterval(loadEarnings, 3600000);
+setInterval(loadDarkPool, 3600000);
+setInterval(loadZones,    600000);
+setInterval(loadTicker,   60000);
+
+// ── Boot ──
+syncAll();
+</script>
+</body>
+</html>

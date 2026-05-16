@@ -7,147 +7,194 @@
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&family=Barlow+Condensed:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg:#020305; --s1:#070a10; --s2:#0b1018; --s3:#101520;
-  --border:#141d2a; --border2:#1e2d40;
-  --cyan:#00e5ff; --cyan2:#00b8d4;
-  --green:#00e676; --red:#ff3d71;
-  --gold:#ffc400; --purple:#b388ff;
-  --text:#8baabb; --bright:#d0e8f8; --muted:#2a3d50; --white:#f0f8ff;
+  --bg:#f5f5f7; --s1:#ffffff; --s2:#f5f5f7; --s3:#ebebf0;
+  --border:rgba(0,0,0,0.06); --border2:rgba(0,0,0,0.10);
+  --cyan:#0066ff; --cyan2:#0052cc;
+  --green:#00c805; --red:#ff3b30;
+  --gold:#ff9500; --purple:#5e5ce6;
+  --text:#3a3a3c; --bright:#1d1d1f; --muted:#6e6e73; --white:#1d1d1f;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{background:var(--bg);color:var(--text);font-family:'Barlow Condensed',sans-serif;min-height:100vh;overflow-x:hidden;}
-body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,0.02) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
-.wrap{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;min-height:100vh;overflow-x:hidden;}
 
-/* HEADER */
-.header{display:flex;justify-content:space-between;align-items:center;padding:15px 28px;border-bottom:1px solid var(--border);background:rgba(7,10,16,0.97);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100;}
-.logo{font-family:'JetBrains Mono',monospace;font-size:1.2em;font-weight:800;color:var(--white);letter-spacing:4px;}
+/* HEADER — dark chrome */
+.header{display:flex;justify-content:space-between;align-items:center;padding:14px 28px;border-bottom:1px solid rgba(255,255,255,0.08);background:#0f0f12;backdrop-filter:blur(20px);position:sticky;top:0;z-index:100;}
+.logo{font-family:-apple-system,"SF Pro Display","Inter",system-ui,sans-serif;font-size:1em;font-weight:700;color:#f5f5f7;letter-spacing:-0.01em;}
 .logo a{color:inherit;text-decoration:none;}
-.logo-accent{color:var(--cyan);}
-.header-right{display:flex;align-items:center;gap:12px;}
-.header-pill{display:flex;align-items:center;gap:6px;background:rgba(179,136,255,0.08);border:1px solid rgba(179,136,255,0.25);border-radius:20px;padding:4px 12px;font-family:'JetBrains Mono',monospace;font-size:0.6em;color:var(--purple);letter-spacing:2px;}
-.pulse{width:6px;height:6px;background:var(--purple);border-radius:50%;animation:pulse 2s infinite;}
+.logo-accent{color:#00c805;}
+.header-right{display:flex;align-items:center;gap:10px;}
+.header-pill{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:4px 12px;font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.65em;color:rgba(245,245,247,0.7);letter-spacing:0.04em;}
+.pulse{width:6px;height:6px;background:#00c805;border-radius:50%;animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.3;transform:scale(.7);}}
-.back-link{font-family:'JetBrains Mono',monospace;font-size:0.65em;color:var(--text);text-decoration:none;letter-spacing:1px;border:1px solid var(--border2);border-radius:4px;padding:5px 10px;transition:border-color .2s,color .2s;}
-.back-link:hover{border-color:var(--cyan2);color:var(--cyan);}
+.back-link{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.75em;color:rgba(245,245,247,0.7);text-decoration:none;border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:6px 12px;transition:background .15s,color .15s;}
+.back-link:hover{background:rgba(255,255,255,0.08);color:#f5f5f7;}
+
+/* PAGE NAV — stays dark chrome */
+.page-nav{display:flex;border-bottom:1px solid rgba(255,255,255,0.06);background:#0f0f12;padding:0 28px;}
+.page-nav-link{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.72em;color:rgba(245,245,247,0.5);text-decoration:none;padding:9px 16px;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;letter-spacing:0.01em;}
+.page-nav-link:hover{color:rgba(245,245,247,0.8);}
+.page-nav-link.active{color:#f5f5f7;border-bottom-color:#00c805;}
 
 /* LAYOUT */
 .layout{display:grid;grid-template-columns:1fr 320px;gap:20px;padding:20px 24px;flex:1;align-items:start;}
+.wrap{position:relative;z-index:1;display:flex;flex-direction:column;min-height:100vh;padding-bottom:36px;}
 
 /* MAIN PANEL */
 .main-panel{display:flex;flex-direction:column;gap:16px;}
 .panel-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
-.panel-title{font-family:'JetBrains Mono',monospace;font-size:0.65em;letter-spacing:3px;color:var(--cyan);text-transform:uppercase;}
+.panel-title{font-family:-apple-system,"SF Pro Display","Inter",system-ui,sans-serif;font-size:1.1em;font-weight:600;color:#1d1d1f;}
 
 /* CATEGORY TABS */
 .category-tabs{display:flex;gap:6px;flex-wrap:wrap;}
-.cat-tab{font-family:'JetBrains Mono',monospace;font-size:0.6em;letter-spacing:2px;padding:5px 12px;border:1px solid var(--border2);border-radius:20px;background:transparent;color:var(--text);cursor:pointer;transition:all .15s;}
-.cat-tab:hover{border-color:var(--purple);color:var(--purple);}
-.cat-tab.active{background:rgba(179,136,255,0.1);border-color:var(--purple);color:var(--purple);}
+.cat-tab{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.75em;padding:5px 14px;border:1px solid rgba(0,0,0,0.1);border-radius:20px;background:#ffffff;color:#3a3a3c;cursor:pointer;transition:all .15s;box-shadow:0 1px 2px rgba(0,0,0,0.05);}
+.cat-tab:hover{border-color:rgba(0,0,0,0.2);background:#f5f5f7;}
+.cat-tab.active{background:#5e5ce6;border-color:#5e5ce6;color:#ffffff;box-shadow:0 2px 6px rgba(94,92,230,0.25);}
 
 /* SEARCH */
 .search-row{display:flex;gap:10px;align-items:center;}
-.search-input{flex:1;background:var(--s2);border:1px solid var(--border2);border-radius:6px;padding:8px 14px;color:var(--bright);font-family:'JetBrains Mono',monospace;font-size:0.7em;outline:none;transition:border-color .2s;}
-.search-input:focus{border-color:var(--purple);}
-.search-input::placeholder{color:var(--muted);}
-.refresh-btn{background:var(--s2);border:1px solid var(--border2);border-radius:6px;padding:8px 14px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:0.65em;cursor:pointer;transition:all .15s;white-space:nowrap;}
-.refresh-btn:hover{border-color:var(--cyan2);color:var(--cyan);}
+.search-input{flex:1;background:#ffffff;border:1px solid #d1d1d6;border-radius:10px;padding:10px 16px;color:#1d1d1f;font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.85em;outline:none;transition:border-color .15s,box-shadow .15s;box-shadow:0 1px 3px rgba(0,0,0,0.06);}
+.search-input:focus{border-color:#0066ff;box-shadow:0 0 0 3px rgba(0,102,255,0.1);}
+.search-input::placeholder{color:#aeaeb2;}
+.refresh-btn{background:#ffffff;border:1px solid rgba(0,0,0,0.1);border-radius:8px;padding:9px 16px;color:#3a3a3c;font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.78em;cursor:pointer;transition:background .15s,border-color .15s;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,0.05);}
+.refresh-btn:hover{background:#f5f5f7;border-color:rgba(0,0,0,0.18);}
+.refresh-hint{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.72em;color:#aeaeb2;}
 
 /* MARKET CARDS */
-.markets-grid{display:flex;flex-direction:column;gap:12px;}
-.market-card{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:16px;transition:border-color .2s,transform .15s;}
-.market-card:hover{border-color:var(--border2);transform:translateY(-1px);}
+.markets-grid{display:flex;flex-direction:column;gap:10px;}
+.market-card{background:#ffffff;border:1px solid rgba(0,0,0,0.06);border-radius:12px;padding:16px;transition:box-shadow .15s,transform .15s;box-shadow:0 1px 3px rgba(0,0,0,0.06),0 2px 8px rgba(0,0,0,0.03);}
+.market-card:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,0.1),0 1px 3px rgba(0,0,0,0.06);}
+.card-mega{border-color:rgba(255,149,0,0.2);box-shadow:0 1px 3px rgba(0,0,0,0.06),0 0 0 1px rgba(255,149,0,0.1);}
+.card-mega .vol-label{color:var(--gold);font-weight:600;}
+.card-prominent{border-color:rgba(0,102,255,0.15);}
 .card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;}
-.card-question{font-family:'Barlow Condensed',sans-serif;font-size:1.05em;font-weight:600;color:var(--bright);line-height:1.3;flex:1;}
+.card-question{font-family:-apple-system,"SF Pro Display","Inter",system-ui,sans-serif;font-size:0.95em;font-weight:600;color:#1d1d1f;line-height:1.4;flex:1;}
 .card-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
-.cat-badge{font-family:'JetBrains Mono',monospace;font-size:0.55em;letter-spacing:2px;padding:3px 8px;border-radius:3px;text-transform:uppercase;}
-.cat-badge.macro{background:rgba(255,196,0,0.1);color:var(--gold);border:1px solid rgba(255,196,0,0.2);}
-.cat-badge.crypto{background:rgba(0,229,255,0.08);color:var(--cyan);border:1px solid rgba(0,229,255,0.15);}
-.cat-badge.politics{background:rgba(255,61,113,0.08);color:var(--red);border:1px solid rgba(255,61,113,0.15);}
-.cat-badge.earnings{background:rgba(0,230,118,0.08);color:var(--green);border:1px solid rgba(0,230,118,0.15);}
-.cat-badge.general{background:rgba(179,136,255,0.08);color:var(--purple);border:1px solid rgba(179,136,255,0.15);}
-.vol-label{font-family:'JetBrains Mono',monospace;font-size:0.6em;color:var(--muted);}
+.cat-badge{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.66em;padding:3px 8px;border-radius:6px;font-weight:500;letter-spacing:0.02em;}
+.cat-badge.macro{background:rgba(255,149,0,0.1);color:#a85800;}
+.cat-badge.crypto{background:rgba(0,102,255,0.08);color:#0052cc;}
+.cat-badge.politics{background:rgba(255,59,48,0.08);color:#c00;}
+.cat-badge.earnings{background:rgba(0,200,5,0.08);color:#006800;}
+.cat-badge.general{background:rgba(94,92,230,0.08);color:#3634a3;}
+.vol-label{font-family:-apple-system,"SF Mono","Fira Code",monospace;font-size:0.68em;color:#aeaeb2;font-variant-numeric:tabular-nums;}
 
 /* OUTCOME BARS */
-.outcomes{display:flex;flex-direction:column;gap:6px;margin-bottom:12px;}
+.outcomes{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
 .outcome-row{display:flex;align-items:center;gap:10px;}
-.outcome-label{font-family:'JetBrains Mono',monospace;font-size:0.65em;font-weight:700;width:32px;flex-shrink:0;}
-.outcome-label.yes{color:var(--green);}
-.outcome-label.no{color:var(--red);}
-.bar-track{flex:1;height:6px;background:var(--s3);border-radius:3px;overflow:hidden;}
-.bar-fill{height:100%;border-radius:3px;transition:width .3s;}
-.bar-fill.yes{background:var(--green);}
-.bar-fill.no{background:var(--red);}
-.outcome-pct{font-family:'JetBrains Mono',monospace;font-size:0.7em;font-weight:700;width:38px;text-align:right;flex-shrink:0;}
-.outcome-pct.yes{color:var(--green);}
-.outcome-pct.no{color:var(--red);}
-.outcome-price{font-family:'JetBrains Mono',monospace;font-size:0.6em;color:var(--muted);width:42px;text-align:right;flex-shrink:0;}
+.outcome-label{font-family:-apple-system,"SF Mono","Fira Code",monospace;font-size:0.7em;font-weight:600;width:32px;flex-shrink:0;}
+.outcome-label.yes{color:#006800;}
+.outcome-label.no{color:#c00;}
+.outcome-label.ai{color:#3634a3;}
+.bar-track{flex:1;height:5px;background:#ebebf0;border-radius:3px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:3px;width:0%;transition:width 0.65s cubic-bezier(0.34,1.4,0.64,1);}
+.bar-fill.yes{background:#00c805;}
+.bar-fill.no{background:#ff3b30;}
+.bar-fill.ai{background:#5e5ce6;}
+.outcome-pct{font-family:-apple-system,"SF Mono","Fira Code",monospace;font-size:0.75em;font-weight:700;width:38px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums;}
+.outcome-pct.yes{color:#006800;}
+.outcome-pct.no{color:#c00;}
+.outcome-pct.ai{color:#3634a3;}
+.outcome-price{font-family:-apple-system,"SF Mono","Fira Code",monospace;font-size:0.65em;color:#aeaeb2;width:42px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums;}
+.outcomes-divider{height:1px;background:#e5e5ea;margin:4px 0;}
+.ai-basis{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.68em;color:#aeaeb2;padding:2px 0 0 42px;}
 
 /* CARD FOOTER */
-.card-footer{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
-.card-stats{font-family:'JetBrains Mono',monospace;font-size:0.58em;color:var(--muted);display:flex;gap:12px;}
-.card-actions{display:flex;gap:6px;}
-.card-btn{font-family:'JetBrains Mono',monospace;font-size:0.6em;letter-spacing:1px;padding:5px 10px;border-radius:4px;border:1px solid var(--border2);background:transparent;color:var(--text);cursor:pointer;transition:all .15s;}
-.card-btn:hover{border-color:var(--cyan2);color:var(--cyan);}
-.card-btn.pinned{border-color:var(--purple);color:var(--purple);background:rgba(179,136,255,0.08);}
-.card-btn.trade{border-color:rgba(0,230,118,0.3);color:var(--green);background:rgba(0,230,118,0.05);}
-.card-btn.trade:hover{background:rgba(0,230,118,0.1);}
+.card-footer{display:flex;flex-direction:column;gap:8px;}
+.card-stats{font-family:-apple-system,"SF Mono","Fira Code",monospace;font-size:0.68em;color:#aeaeb2;display:flex;gap:12px;flex-wrap:wrap;font-variant-numeric:tabular-nums;}
+.card-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.card-btn{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.75em;padding:5px 12px;border-radius:6px;border:1px solid rgba(0,0,0,0.1);background:#ffffff;color:#3a3a3c;cursor:pointer;transition:background .12s,border-color .12s;}
+.card-btn:hover{background:#f5f5f7;border-color:rgba(0,0,0,0.18);}
+.card-btn.pinned{border-color:rgba(94,92,230,0.3);color:#3634a3;background:rgba(94,92,230,0.06);}
+.card-btn.trade{border-color:rgba(0,200,5,0.25);color:#006800;background:rgba(0,200,5,0.05);}
+.card-btn.trade:hover{background:rgba(0,200,5,0.1);}
 
-/* EMPTY / LOADING */
-.state-msg{text-align:center;padding:48px 24px;font-family:'JetBrains Mono',monospace;font-size:0.7em;color:var(--muted);letter-spacing:2px;}
-.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--muted);border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite;margin-right:8px;vertical-align:middle;}
+/* REFRESH FLASH */
+@keyframes refreshFlash {
+  0%   { background:#ffffff; border-color:rgba(0,0,0,0.1); color:#3a3a3c; }
+  40%  { background:rgba(0,200,5,0.1); border-color:rgba(0,200,5,0.35); color:#006800; }
+  100% { background:#ffffff; border-color:rgba(0,0,0,0.1); color:#3a3a3c; }
+}
+.refresh-flash { animation:refreshFlash 0.75s ease forwards; }
+
+/* SKELETON LOADING */
+@keyframes skeletonPulse {
+  0%,100% { opacity:0.45; }
+  50%      { opacity:0.85; }
+}
+.skeleton-card{background:#ffffff;border:1px solid rgba(0,0,0,0.06);border-radius:12px;padding:16px;}
+.skeleton-line{background:rgba(0,0,0,0.07);border-radius:5px;animation:skeletonPulse 1.3s ease infinite;}
+
+/* EMPTY / ERROR */
+.state-msg{text-align:center;padding:48px 24px;font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.85em;color:#aeaeb2;}
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid #e5e5ea;border-top-color:#5e5ce6;border-radius:50%;animation:spin .7s linear infinite;margin-right:8px;vertical-align:middle;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
 /* SIDEBAR */
-.sidebar{position:sticky;top:76px;display:flex;flex-direction:column;gap:16px;}
-.side-panel{background:var(--s1);border:1px solid var(--border);border-radius:8px;padding:16px;}
-.side-title{font-family:'JetBrains Mono',monospace;font-size:0.6em;letter-spacing:3px;color:var(--cyan);margin-bottom:12px;}
+.sidebar{position:sticky;top:80px;display:flex;flex-direction:column;gap:14px;}
+.side-panel{background:#ffffff;border:1px solid rgba(0,0,0,0.06);border-radius:12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.06);}
+.side-title{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.7em;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:#6e6e73;margin-bottom:12px;}
 .pin-list{display:flex;flex-direction:column;gap:8px;}
-.pin-item{background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;}
-.pin-question{font-size:0.82em;color:var(--bright);font-weight:500;line-height:1.3;}
+.pin-item{background:#f5f5f7;border:1px solid rgba(0,0,0,0.05);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;}
+.pin-question{font-size:0.82em;color:#1d1d1f;font-weight:500;line-height:1.35;font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;}
 .pin-prices{display:flex;gap:10px;align-items:center;}
-.pin-yes{font-family:'JetBrains Mono',monospace;font-size:0.72em;font-weight:700;color:var(--green);}
-.pin-no{font-family:'JetBrains Mono',monospace;font-size:0.72em;color:var(--red);}
-.pin-change{font-family:'JetBrains Mono',monospace;font-size:0.6em;margin-left:auto;}
-.pin-change.up{color:var(--green);}
-.pin-change.down{color:var(--red);}
-.pin-change.flat{color:var(--muted);}
-.pin-remove{font-family:'JetBrains Mono',monospace;font-size:0.58em;color:var(--muted);cursor:pointer;border:none;background:none;padding:0;align-self:flex-end;transition:color .15s;}
-.pin-remove:hover{color:var(--red);}
-.pin-empty{font-family:'JetBrains Mono',monospace;font-size:0.62em;color:var(--muted);text-align:center;padding:16px 0;}
+.pin-yes{font-family:-apple-system,"SF Mono","Fira Code",monospace;font-size:0.75em;font-weight:700;color:#006800;}
+.pin-no{font-family:-apple-system,"SF Mono","Fira Code",monospace;font-size:0.75em;color:#c00;}
+.pin-change{font-family:-apple-system,"SF Mono","Fira Code",monospace;font-size:0.68em;margin-left:auto;}
+.pin-change.up{color:#006800;}
+.pin-change.down{color:#c00;}
+.pin-change.flat{color:#aeaeb2;}
+.pin-remove{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.72em;color:#aeaeb2;cursor:pointer;border:none;background:none;padding:0;align-self:flex-end;transition:color .15s;}
+.pin-remove:hover{color:#ff3b30;}
+.pin-empty{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.78em;color:#aeaeb2;text-align:center;padding:16px 0;}
 .add-pin-row{display:flex;gap:6px;margin-top:10px;}
-.add-pin-input{flex:1;background:var(--s2);border:1px solid var(--border2);border-radius:4px;padding:6px 10px;color:var(--bright);font-family:'JetBrains Mono',monospace;font-size:0.65em;outline:none;}
-.add-pin-input:focus{border-color:var(--purple);}
-.add-pin-btn{background:rgba(179,136,255,0.1);border:1px solid rgba(179,136,255,0.3);border-radius:4px;padding:6px 10px;color:var(--purple);font-family:'JetBrains Mono',monospace;font-size:0.65em;cursor:pointer;}
-.add-pin-btn:hover{background:rgba(179,136,255,0.2);}
+.add-pin-input{flex:1;background:#ffffff;border:1px solid #d1d1d6;border-radius:6px;padding:7px 10px;color:#1d1d1f;font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.78em;outline:none;transition:border-color .15s;}
+.add-pin-input:focus{border-color:#0066ff;box-shadow:0 0 0 2px rgba(0,102,255,0.1);}
+.add-pin-btn{background:#5e5ce6;border:none;border-radius:6px;padding:7px 12px;color:#ffffff;font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.78em;cursor:pointer;transition:filter .15s;font-weight:500;}
+.add-pin-btn:hover{filter:brightness(1.08);}
 
 /* KEY NOTICE */
-.key-notice{background:rgba(0,230,118,0.04);border:1px solid rgba(0,230,118,0.15);border-radius:6px;padding:12px;font-family:'JetBrains Mono',monospace;font-size:0.6em;color:var(--green);line-height:1.5;}
-.key-notice a{color:var(--cyan);text-decoration:none;}
+.key-notice{background:rgba(0,200,5,0.05);border:1px solid rgba(0,200,5,0.18);border-radius:10px;padding:12px;font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.75em;color:#005c00;line-height:1.55;}
+.key-notice a{color:#0066ff;text-decoration:none;}
 .key-notice a:hover{text-decoration:underline;}
 
-/* ORDER MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(2,3,5,0.85);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;}
+/* ORDER MODAL — stays dark for focus */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);}
 .modal-overlay[hidden]{display:none;}
-.modal-box{background:var(--s2);border:1px solid var(--border2);border-radius:10px;padding:24px;width:100%;max-width:420px;}
-.modal-title{font-family:'JetBrains Mono',monospace;font-size:0.65em;letter-spacing:3px;color:var(--cyan);margin-bottom:6px;}
-.modal-question{font-size:1em;font-weight:600;color:var(--bright);margin-bottom:18px;line-height:1.4;}
+.modal-box{background:#1a1a20;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:24px;width:100%;max-width:420px;box-shadow:0 24px 72px rgba(0,0,0,0.4);}
+.modal-title{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.7em;color:rgba(245,245,247,0.6);margin-bottom:6px;letter-spacing:0.04em;text-transform:uppercase;}
+.modal-question{font-size:0.95em;font-weight:600;color:#f5f5f7;margin-bottom:18px;line-height:1.4;font-family:-apple-system,"SF Pro Display","Inter",system-ui,sans-serif;}
 .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
 .modal-field{display:flex;flex-direction:column;gap:4px;}
 .modal-field.wide{grid-column:1/-1;}
-.modal-label{font-family:'JetBrains Mono',monospace;font-size:0.6em;color:var(--muted);letter-spacing:1px;}
-.modal-input,.modal-select{background:var(--s1);border:1px solid var(--border2);border-radius:4px;padding:8px 10px;color:var(--bright);font-family:'JetBrains Mono',monospace;font-size:0.75em;outline:none;width:100%;}
-.modal-input:focus,.modal-select:focus{border-color:var(--purple);}
-.modal-cost{background:var(--s1);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:0.7em;color:var(--bright);margin-bottom:16px;}
-.modal-cost span{color:var(--green);font-weight:700;}
+.modal-label{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.68em;color:rgba(245,245,247,0.5);letter-spacing:0.04em;text-transform:uppercase;}
+.modal-input,.modal-select{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:9px 11px;color:#f5f5f7;font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.85em;outline:none;width:100%;transition:border-color .15s;}
+.modal-input:focus,.modal-select:focus{border-color:rgba(255,255,255,0.3);}
+.modal-cost{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 14px;font-family:-apple-system,"SF Mono","Fira Code",monospace;font-size:0.75em;color:#f5f5f7;margin-bottom:16px;}
+.modal-cost span{color:#4cd964;font-weight:700;}
 .modal-actions{display:flex;gap:10px;justify-content:flex-end;}
-.modal-btn{font-family:'JetBrains Mono',monospace;font-size:0.65em;letter-spacing:1px;padding:8px 18px;border-radius:4px;border:1px solid var(--border2);background:transparent;color:var(--text);cursor:pointer;}
-.modal-btn.primary{border-color:rgba(0,230,118,0.4);color:var(--green);background:rgba(0,230,118,0.06);}
-.modal-btn.primary:hover{background:rgba(0,230,118,0.12);}
-.modal-btn:hover{border-color:var(--border2);color:var(--bright);}
-.modal-error{font-family:'JetBrains Mono',monospace;font-size:0.62em;color:var(--red);margin-top:8px;min-height:16px;}
+.modal-btn{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.8em;padding:9px 18px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.07);color:#f5f5f7;cursor:pointer;transition:background .12s;}
+.modal-btn.primary{border-color:transparent;background:#00c805;color:#ffffff;font-weight:600;}
+.modal-btn.primary:hover{filter:brightness(1.06);}
+.modal-btn:hover{background:rgba(255,255,255,0.12);}
+.modal-error{font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.75em;color:#ff6b6b;margin-top:8px;min-height:16px;}
 
-@media(max-width:900px){.layout{grid-template-columns:1fr;}.sidebar{position:static;}}
+/* INTEL BAR — dark chrome */
+.intel-bar{position:fixed;bottom:0;left:0;right:0;height:32px;background:rgba(15,15,18,0.97);border-top:1px solid rgba(255,255,255,0.07);backdrop-filter:blur(16px);z-index:150;display:flex;align-items:center;gap:16px;padding:0 20px;font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.7em;}
+.intel-bar-item{display:flex;align-items:center;}
+.intel-bar-label{color:rgba(245,245,247,0.45);margin-right:6px;letter-spacing:0.04em;text-transform:uppercase;font-size:0.85em;}
+.intel-bar-value{color:#f5f5f7;font-family:-apple-system,"SF Mono","Fira Code",monospace;}
+.intel-bar-sep{color:rgba(255,255,255,0.15);margin:0 4px;}
+.intel-bar-link{margin-left:auto;color:rgba(245,245,247,0.7);text-decoration:none;border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:3px 10px;transition:background .15s,color .15s;font-size:0.85em;}
+.intel-bar-link:hover{background:rgba(255,255,255,0.08);color:#f5f5f7;}
+@media(max-width:600px){.intel-bar{display:none;}}
+
+/* PAGE FOOTER */
+.page-footer{display:flex;justify-content:space-between;align-items:center;padding:12px 24px;border-top:1px solid rgba(0,0,0,0.06);font-family:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;font-size:0.72em;color:#aeaeb2;flex-shrink:0;}
+
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr;}
+  .sidebar{position:static;border-top:1px solid var(--border);padding-top:16px;margin-top:8px;}
+  .card-footer{gap:6px;}
+}
 </style>
 </head>
 <body>
@@ -159,6 +206,11 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       <a href="index.html" class="back-link">← HOME</a>
     </div>
   </header>
+
+  <nav class="page-nav">
+    <a href="polymarket.html" class="page-nav-link active">⬡ Prediction Markets</a>
+    <a href="market_intel.html" class="page-nav-link">◈ Market Intel</a>
+  </nav>
 
   <div class="layout">
     <!-- MAIN: market browser -->
@@ -174,9 +226,10 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
         </div>
       </div>
       <div class="search-row">
-        <input class="search-input" id="searchInput" type="text" placeholder="Search markets (Fed, BTC, election...)" autocomplete="off">
-        <button class="refresh-btn" id="refreshBtn">↻ REFRESH</button>
+        <input class="search-input" id="searchInput" type="text" placeholder="Search markets — DOGE, Fed, BTC, election…" autocomplete="off">
+        <button class="refresh-btn" id="refreshBtn">↻ Refresh [30s]</button>
       </div>
+      <div class="refresh-hint" id="refreshHint">Auto-refreshes every 30s · scroll position preserved</div>
       <div class="markets-grid" id="marketsGrid">
         <div class="state-msg"><span class="spinner"></span>LOADING MARKETS…</div>
       </div>
@@ -190,7 +243,7 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
           <div class="pin-empty">Pin markets to track odds live</div>
         </div>
         <div class="add-pin-row">
-          <input class="add-pin-input" id="addPinInput" placeholder="Market ID or slug…" autocomplete="off">
+          <input class="add-pin-input" id="addPinInput" placeholder="Search to pin by keyword…" autocomplete="off">
           <button class="add-pin-btn" id="addPinBtn">+ ADD</button>
         </div>
       </div>
@@ -203,6 +256,21 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
       </div>
     </aside>
   </div>
+
+  <footer class="page-footer">
+    <span>PREDICTION MARKETS via Polymarket · Prices are probabilities (0–1 USDC)</span>
+    <span id="lastRefresh">—</span>
+  </footer>
+</div>
+
+<!-- INTEL BAR -->
+<div class="intel-bar" id="intelBar">
+  <span class="intel-bar-item"><span class="intel-bar-label">HALTS</span><span id="ib-halts" class="intel-bar-value">—</span></span>
+  <span class="intel-bar-sep">·</span>
+  <span class="intel-bar-item"><span class="intel-bar-label">TOP SWEEP</span><span id="ib-sweep" class="intel-bar-value">—</span></span>
+  <span class="intel-bar-sep">·</span>
+  <span class="intel-bar-item"><span class="intel-bar-label">NEXT EARNINGS</span><span id="ib-earnings" class="intel-bar-value">—</span></span>
+  <a href="market_intel.html" class="intel-bar-link">MARKET INTEL →</a>
 </div>
 
 <!-- ORDER MODAL -->
@@ -244,14 +312,17 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 </div>
 
 <script src="assets/dto-core.js"></script>
+<script src="assets/dto-animations.js" defer></script>
 <script src="assets/daytrader-os.js?v=20260504-vercel1" defer></script>
 <script>
 const PINS_KEY = 'dtoPolyPins';
 let currentMarkets = [];
 let activeCategory = '';
+let currentQuery = '';
 let searchTimeout = null;
 let pinRefreshInterval = null;
 let activeOrderMarket = null;
+let refreshCountdown = 30;
 
 // ── Helpers ──
 function readPins() {
@@ -275,6 +346,9 @@ function catLabel(c) {
   const m = {economics:'macro',crypto:'crypto',politics:'politics',business:'earnings'};
   return m[c] || (c||'general');
 }
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
 function polyHeaders() {
   try {
@@ -297,6 +371,102 @@ function hasPolyKeys() {
   return !!(h['x-poly-key'] && h['x-poly-secret'] && h['x-poly-passphrase'] && h['x-poly-funder']);
 }
 
+// ── AI technical probability ──
+const CRYPTO_MAP = {
+  BTC:'BTC', BITCOIN:'BTC', ETH:'ETH', ETHEREUM:'ETH',
+  SOL:'SOL', SOLANA:'SOL', DOGE:'DOGE', DOGECOIN:'DOGE',
+  XRP:'XRP', BNB:'BNB', AVAX:'AVAX', LINK:'LINK',
+  ADA:'ADA', MATIC:'MATIC', DOT:'DOT', SUI:'SUI',
+  PEPE:'PEPE', WIF:'WIF', SHIB:'SHIB',
+};
+
+function parsePriceTarget(question) {
+  const q = question.toUpperCase();
+  let symbol = null;
+  for (const [key, val] of Object.entries(CRYPTO_MAP)) {
+    if (q.includes(key)) { symbol = val; break; }
+  }
+  if (!symbol) return null;
+
+  const priceMatch = q.match(/\$([0-9,]+(?:\.[0-9]+)?)\s*(?:K|M)?/i);
+  if (!priceMatch) return null;
+  let raw = priceMatch[1].replace(/,/g,'');
+  let targetPrice = parseFloat(raw);
+  if (/K/i.test(priceMatch[0])) targetPrice *= 1000;
+  if (/M/i.test(priceMatch[0])) targetPrice *= 1e6;
+  if (!targetPrice || isNaN(targetPrice)) return null;
+
+  const direction = /FALL|DROP|BELOW|UNDER|LESS/i.test(q) ? 'below' : 'above';
+  return { symbol, targetPrice, direction };
+}
+
+function sigmoid(x) { return 1 / (1 + Math.exp(-x)); }
+
+async function computeTechProb(symbol, targetPrice, direction, endDate) {
+  try {
+    const resp = await fetch(`/api/candles?symbol=${symbol}&interval=1d&limit=30`);
+    const data = await resp.json();
+    if (!data.ok || !data.candles || data.candles.length < 5) return null;
+
+    const candles = data.candles;
+    const closes = candles.map(c => c.close);
+    const current = closes[closes.length - 1];
+
+    const sma = (arr, n) => arr.slice(-n).reduce((a,b) => a+b, 0) / Math.min(n, arr.length);
+    const sma7 = sma(closes, 7);
+    const sma14 = sma(closes, 14);
+    const trend = (sma7 - sma14) / sma14;
+
+    const old = closes[Math.max(0, closes.length - 15)];
+    const momentum = (current - old) / old;
+
+    const dist = (targetPrice - current) / current;
+    const daysLeft = endDate
+      ? Math.max(1, (new Date(endDate) - Date.now()) / 86400000)
+      : 60;
+    const timeBonus = Math.log(Math.max(daysLeft, 1)) / 10;
+
+    let score = -dist * 4 + trend * 3 + momentum * 2 + timeBonus;
+    if (direction === 'below') score = -score;
+    const prob = Math.max(0.05, Math.min(0.95, sigmoid(score)));
+
+    const pct = Math.round(prob * 100);
+    const trendTxt = trend > 0.01 ? 'bullish trend' : trend < -0.01 ? 'bearish trend' : 'neutral';
+    const basis = `${symbol} $${current.toFixed(current < 10 ? 4 : 0)} → $${targetPrice.toLocaleString()} target · ${Math.round(momentum*100)}% 14d · ${trendTxt}`;
+    return { prob, pct, basis };
+  } catch { return null; }
+}
+
+const aiCache = new Map();
+
+async function attachAiProb(market) {
+  if (aiCache.has(market.id)) {
+    const cached = aiCache.get(market.id);
+    if (cached) injectAiRow(market.id, cached);
+    return;
+  }
+  const parsed = parsePriceTarget(market.question);
+  if (!parsed) { aiCache.set(market.id, null); return; }
+
+  const result = await computeTechProb(parsed.symbol, parsed.targetPrice, parsed.direction, market.endDate);
+  aiCache.set(market.id, result);
+  if (result) injectAiRow(market.id, result);
+}
+
+function injectAiRow(marketId, result) {
+  const container = document.getElementById(`ai-slot-${marketId}`);
+  if (!container) return;
+  container.innerHTML = `
+    <div class="outcomes-divider"></div>
+    <div class="outcome-row">
+      <span class="outcome-label ai">AI</span>
+      <div class="bar-track"><div class="bar-fill ai" style="width:${result.pct}%"></div></div>
+      <span class="outcome-pct ai">${result.pct}%</span>
+      <span class="outcome-price" style="color:var(--purple);font-size:0.55em;width:auto">TECH</span>
+    </div>
+    <div class="ai-basis">${escHtml(result.basis)}</div>`;
+}
+
 // ── Fetch markets ──
 async function fetchMarkets(category, q) {
   const params = new URLSearchParams({ action: 'markets', limit: '25' });
@@ -307,7 +477,7 @@ async function fetchMarkets(category, q) {
   return data.markets || [];
 }
 
-// ── Render markets ──
+// ── Build card HTML ──
 function buildCard(m) {
   const outcomes = m.outcomes || ['Yes','No'];
   const prices   = m.outcomePrices || ['0.5','0.5'];
@@ -318,10 +488,16 @@ function buildCard(m) {
   const cat      = catLabel(m.category);
   const isPinned = readPins().some(p => p.id === m.id);
   const tokens   = m.clobTokenIds || [];
-  const hasKeys  = hasPolyKeys();
+
+  const tierClass = m.volume >= 1_000_000 ? 'card-mega'
+                  : m.volume >= 500_000   ? 'card-prominent'
+                  : '';
+
+  const yesBold = yesPct >= 70 ? 'font-weight:900' : '';
+  const noBold  = noPct  >= 70 ? 'font-weight:900' : '';
 
   return `
-    <div class="market-card" id="card-${m.id}" data-id="${m.id}">
+    <div class="market-card ${tierClass}" id="card-${m.id}" data-id="${m.id}">
       <div class="card-top">
         <div class="card-question">${escHtml(m.question)}</div>
         <div class="card-meta">
@@ -332,21 +508,23 @@ function buildCard(m) {
       <div class="outcomes">
         <div class="outcome-row">
           <span class="outcome-label yes">${escHtml(outcomes[0]||'YES')}</span>
-          <div class="bar-track"><div class="bar-fill yes" style="width:${yesPct}%"></div></div>
-          <span class="outcome-pct yes">${yesPct}%</span>
+          <div class="bar-track"><div class="bar-fill yes" data-target="${yesPct}" style="width:0%"></div></div>
+          <span class="outcome-pct yes" style="${yesBold}">${yesPct}%</span>
           <span class="outcome-price">$${yesPrice.toFixed(2)}</span>
         </div>
         <div class="outcome-row">
           <span class="outcome-label no">${escHtml(outcomes[1]||'NO')}</span>
-          <div class="bar-track"><div class="bar-fill no" style="width:${noPct}%"></div></div>
-          <span class="outcome-pct no">${noPct}%</span>
+          <div class="bar-track"><div class="bar-fill no" data-target="${noPct}" style="width:0%"></div></div>
+          <span class="outcome-pct no" style="${noBold}">${noPct}%</span>
           <span class="outcome-price">$${noPrice.toFixed(2)}</span>
         </div>
+        <div id="ai-slot-${m.id}"></div>
       </div>
       <div class="card-footer">
         <div class="card-stats">
           <span>Ends ${fmtDate(m.endDate)}</span>
           <span>${fmtVol(m.liquidity)} liq</span>
+          <span>${fmtVol(m.volume24hr)} 24h vol</span>
         </div>
         <div class="card-actions">
           <button class="card-btn ${isPinned?'pinned':''}" onclick="togglePin(${JSON.stringify(m).replace(/"/g,'&quot;')})">
@@ -359,25 +537,122 @@ function buildCard(m) {
     </div>`;
 }
 
-function escHtml(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+// ── Patch single card in-place (silent refresh) ──
+function patchCard(cardEl, m) {
+  const prices   = m.outcomePrices || ['0.5','0.5'];
+  const yesPrice = parseFloat(prices[0]) || 0.5;
+  const noPrice  = parseFloat(prices[1]) || 0.5;
+  const yesPct   = Math.round(yesPrice * 100);
+  const noPct    = Math.round(noPrice  * 100);
+
+  const yesFill = cardEl.querySelector('.bar-fill.yes');
+  const noFill  = cardEl.querySelector('.bar-fill.no');
+  const yesPctEl = cardEl.querySelector('.outcome-pct.yes');
+  const noPctEl  = cardEl.querySelector('.outcome-pct.no');
+  const prices_els = cardEl.querySelectorAll('.outcome-price');
+  const volEl = cardEl.querySelector('.vol-label');
+
+  if (yesFill)  yesFill.style.width = yesPct + '%';
+  if (noFill)   noFill.style.width  = noPct  + '%';
+  if (yesPctEl) { yesPctEl.textContent = yesPct + '%'; yesPctEl.style.fontWeight = yesPct >= 70 ? '900' : '700'; }
+  if (noPctEl)  { noPctEl.textContent  = noPct  + '%'; noPctEl.style.fontWeight  = noPct  >= 70 ? '900' : '700'; }
+  if (prices_els[0]) prices_els[0].textContent = `$${yesPrice.toFixed(2)}`;
+  if (prices_els[1]) prices_els[1].textContent = `$${noPrice.toFixed(2)}`;
+  if (volEl) volEl.textContent = fmtVol(m.volume) + ' vol';
 }
 
-async function loadMarkets(cat, q) {
+// ── Reconcile grid in-place (silent refresh, preserves scroll) ──
+function reconcileGrid(newMarkets) {
   const grid = document.getElementById('marketsGrid');
-  grid.innerHTML = '<div class="state-msg"><span class="spinner"></span>LOADING…</div>';
+  const newMap = new Map(newMarkets.map(m => [m.id, m]));
+
+  // Update or remove existing cards
+  const existing = [...grid.querySelectorAll('.market-card[data-id]')];
+  for (const cardEl of existing) {
+    const id = cardEl.dataset.id;
+    if (!newMap.has(id)) {
+      cardEl.remove();
+    } else {
+      patchCard(cardEl, newMap.get(id));
+    }
+  }
+
+  // Add new cards not already in DOM
+  const existingIds = new Set(existing.map(el => el.dataset.id));
+  for (const m of newMarkets) {
+    if (!existingIds.has(m.id)) {
+      grid.insertAdjacentHTML('beforeend', buildCard(m));
+      attachAiProb(m);
+    }
+  }
+
+  // Reorder if sequence changed
+  const newOrder = newMarkets.map(m => m.id);
+  for (let i = 0; i < newOrder.length; i++) {
+    const target = grid.querySelector(`[data-id="${newOrder[i]}"]`);
+    const current = grid.children[i];
+    if (target && target !== current) grid.insertBefore(target, current);
+  }
+}
+
+// ── Skeleton loading cards ──
+function buildSkeleton() {
+  return `<div class="skeleton-card">
+    <div class="skeleton-line" style="height:18px;width:75%;margin-bottom:14px"></div>
+    <div class="skeleton-line" style="height:7px;margin-bottom:6px"></div>
+    <div class="skeleton-line" style="height:7px;margin-bottom:6px;width:65%"></div>
+    <div style="height:8px"></div>
+    <div class="skeleton-line" style="height:10px;width:40%"></div>
+  </div>`;
+}
+
+// ── Load markets ──
+async function loadMarkets(cat, q, silent) {
+  const grid = document.getElementById('marketsGrid');
+  if (!silent) grid.innerHTML = [1,2,3,4,5].map(buildSkeleton).join('');
   try {
     const markets = await fetchMarkets(cat, q);
     currentMarkets = markets;
+
+    const now = new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    const lr = document.getElementById('lastRefresh');
+    lr.textContent = `Last sync: ${now}`;
+    lr.classList.remove('refresh-flash');
+    void lr.offsetWidth;
+    lr.classList.add('refresh-flash');
+
     if (!markets.length) {
       grid.innerHTML = '<div class="state-msg">No markets found. Try a different category or search.</div>';
       return;
     }
-    grid.innerHTML = markets.map(buildCard).join('');
+    if (silent) {
+      reconcileGrid(markets);
+    } else {
+      grid.innerHTML = markets.map(buildCard).join('');
+      if (window.dtoStagger) dtoStagger(grid);
+      if (window.dtoAnimateBars) dtoAnimateBars(grid);
+      markets.forEach(m => attachAiProb(m));
+    }
   } catch(e) {
-    grid.innerHTML = `<div class="state-msg">Failed to load markets: ${escHtml(e.message)}</div>`;
+    if (!silent) grid.innerHTML = `<div class="state-msg">Failed to load markets. Check that the server is running.<br><small style="font-size:0.85em;opacity:0.7">${escHtml(e.message)}</small></div>`;
   }
 }
+
+// ── Countdown auto-refresh ──
+const countdownTick = setInterval(() => {
+  refreshCountdown--;
+  const btn = document.getElementById('refreshBtn');
+  if (btn) btn.textContent = `↻ Refresh [${refreshCountdown}s]`;
+  if (refreshCountdown <= 0) {
+    refreshCountdown = 30;
+    loadMarkets(activeCategory, currentQuery, true);
+    if (btn) {
+      btn.classList.remove('refresh-flash');
+      void btn.offsetWidth;
+      btn.classList.add('refresh-flash');
+    }
+  }
+}, 1000);
 
 // ── Category tabs ──
 document.querySelectorAll('.cat-tab').forEach(tab => {
@@ -385,18 +660,22 @@ document.querySelectorAll('.cat-tab').forEach(tab => {
     document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
     activeCategory = tab.dataset.cat;
-    loadMarkets(activeCategory, document.getElementById('searchInput').value.trim());
+    refreshCountdown = 30;
+    loadMarkets(activeCategory, currentQuery, false);
   });
 });
 
 // ── Search ──
 document.getElementById('searchInput').addEventListener('input', e => {
+  currentQuery = e.target.value.trim();
   clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(() => loadMarkets(activeCategory, e.target.value.trim()), 400);
+  searchTimeout = setTimeout(() => loadMarkets(activeCategory, currentQuery, false), 400);
 });
 
 document.getElementById('refreshBtn').addEventListener('click', () => {
-  loadMarkets(activeCategory, document.getElementById('searchInput').value.trim());
+  currentQuery = document.getElementById('searchInput').value.trim();
+  refreshCountdown = 30;
+  loadMarkets(activeCategory, currentQuery, false);
 });
 
 // ── Pin / unpin ──
@@ -407,20 +686,19 @@ function togglePin(market) {
     pins.splice(idx, 1);
   } else {
     pins.push({
-      id:          market.id,
-      question:    market.question,
+      id:           market.id,
+      question:     market.question,
       clobTokenIds: market.clobTokenIds || [],
       outcomePrices: market.outcomePrices || ['0.5','0.5'],
-      pinnedAt:    Date.now(),
+      pinnedAt:     Date.now(),
     });
   }
   savePins(pins);
   renderPinned();
-  // re-render the specific card to update pin button state
   const card = document.getElementById(`card-${market.id}`);
   if (card) {
     const m = currentMarkets.find(x => x.id === market.id);
-    if (m) card.outerHTML = buildCard(m);
+    if (m) { card.outerHTML = buildCard(m); attachAiProb(m); }
   }
 }
 
@@ -468,7 +746,6 @@ async function refreshPinnedPrices() {
       const oldYesPct = Math.round(parseFloat((p.outcomePrices||['0.5'])[0]) * 100);
       const diff = newYesPct - oldYesPct;
 
-      // Update stored price
       const all = readPins();
       const idx = all.findIndex(x => x.id === p.id);
       if (idx >= 0) {
@@ -476,7 +753,6 @@ async function refreshPinnedPrices() {
         savePins(all);
       }
 
-      // Update DOM
       const chgEl = document.getElementById(`pinchg-${p.id}`);
       if (chgEl) {
         chgEl.textContent = diff > 0 ? `↑ +${diff}%` : diff < 0 ? `↓ ${diff}%` : '—';
@@ -504,7 +780,7 @@ async function openOrderBook(tokenId) {
       ...(data.bids||[]).map(b => `  $${parseFloat(b.price).toFixed(3)}  ×  ${parseFloat(b.size).toFixed(0)}`),
       data.spread ? `\nSpread: ${data.spread}` : '',
     ].join('\n');
-    alert(lines); // simple display — can be enhanced to a modal later
+    alert(lines);
   } catch(e) { alert('Order book fetch failed: ' + e.message); }
 }
 
@@ -598,7 +874,7 @@ document.getElementById('modalSubmit').addEventListener('click', async () => {
   }
 });
 
-// ── Add pin by ID/slug ──
+// ── Add pin by keyword ──
 document.getElementById('addPinBtn').addEventListener('click', async () => {
   const val = document.getElementById('addPinInput').value.trim();
   if (!val) return;
@@ -606,7 +882,7 @@ document.getElementById('addPinBtn').addEventListener('click', async () => {
     const resp = await fetch(`/api/polymarket?action=markets&q=${encodeURIComponent(val)}&limit=1`);
     const data = await resp.json();
     const m = (data.markets||[])[0];
-    if (!m) { alert('Market not found. Try a keyword or exact question.'); return; }
+    if (!m) { alert('Market not found. Try a different keyword.'); return; }
     togglePin(m);
     document.getElementById('addPinInput').value = '';
   } catch(e) { alert('Search failed: ' + e.message); }
@@ -622,11 +898,50 @@ function updateKeyPanel() {
   }
 }
 
+// ── Intel bar ──
+async function loadIntelBar() {
+  const [haltRes, sweepRes, earnRes] = await Promise.allSettled([
+    fetch('/api/halts').then(r => r.json()),
+    fetch('/api/options-flow').then(r => r.json()),
+    fetch('/api/earnings').then(r => r.json()),
+  ]);
+
+  const haltsEl   = document.getElementById('ib-halts');
+  const sweepEl   = document.getElementById('ib-sweep');
+  const earningsEl = document.getElementById('ib-earnings');
+
+  if (haltRes.status === 'fulfilled' && haltRes.value.ok) {
+    const count = haltRes.value.halts?.length || 0;
+    haltsEl.textContent = count > 0 ? `${count} ACTIVE` : '0';
+    haltsEl.style.color = count > 0 ? 'var(--red)' : 'var(--green)';
+  }
+
+  if (sweepRes.status === 'fulfilled' && sweepRes.value.ok) {
+    const top = sweepRes.value.sweeps?.[0];
+    if (top) {
+      const fmtPrem = top.premiumEst >= 1e6
+        ? `$${(top.premiumEst/1e6).toFixed(1)}M`
+        : `$${(top.premiumEst/1e3).toFixed(0)}K`;
+      sweepEl.textContent = `${top.symbol} ${top.type.toUpperCase()} $${top.strike} [${fmtPrem}]`;
+      sweepEl.style.color = top.type === 'call' ? 'var(--green)' : 'var(--red)';
+    }
+  }
+
+  if (earnRes.status === 'fulfilled' && earnRes.value.ok) {
+    const next = earnRes.value.earnings?.[0];
+    if (next) {
+      earningsEl.textContent = `${next.symbol} (${next.dayName} ${next.when.toUpperCase()})`;
+    }
+  }
+}
+
 // ── Boot ──
 loadMarkets('', '');
 renderPinned();
 updateKeyPanel();
+loadIntelBar();
 pinRefreshInterval = setInterval(refreshPinnedPrices, 10000);
+setInterval(loadIntelBar, 60000);
 </script>
 </body>
 </html>

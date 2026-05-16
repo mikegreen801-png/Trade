@@ -8,41 +8,27 @@
     <link rel="stylesheet" href="assets/daytrader-os.css">
     <style>
         :root {
-            --dto-bg: #05070c;
-            --dto-panel: #0b111b;
-            --dto-panel-2: #101826;
-            --dto-border: #24334a;
-            --dto-text: #dce7f5;
-            --dto-muted: #8ea0ba;
-            --dto-cyan: #00d7ff;
-            --dto-green: #00e08a;
-            --dto-gold: #f2b84b;
-            --dto-red: #ff5b6e;
+            --dto-bg:      #f5f5f7;
+            --dto-panel:   #ffffff;
+            --dto-panel-2: #f5f5f7;
+            --dto-border:  rgba(0,0,0,0.06);
+            --dto-text:    #1d1d1f;
+            --dto-muted:   #6e6e73;
+            --dto-cyan:    #0066ff;
+            --dto-green:   #00c805;
+            --dto-gold:    #ff9500;
+            --dto-red:     #ff3b30;
         }
 
         body {
             margin: 0;
             min-height: 100vh;
-            background:
-                linear-gradient(180deg, rgba(0, 215, 255, 0.09), transparent 260px),
-                radial-gradient(circle at 86% 14%, rgba(0, 224, 138, 0.16), transparent 26rem),
-                radial-gradient(circle at 10% 86%, rgba(242, 184, 75, 0.11), transparent 24rem),
-                var(--dto-bg);
-            color: var(--dto-text);
-            font-family: "Barlow Condensed", system-ui, sans-serif;
+            background: #f5f5f7;
+            color: #1d1d1f;
+            font-family: -apple-system, "SF Pro Text", "Inter", system-ui, sans-serif;
         }
 
-        body::before {
-            content: "";
-            position: fixed;
-            inset: 0;
-            pointer-events: none;
-            background-image:
-                linear-gradient(rgba(220, 231, 245, 0.035) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(220, 231, 245, 0.035) 1px, transparent 1px);
-            background-size: 42px 42px;
-            mask-image: linear-gradient(180deg, #000, transparent 82%);
-        }
+
 
         a { color: inherit; }
 

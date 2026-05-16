@@ -8,16 +8,16 @@
 <link rel="stylesheet" href="assets/daytrader-os.css?v=20260504-vercel1">
 <style>
   :root {
-    --dto-bg: #05070c;
-    --dto-panel: #0b111b;
-    --dto-panel-2: #101826;
-    --dto-border: #24334a;
-    --dto-text: #dce7f5;
-    --dto-muted: #8ea0ba;
-    --dto-cyan: #00d7ff;
-    --dto-green: #00e08a;
-    --dto-gold: #f2b84b;
-    --dto-red: #ff5b6e;
+    --dto-bg:      #f5f5f7;
+    --dto-panel:   #ffffff;
+    --dto-panel-2: #f5f5f7;
+    --dto-border:  rgba(0,0,0,0.06);
+    --dto-text:    #1d1d1f;
+    --dto-muted:   #6e6e73;
+    --dto-cyan:    #0066ff;
+    --dto-green:   #00c805;
+    --dto-gold:    #ff9500;
+    --dto-red:     #ff3b30;
   }
 
   * { box-sizing: border-box; }
@@ -25,26 +25,12 @@
   body {
     margin: 0;
     min-height: 100vh;
-    background:
-      linear-gradient(180deg, rgba(0, 215, 255, 0.09), transparent 260px),
-      radial-gradient(circle at 86% 14%, rgba(0, 224, 138, 0.16), transparent 26rem),
-      radial-gradient(circle at 10% 86%, rgba(242, 184, 75, 0.11), transparent 24rem),
-      var(--dto-bg);
-    color: var(--dto-text);
-    font-family: "Barlow Condensed", system-ui, sans-serif;
+    background: #f5f5f7;
+    color: #1d1d1f;
+    font-family: -apple-system, "SF Pro Text", "Inter", system-ui, sans-serif;
   }
 
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    background-image:
-      linear-gradient(rgba(220, 231, 245, 0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(220, 231, 245, 0.035) 1px, transparent 1px);
-    background-size: 42px 42px;
-    mask-image: linear-gradient(180deg, #000, transparent 82%);
-  }
+
 
   a { color: inherit; }
 
@@ -61,26 +47,32 @@
     align-items: center;
     gap: 18px;
     padding: 12px 0 22px;
-    border-bottom: 1px solid rgba(220, 231, 245, 0.12);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
   }
 
   .nav-links {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
     align-items: center;
   }
 
   .nav-links a {
-    border: 1px solid rgba(0, 215, 255, 0.24);
-    border-radius: 999px;
-    padding: 8px 10px;
-    background: rgba(9, 16, 26, 0.76);
-    color: #cfe6f0;
-    font: 700 10px/1 "JetBrains Mono", monospace;
-    letter-spacing: 0.1em;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 8px;
+    padding: 7px 12px;
+    background: #ffffff;
+    color: #3a3a3c;
+    font: 500 11px/1 -apple-system, "SF Pro Text", "Inter", system-ui, sans-serif;
+    letter-spacing: 0.01em;
     text-decoration: none;
-    text-transform: uppercase;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    transition: background .12s, border-color .12s;
+  }
+
+  .nav-links a:hover {
+    background: #f5f5f7;
+    border-color: rgba(0,0,0,0.18);
   }
 
   .top-right .dto-auth-inline {
@@ -95,17 +87,22 @@
   .top-right .dto-auth-inline button,
   .top-right .dto-auth-inline span {
     min-height: 36px;
-    border: 1px solid rgba(0, 215, 255, 0.24);
-    border-radius: 999px;
-    padding: 8px 12px;
-    background: rgba(9, 16, 26, 0.76);
-    color: #cfe6f0;
+    border: 1px solid rgba(0,0,0,0.1);
+    border-radius: 8px;
+    padding: 8px 14px;
+    background: #ffffff;
+    color: #3a3a3c;
     cursor: pointer;
-    font: 700 10px/1 "JetBrains Mono", monospace;
-    letter-spacing: 0.1em;
+    font: 500 11px/1 -apple-system, "SF Pro Text", "Inter", system-ui, sans-serif;
+    letter-spacing: 0.01em;
     text-decoration: none;
-    text-transform: uppercase;
     white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    transition: background .12s;
+  }
+
+  .top-right .dto-auth-inline button:hover {
+    background: #f5f5f7;
   }
 
   .top-right .dto-auth-inline button:hover,
@@ -1560,6 +1557,150 @@
     from { opacity: 0; transform: translateY(4px); }
     to { opacity: 1; transform: translateY(0); }
   }
+
+  /* ── PREMIUM DESIGN OVERRIDES — light content + dark chrome ── */
+
+  /* Cards and panels: white with soft elevation */
+  .hero-copy,
+  .analysis-card,
+  .status-card,
+  .tool,
+  .resource,
+  .op {
+    background: #ffffff !important;
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.04) !important;
+    border-radius: 12px !important;
+  }
+
+  /* Dark elements that should stay dark */
+  .market-pulse,
+  .command-metrics {
+    background: #ffffff !important;
+    border: 1px solid rgba(0,0,0,0.06) !important;
+    border-radius: 10px !important;
+  }
+
+  .command-tile {
+    border-color: rgba(0,0,0,0.05) !important;
+  }
+
+  .command-tile span { color: #6e6e73 !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; }
+  .command-tile strong { color: #1d1d1f !important; font-family: -apple-system,"SF Pro Display","Inter",system-ui,sans-serif !important; }
+  .command-tile small { color: #6e6e73 !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; }
+
+  /* Brand/logo: keep readable against light background */
+  .brand { color: #1d1d1f !important; font-family: -apple-system,"SF Pro Display","Inter",system-ui,sans-serif !important; letter-spacing: -0.01em !important; }
+  .brand span { color: var(--dto-green) !important; }
+
+  /* Hero text: dark */
+  h1 { color: #1d1d1f !important; }
+  .subtitle { color: #6e6e73 !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; }
+  .eyebrow, .label, .tool-kicker { color: #6e6e73 !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; letter-spacing: 0.06em !important; }
+
+  /* Pill badge: light */
+  .pill { background: rgba(0,0,0,0.04) !important; border: 1px solid rgba(0,0,0,0.08) !important; }
+
+  /* Pulse strip: clean chips */
+  .pulse-head { border-color: rgba(0,0,0,0.06) !important; }
+  .pulse-title { color: #6e6e73 !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; }
+  .pulse-refresh { background: #f5f5f7 !important; border: 1px solid rgba(0,0,0,0.1) !important; color: #3a3a3c !important; border-radius: 8px !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; }
+  .pulse-refresh:hover { background: #ebebf0 !important; color: #1d1d1f !important; }
+  .pulse-card { border-color: rgba(0,0,0,0.05) !important; }
+  .pulse-card span { color: #6e6e73 !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; }
+  .pulse-card strong { color: #1d1d1f !important; font-family: -apple-system,"SF Mono","Fira Code",monospace !important; }
+  .pulse-card small { color: #6e6e73 !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; }
+  .pulse-strip { border-color: rgba(0,0,0,0.06) !important; }
+  .pulse-chip { background: #f5f5f7 !important; border: 1px solid rgba(0,0,0,0.08) !important; color: #3a3a3c !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; border-radius: 8px !important; }
+
+  /* Command section */
+  .command-next { background: rgba(0,102,255,0.04) !important; border-left-color: #0066ff !important; color: #3a3a3c !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; }
+  .command-label { color: #0066ff !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; }
+  .command-head strong { color: #1d1d1f !important; font-family: -apple-system,"SF Pro Display","Inter",system-ui,sans-serif !important; }
+  .command-tag { background: rgba(0,102,255,0.06) !important; border-color: rgba(0,102,255,0.2) !important; color: #0052cc !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; border-radius: 8px !important; }
+  .command-step { background: #f5f5f7 !important; border: 1px solid rgba(0,0,0,0.1) !important; color: #3a3a3c !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; border-radius: 8px !important; }
+  .command-step:hover { background: #ebebf0 !important; color: #1d1d1f !important; border-color: rgba(0,0,0,0.18) !important; }
+  .command-step.is-done { background: rgba(0,200,5,0.06) !important; border-color: rgba(0,200,5,0.25) !important; color: #006800 !important; }
+  .command-step.is-active { background: rgba(255,149,0,0.06) !important; border-color: rgba(255,149,0,0.25) !important; color: #a85800 !important; }
+
+  /* Quick action buttons */
+  .action { background: #ffffff !important; border: 1px solid rgba(0,0,0,0.1) !important; color: #1d1d1f !important; border-radius: 8px !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; letter-spacing: 0 !important; text-transform: none !important; font-weight: 500 !important; box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important; }
+  .action:hover { background: #f5f5f7 !important; border-color: rgba(0,0,0,0.18) !important; }
+  .action.primary { background: #00c805 !important; border-color: transparent !important; color: #ffffff !important; box-shadow: 0 1px 3px rgba(0,200,5,0.22) !important; }
+  .action.primary:hover { filter: brightness(1.06) !important; }
+
+  /* Section headings and borders */
+  .topbar { border-color: rgba(0,0,0,0.07) !important; }
+  .session { color: #6e6e73 !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; }
+
+  /* Tab nav */
+  .dto-tab-nav button { color: #6e6e73 !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; border-bottom-color: transparent !important; }
+  .dto-tab-nav button:hover { color: #1d1d1f !important; }
+  .dto-tab-nav button.is-active { color: #0066ff !important; border-bottom-color: #0066ff !important; }
+
+  /* ── EXTENDED OVERRIDES: remaining dark components ── */
+
+  /* Section h2 inside cards */
+  h2 { color: #1d1d1f !important; font-family: -apple-system,"SF Pro Display","Inter",system-ui,sans-serif !important; letter-spacing: -0.01em !important; text-transform: none !important; font-size: clamp(22px,2.5vw,32px) !important; }
+
+  /* Watchlist grid cards */
+  .wl-card { background: #ffffff !important; border: 1px solid rgba(0,0,0,0.06) !important; box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important; }
+  .wl-card:hover { border-color: rgba(0,0,0,0.12) !important; transform: translateY(-1px) !important; box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important; }
+  .wl-sym { color: #1d1d1f !important; font-family: -apple-system,"SF Pro Display","Inter",system-ui,sans-serif !important; font-size: 17px !important; letter-spacing: -0.01em !important; }
+  .wl-meta { font-family: -apple-system,"SF Mono","Fira Code",monospace !important; }
+  .wl-empty { border-color: rgba(0,0,0,0.08) !important; color: #6e6e73 !important; }
+
+  /* Chart / technical stat boxes */
+  .chart-stat, .tech-stat { background: #f5f5f7 !important; border: 1px solid rgba(0,0,0,0.06) !important; box-shadow: none !important; }
+  .chart-stat span, .tech-stat span { color: #6e6e73 !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; }
+  .chart-stat strong, .tech-stat strong { color: #1d1d1f !important; font-family: -apple-system,"SF Mono","Fira Code",monospace !important; }
+
+  /* Score ring: light */
+  .score-ring { background: conic-gradient(var(--dto-cyan,#0066ff) var(--score), rgba(0,0,0,0.07) 0) !important; }
+  .score-ring span { background: #ffffff !important; color: #1d1d1f !important; font-family: -apple-system,"SF Mono","Fira Code",monospace !important; }
+  .rating-main strong { color: #1d1d1f !important; font-family: "Barlow Condensed", sans-serif !important; font-size: clamp(36px,4vw,52px) !important; }
+  .tech-line label { color: #6e6e73 !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; }
+  .tech-track { background: rgba(0,0,0,0.08) !important; }
+
+  /* Signal grade section */
+  .signal-grade { background: transparent !important; border-top: 1px solid rgba(0,0,0,0.06) !important; }
+  .signal-grade-head h3 { color: #1d1d1f !important; font-family: -apple-system,"SF Pro Display","Inter",system-ui,sans-serif !important; text-transform: none !important; letter-spacing: 0 !important; font-size: 14px !important; }
+  .signal-grade-card { background: #f5f5f7 !important; border: 1px solid rgba(0,0,0,0.06) !important; box-shadow: none !important; }
+  .signal-grade-card h4 { color: #0066ff !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; }
+  .signal-grade-card strong { color: #1d1d1f !important; font-family: -apple-system,"SF Mono","Fira Code",monospace !important; font-size: 22px !important; }
+  .signal-grade-card p { color: #6e6e73 !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; }
+  .signal-grade-note { background: rgba(255,149,0,0.06) !important; border-color: rgba(255,149,0,0.2) !important; color: #a85800 !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; }
+  .signal-grade-note.good { background: rgba(0,200,5,0.06) !important; border-color: rgba(0,200,5,0.2) !important; color: #006800 !important; }
+
+  /* Company read section */
+  .company-read { background: transparent !important; border-top: 1px solid rgba(0,0,0,0.06) !important; }
+  .company-read-head h3 { color: #1d1d1f !important; font-family: -apple-system,"SF Pro Display","Inter",system-ui,sans-serif !important; text-transform: none !important; letter-spacing: 0 !important; font-size: 14px !important; }
+  .company-card { background: #f5f5f7 !important; border: 1px solid rgba(0,0,0,0.06) !important; box-shadow: none !important; }
+  .company-card h4 { color: #0066ff !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; }
+  .company-card p, .company-card li { color: #6e6e73 !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; }
+  .company-source { border-color: rgba(0,102,255,0.18) !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; }
+
+  /* Workflow actions bar */
+  .workflow-actions { background: #f5f5f7 !important; border-top: 1px solid rgba(0,0,0,0.06) !important; }
+  .flow-btn { background: #ffffff !important; border: 1px solid rgba(0,0,0,0.1) !important; color: #1d1d1f !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; }
+  .flow-btn:hover { background: #f5f5f7 !important; border-color: rgba(0,0,0,0.18) !important; }
+
+  /* News / source section */
+  .source-card strong { color: #1d1d1f !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; }
+  .source-card a { border-color: rgba(0,102,255,0.18) !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; }
+  .source-card a:hover { background: rgba(0,102,255,0.05) !important; }
+  .headline-list a, .headline-list span { color: #1d1d1f !important; border-left-color: #0066ff !important; font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; }
+  .headline-list a:hover { background: rgba(0,102,255,0.04) !important; }
+  .hl-pub { color: #0066ff !important; }
+
+  /* Context / misc text */
+  .context-status { font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; color: #6e6e73 !important; }
+  .native-empty { font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; color: #6e6e73 !important; }
+  .pulse-note { font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; color: #6e6e73 !important; }
+
+  /* Live dot: no neon glow */
+  .live-dot::before { box-shadow: none !important; }
+  .live-dot { font-family: -apple-system,"SF Pro Text","Inter",system-ui,sans-serif !important; letter-spacing: 0 !important; }
 </style>
 </head>
 <body>
@@ -1571,6 +1712,7 @@
         <a href="index.html">Home</a>
         <a href="bot_dashboard.html">Bot Engine</a>
         <a href="polymarket.html">Prediction Markets</a>
+        <a href="market_intel.html">Market Intel</a>
         <a href="portfolio.html">Portfolio</a>
         <a href="#mission">Mission</a>
         <a href="#tools">Tools</a>
@@ -1655,6 +1797,7 @@
           <a class="action primary" href="market_workbench.html">Market Desk</a>
           <a class="action primary" href="bot_dashboard.html">Bot Engine</a>
           <a class="action" href="polymarket.html">Prediction Markets</a>
+          <a class="action" href="market_intel.html">Market Intel</a>
           <a class="action" href="trade_planner.html">Trade Planner</a>
           <a class="action" href="execution_workbench.html">Execution Desk</a>
           <a class="action" href="practice_workbench.html">Practice Arena</a>
@@ -1903,6 +2046,7 @@
   });
 </script>
 
+<script src="assets/dto-animations.js"></script>
 <script src="assets/daytrader-os.js?v=20260504-vercel1"></script>
 <script src="assets/dto-core.js"></script>
 <script>
