@@ -785,65 +785,76 @@
     const style = document.createElement("style");
     style.id = "dto-unified-theme";
     style.textContent = `
+/* ── DTO UNIFIED THEME — default: clean light, toggle: dark ── */
+
 html.dto-unified {
-  color-scheme: dark;
-  --bg: var(--dto-bg);
-  --panel: var(--dto-panel);
-  --panel2: var(--dto-panel-2);
-  --line: var(--dto-border);
-  --text: var(--dto-text);
-  --muted: var(--dto-muted);
-  --cyan: var(--dto-cyan);
-  --green: var(--dto-green);
-  --gold: var(--dto-gold);
-  --red: var(--dto-red);
+  color-scheme: light;
+  --bg:    #f5f5f7;
+  --panel: #ffffff;
+  --panel2:#f5f5f7;
+  --line:  rgba(0,0,0,0.06);
+  --text:  #1d1d1f;
+  --muted: #6e6e73;
+  --cyan:  #0066ff;
+  --green: #00c805;
+  --gold:  #ff9500;
+  --red:   #ff3b30;
+  --dto-bg:      #f5f5f7;
+  --dto-panel:   #ffffff;
+  --dto-panel-2: #f5f5f7;
+  --dto-border:  rgba(0,0,0,0.06);
+  --dto-text:    #1d1d1f;
+  --dto-muted:   #6e6e73;
+  --dto-cyan:    #0066ff;
+  --dto-green:   #00c805;
+  --dto-gold:    #ff9500;
+  --dto-red:     #ff3b30;
 }
 
-html.dto-unified[data-theme="light"] {
-  color-scheme: light;
-  --bg: #f0f4f8;
-  --panel: #ffffff;
-  --panel2: #f4f8fc;
-  --line: #cbd5e1;
-  --text: #0a0e17;
-  --muted: #374151;
-  --cyan: #0369a1;
-  --green: #15803d;
-  --gold: #b45309;
-  --red: #b91c1c;
-  --dto-bg: #f0f4f8;
-  --dto-panel: #ffffff;
-  --dto-panel-2: #f4f8fc;
-  --dto-border: #cbd5e1;
-  --dto-text: #0a0e17;
-  --dto-muted: #374151;
-  --dto-cyan: #0369a1;
-  --dto-green: #15803d;
-  --dto-gold: #b45309;
-  --dto-red: #b91c1c;
+html.dto-unified[data-theme="dark"] {
+  color-scheme: dark;
+  --bg:    #0c0f14;
+  --panel: #151a22;
+  --panel2:#1c2230;
+  --line:  rgba(255,255,255,0.08);
+  --text:  #e8edf5;
+  --muted: #8494a8;
+  --cyan:  #00d7ff;
+  --green: #00e08a;
+  --gold:  #f2b84b;
+  --red:   #ff5b6e;
+  --dto-bg:      #0c0f14;
+  --dto-panel:   #151a22;
+  --dto-panel-2: #1c2230;
+  --dto-border:  rgba(255,255,255,0.08);
+  --dto-text:    #e8edf5;
+  --dto-muted:   #8494a8;
+  --dto-cyan:    #00d7ff;
+  --dto-green:   #00e08a;
+  --dto-gold:    #f2b84b;
+  --dto-red:     #ff5b6e;
 }
 
 html.dto-unified *,
 html.dto-unified *::before,
-html.dto-unified *::after {
-  box-sizing: border-box;
-}
+html.dto-unified *::after { box-sizing: border-box; }
 
+/* ── LIGHT BODY (default) ── */
 html.dto-unified body {
   min-height: 100vh;
-  background:
-    linear-gradient(rgba(0, 215, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 215, 255, 0.035) 1px, transparent 1px),
-    radial-gradient(circle at 84% 12%, rgba(0, 224, 138, 0.12), transparent 34%),
-    var(--bg, #05070c) !important;
-  background-size: 72px 72px, 72px 72px, auto, auto !important;
-  color: var(--text, var(--dto-text)) !important;
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+  background: var(--bg, #f5f5f7) !important;
+  color: var(--text, #1d1d1f) !important;
+  font-family: -apple-system, "SF Pro Text", "Inter", system-ui, sans-serif !important;
   letter-spacing: 0 !important;
 }
 
-html.dto-unified[data-theme="light"] body {
-  background: var(--bg) !important;
+/* ── DARK BODY ── */
+html.dto-unified[data-theme="dark"] body {
+  background:
+    radial-gradient(circle at 80% 10%, rgba(0,224,138,0.07), transparent 38%),
+    var(--bg, #0c0f14) !important;
+  color: var(--text, #e8edf5) !important;
+  font-family: -apple-system, "SF Pro Text", "Inter", system-ui, sans-serif !important;
 }
 
 html.dto-unified main,
@@ -852,19 +863,20 @@ html.dto-unified .wrap,
 html.dto-unified .shell,
 html.dto-unified .container,
 html.dto-unified .page {
-  color: var(--text, var(--dto-text));
+  color: var(--text);
 }
 
+/* ── HEADINGS — clean, no ALL-CAPS ── */
 html.dto-unified h1,
 html.dto-unified .title,
 html.dto-unified .symbol,
 html.dto-unified .hero-title {
-  color: var(--text, #fff) !important;
-  font-family: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif !important;
-  font-weight: 900 !important;
-  letter-spacing: 0.04em !important;
-  line-height: 0.9 !important;
-  text-transform: uppercase !important;
+  color: var(--text) !important;
+  font-family: "Barlow Condensed", system-ui, sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.01em !important;
+  line-height: 0.92 !important;
+  text-transform: none !important;
 }
 
 html.dto-unified h2,
@@ -872,22 +884,24 @@ html.dto-unified h3,
 html.dto-unified h4,
 html.dto-unified .section-title,
 html.dto-unified .panel-title {
-  color: var(--text, #fff);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  text-transform: none;
+  font-family: -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif;
 }
 
+/* ── KICKER / LABEL — muted, not neon ── */
 html.dto-unified .kicker,
 html.dto-unified .eyebrow,
-html.dto-unified .label,
-html.dto-unified label,
 html.dto-unified .tool-kicker,
 html.dto-unified .panel-kicker,
 html.dto-unified .dto-panel-kicker {
-  color: var(--cyan, var(--dto-cyan)) !important;
-  font-weight: 800;
-  letter-spacing: 0.16em !important;
+  color: var(--muted) !important;
+  font-weight: 600;
+  font-size: 0.68em;
+  letter-spacing: 0.06em !important;
   text-transform: uppercase;
+  font-family: -apple-system, "SF Pro Text", "Inter", system-ui, sans-serif !important;
 }
 
 html.dto-unified p,
@@ -897,17 +911,10 @@ html.dto-unified .note,
 html.dto-unified .sub,
 html.dto-unified .hint,
 html.dto-unified .muted {
-  color: var(--muted, #a9b8cc);
+  color: var(--muted);
 }
 
-html.dto-unified[data-theme="light"] input,
-html.dto-unified[data-theme="light"] select,
-html.dto-unified[data-theme="light"] textarea {
-  background: var(--panel2) !important;
-  color: var(--text) !important;
-  border: 1px solid var(--line) !important;
-}
-
+/* ── CARDS / PANELS (default = white) ── */
 html.dto-unified .panel,
 html.dto-unified .card,
 html.dto-unified .hero-card,
@@ -924,62 +931,78 @@ html.dto-unified .scanner-card,
 html.dto-unified .module,
 html.dto-unified section.panel,
 html.dto-unified article {
-  border-color: rgba(127, 141, 163, 0.22) !important;
-  border-radius: 8px !important;
-  background: linear-gradient(145deg, rgba(17, 24, 36, 0.96), rgba(7, 11, 18, 0.96)) !important;
-  color: var(--dto-text) !important;
-  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.18);
+  border: 1px solid var(--line) !important;
+  border-radius: 12px !important;
+  background: var(--panel) !important;
+  color: var(--text) !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.04);
 }
 
-html.dto-unified[data-theme="light"] .panel,
-html.dto-unified[data-theme="light"] .card,
-html.dto-unified[data-theme="light"] .hero-card,
-html.dto-unified[data-theme="light"] .tool,
-html.dto-unified[data-theme="light"] .resource,
-html.dto-unified[data-theme="light"] .op,
-html.dto-unified[data-theme="light"] .metric,
-html.dto-unified[data-theme="light"] .widget-box,
-html.dto-unified[data-theme="light"] .company-card,
-html.dto-unified[data-theme="light"] .status-card,
-html.dto-unified[data-theme="light"] .check,
-html.dto-unified[data-theme="light"] .path-step,
-html.dto-unified[data-theme="light"] .scanner-card,
-html.dto-unified[data-theme="light"] .module,
-html.dto-unified[data-theme="light"] section.panel,
-html.dto-unified[data-theme="light"] article {
+/* ── CARDS dark override ── */
+html.dto-unified[data-theme="dark"] .panel,
+html.dto-unified[data-theme="dark"] .card,
+html.dto-unified[data-theme="dark"] .hero-card,
+html.dto-unified[data-theme="dark"] .tool,
+html.dto-unified[data-theme="dark"] .resource,
+html.dto-unified[data-theme="dark"] .op,
+html.dto-unified[data-theme="dark"] .metric,
+html.dto-unified[data-theme="dark"] .widget-box,
+html.dto-unified[data-theme="dark"] .company-card,
+html.dto-unified[data-theme="dark"] .status-card,
+html.dto-unified[data-theme="dark"] .check,
+html.dto-unified[data-theme="dark"] .path-step,
+html.dto-unified[data-theme="dark"] .scanner-card,
+html.dto-unified[data-theme="dark"] .module,
+html.dto-unified[data-theme="dark"] section.panel,
+html.dto-unified[data-theme="dark"] article {
   background: var(--panel) !important;
   color: var(--text) !important;
   border-color: var(--line) !important;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.28);
 }
 
 html.dto-unified .tool.featured,
 html.dto-unified .primary-card,
-html.dto-unified .active,
 html.dto-unified .result-card {
-  border-color: rgba(0, 224, 138, 0.42) !important;
-  background: linear-gradient(135deg, rgba(0, 224, 138, 0.11), rgba(0, 215, 255, 0.055)), rgba(12, 17, 26, 0.98) !important;
+  border-color: rgba(0,200,5,0.25) !important;
+  box-shadow: 0 0 0 1px rgba(0,200,5,0.12) !important;
 }
 
+/* ── INPUTS (default = white) ── */
 html.dto-unified input,
 html.dto-unified select,
 html.dto-unified textarea {
-  border: 1px solid rgba(127, 141, 163, 0.3) !important;
-  border-radius: 7px !important;
-  background: #070c14 !important;
-  color: #f4f8ff !important;
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
-  font-weight: 700;
+  border: 1px solid rgba(0,0,0,0.12) !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  color: #1d1d1f !important;
+  font-family: -apple-system, "SF Pro Text", "Inter", system-ui, sans-serif !important;
+  font-weight: 400;
   outline: none;
+}
+
+html.dto-unified[data-theme="dark"] input,
+html.dto-unified[data-theme="dark"] select,
+html.dto-unified[data-theme="dark"] textarea {
+  border-color: rgba(255,255,255,0.12) !important;
+  background: rgba(255,255,255,0.06) !important;
+  color: var(--text) !important;
 }
 
 html.dto-unified input:focus,
 html.dto-unified select:focus,
 html.dto-unified textarea:focus {
-  border-color: var(--dto-cyan) !important;
-  box-shadow: 0 0 0 3px rgba(0, 215, 255, 0.12) !important;
+  border-color: var(--cyan, #0066ff) !important;
+  box-shadow: 0 0 0 3px rgba(0,102,255,0.12) !important;
 }
 
+html.dto-unified[data-theme="dark"] input:focus,
+html.dto-unified[data-theme="dark"] select:focus,
+html.dto-unified[data-theme="dark"] textarea:focus {
+  box-shadow: 0 0 0 3px rgba(0,215,255,0.15) !important;
+}
+
+/* ── BUTTONS (default = clean outlined) ── */
 html.dto-unified button,
 html.dto-unified .btn,
 html.dto-unified .flow-btn,
@@ -987,141 +1010,146 @@ html.dto-unified .ground-link,
 html.dto-unified .tool-link,
 html.dto-unified .action,
 html.dto-unified a.button {
-  border: 1px solid rgba(0, 215, 255, 0.36) !important;
-  border-radius: 7px !important;
-  background: rgba(0, 215, 255, 0.075) !important;
-  color: #e8fbff !important;
+  border: 1px solid rgba(0,0,0,0.1) !important;
+  border-radius: 8px !important;
+  background: #ffffff !important;
+  color: #1d1d1f !important;
   cursor: pointer;
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
-  font-weight: 900 !important;
-  letter-spacing: 0.08em !important;
+  font-family: -apple-system, "SF Pro Text", "Inter", system-ui, sans-serif !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
   text-decoration: none !important;
-  text-transform: uppercase !important;
+  text-transform: none !important;
+  transition: background .14s ease, border-color .14s ease, transform .1s ease !important;
 }
 
-html.dto-unified[data-theme="light"] button,
-html.dto-unified[data-theme="light"] .btn,
-html.dto-unified[data-theme="light"] .flow-btn,
-html.dto-unified[data-theme="light"] .action {
-  border-color: var(--line) !important;
-  background: var(--panel2) !important;
+html.dto-unified[data-theme="dark"] button,
+html.dto-unified[data-theme="dark"] .btn,
+html.dto-unified[data-theme="dark"] .flow-btn,
+html.dto-unified[data-theme="dark"] .action,
+html.dto-unified[data-theme="dark"] a.button {
+  border-color: rgba(255,255,255,0.12) !important;
+  background: rgba(255,255,255,0.07) !important;
   color: var(--text) !important;
 }
 
 html.dto-unified button:hover,
 html.dto-unified .btn:hover,
 html.dto-unified .flow-btn:hover,
-html.dto-unified .ground-link:hover,
-html.dto-unified .tool-link:hover,
 html.dto-unified .action:hover {
-  background: var(--dto-cyan) !important;
-  color: #061017 !important;
+  background: #f5f5f7 !important;
+  border-color: rgba(0,0,0,0.18) !important;
 }
 
+html.dto-unified[data-theme="dark"] button:hover,
+html.dto-unified[data-theme="dark"] .btn:hover,
+html.dto-unified[data-theme="dark"] .flow-btn:hover,
+html.dto-unified[data-theme="dark"] .action:hover {
+  background: rgba(255,255,255,0.12) !important;
+  border-color: rgba(255,255,255,0.2) !important;
+}
+
+html.dto-unified button:active,
+html.dto-unified .btn:active,
+html.dto-unified .flow-btn:active,
+html.dto-unified .action:active {
+  transform: scale(0.96) !important;
+}
+
+/* ── PRIMARY BUTTON — Robinhood green ── */
 html.dto-unified button.primary,
 html.dto-unified .btn.primary,
 html.dto-unified .flow-btn.primary,
-html.dto-unified .primary,
-html.dto-unified [class*="buy"] {
-  border-color: rgba(0, 224, 138, 0.44) !important;
+html.dto-unified .primary {
+  background: #00c805 !important;
+  border-color: transparent !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 3px rgba(0,200,5,0.22) !important;
 }
 
-html.dto-unified .btn.primary,
-html.dto-unified .flow-btn.primary,
-html.dto-unified button.primary {
-  background: var(--dto-green) !important;
-  color: #04130d !important;
+html.dto-unified button.primary:hover,
+html.dto-unified .btn.primary:hover,
+html.dto-unified .primary:hover {
+  filter: brightness(1.06) !important;
+  background: #00c805 !important;
+  box-shadow: 0 2px 10px rgba(0,200,5,0.32) !important;
 }
 
+/* ── STATUS COLORS ── */
 html.dto-unified .gold,
 html.dto-unified .warning,
 html.dto-unified .status-note,
 html.dto-unified .dto-warning,
 html.dto-unified .blocker {
-  border-color: rgba(242, 184, 75, 0.36) !important;
-  background: rgba(242, 184, 75, 0.08) !important;
-  color: #f2d79c !important;
+  border-color: rgba(255,149,0,0.25) !important;
+  background: rgba(255,149,0,0.07) !important;
+  color: #a85800 !important;
 }
 
-html.dto-unified .sell,
-html.dto-unified .danger,
-html.dto-unified .loss,
-html.dto-unified .red {
-  color: var(--dto-red) !important;
+html.dto-unified[data-theme="dark"] .gold,
+html.dto-unified[data-theme="dark"] .warning,
+html.dto-unified[data-theme="dark"] .status-note,
+html.dto-unified[data-theme="dark"] .blocker {
+  color: var(--gold) !important;
+  background: rgba(242,184,75,0.09) !important;
+  border-color: rgba(242,184,75,0.28) !important;
 }
 
-html.dto-unified .buy,
-html.dto-unified .gain,
-html.dto-unified .green {
-  color: var(--dto-green) !important;
-}
+html.dto-unified .sell, html.dto-unified .danger,
+html.dto-unified .loss, html.dto-unified .red { color: var(--red) !important; }
 
+html.dto-unified .buy, html.dto-unified .gain,
+html.dto-unified .green { color: var(--green) !important; }
+
+/* ── TABLES ── */
 html.dto-unified table {
   width: 100%;
-  border-collapse: separate;
-  border-spacing: 0;
-  overflow: hidden;
-  border: 1px solid rgba(127, 141, 163, 0.2);
+  border-collapse: collapse;
   border-radius: 8px;
-}
-
-html.dto-unified th,
-html.dto-unified td {
-  border-bottom: 1px solid rgba(127, 141, 163, 0.14);
-  color: #cdd9ea;
-  padding: 11px 12px;
+  overflow: hidden;
 }
 
 html.dto-unified th {
-  color: var(--dto-cyan);
-  font-size: 11px;
-  letter-spacing: 0.12em;
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
+  font-weight: 500;
+  border-bottom: 1px solid var(--line);
+  padding: 9px 12px;
+  font-family: -apple-system, "SF Pro Text", "Inter", system-ui, sans-serif;
+}
+
+html.dto-unified td {
+  color: var(--text);
+  border-bottom: 1px solid var(--line);
+  padding: 10px 12px;
+  font-family: -apple-system, "SF Pro Text", "Inter", system-ui, sans-serif;
 }
 
 html.dto-unified ::selection {
-  background: rgba(0, 215, 255, 0.35);
-  color: #fff;
+  background: rgba(0,102,255,0.2);
+  color: inherit;
 }
 
 @media (max-width: 800px) {
-  html.dto-unified .dto-mission-grid {
-    grid-template-columns: 1fr !important;
-  }
-  html.dto-unified .dto-mission-lists {
-    grid-template-columns: 1fr !important;
-  }
-  html.dto-unified .dto-action-row {
-    flex-wrap: wrap;
-  }
+  html.dto-unified .dto-mission-grid { grid-template-columns: 1fr !important; }
+  html.dto-unified .dto-mission-lists { grid-template-columns: 1fr !important; }
+  html.dto-unified .dto-action-row { flex-wrap: wrap; }
   html.dto-unified .dto-global-actions {
-    flex-wrap: wrap;
-    justify-content: center;
-    padding: 6px !important;
-    gap: 4px !important;
+    flex-wrap: wrap; justify-content: center;
+    padding: 6px !important; gap: 4px !important;
   }
-  html.dto-unified .dto-global-actions button, html.dto-unified .dto-global-actions a {
-    padding: 6px 10px !important;
-    font-size: 11px !important;
-  }
-  html.dto-unified .dto-auth-inline span {
-    display: none;
-  }
-  html.dto-unified .top-right, html.dto-unified .topbar {
-    gap: 8px !important;
-  }
+  html.dto-unified .dto-global-actions button,
+  html.dto-unified .dto-global-actions a { padding: 6px 10px !important; font-size: 11px !important; }
+  html.dto-unified .dto-auth-inline span { display: none; }
+  html.dto-unified .top-right, html.dto-unified .topbar { gap: 8px !important; }
   html.dto-unified main, html.dto-unified .shell, html.dto-unified .wrap {
-    padding: 10px !important;
-    padding-bottom: 80px !important;
+    padding: 10px !important; padding-bottom: 80px !important;
   }
-  html.dto-unified table {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
-  }
-  html.dto-unified .hero-title {
-    font-size: 2.5rem !important;
-  }
+  html.dto-unified table { display: block; overflow-x: auto; white-space: nowrap; }
+  html.dto-unified .hero-title { font-size: 2.5rem !important; }
 }
 `;
     document.head.appendChild(style);
@@ -1151,8 +1179,8 @@ html.dto-unified ::selection {
     escapeHtml
   };
 
-  const savedTheme = localStorage.getItem("dtoTheme");
-  if (savedTheme) document.documentElement.setAttribute("data-theme", savedTheme);
+  const savedTheme = localStorage.getItem("dtoTheme") || "light";
+  document.documentElement.setAttribute("data-theme", savedTheme);
 
   syncQuerySetup();
   injectUnifiedTheme();

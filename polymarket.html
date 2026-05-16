@@ -195,6 +195,35 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,"SF Pro Te
   .sidebar{position:static;border-top:1px solid var(--border);padding-top:16px;margin-top:8px;}
   .card-footer{gap:6px;}
 }
+
+/* ── MOTION ── */
+button,.cat-tab,.card-btn,.refresh-btn,.add-pin-btn,.modal-btn{
+  transition:background .14s ease,border-color .14s ease,color .14s ease,
+             box-shadow .14s ease,transform .1s ease;
+}
+button:active,.cat-tab:active,.card-btn:active,.refresh-btn:active,
+.add-pin-btn:active,.modal-btn:active{transform:scale(0.95);}
+.cat-tab{transition:background .18s ease,border-color .18s ease,
+         color .18s ease,box-shadow .18s ease,transform .1s ease;}
+.market-card{transition:transform .2s ease,box-shadow .2s ease,border-color .15s ease;}
+.market-card:hover{transform:translateY(-2px);
+  box-shadow:0 6px 20px rgba(0,0,0,0.1),0 2px 6px rgba(0,0,0,0.06);}
+
+/* Ripple */
+.ripple-host{position:relative;overflow:hidden;}
+@keyframes pm-ripple{to{transform:scale(6);opacity:0;}}
+.dto-ripple-wave{position:absolute;border-radius:50%;width:24px;height:24px;
+  transform:scale(0);animation:pm-ripple .55s ease-out forwards;
+  pointer-events:none;z-index:9;}
+
+/* Page entrance */
+@keyframes pm-fade-up{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+.dto-enter    {animation:pm-fade-up .3s ease both;}
+.dto-enter-d1 {animation:pm-fade-up .3s ease .04s both;}
+.dto-enter-d2 {animation:pm-fade-up .3s ease .08s both;}
+.dto-enter-d3 {animation:pm-fade-up .3s ease .12s both;}
+.dto-enter-d4 {animation:pm-fade-up .3s ease .16s both;}
+.dto-enter-d5 {animation:pm-fade-up .3s ease .20s both;}
 </style>
 </head>
 <body>
@@ -312,7 +341,7 @@ body{background:var(--bg);color:var(--text);font-family:-apple-system,"SF Pro Te
 </div>
 
 <script src="assets/dto-core.js"></script>
-<script src="assets/dto-animations.js" defer></script>
+<script src="assets/dto-animations.js"></script>
 <script src="assets/daytrader-os.js?v=20260504-vercel1" defer></script>
 <script>
 const PINS_KEY = 'dtoPolyPins';
