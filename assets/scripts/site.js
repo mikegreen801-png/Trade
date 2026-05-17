@@ -212,6 +212,14 @@
     writeStore(ALPACA_KEY, { keyId: keyId, secret: secret, env: env || "paper" });
   }
 
+  function getPolyKeys() {
+    return readStore("dto_poly_keys", null);
+  }
+
+  function savePolyKeys(apiKey, secret, passphrase) {
+    writeStore("dto_poly_keys", { apiKey: apiKey, secret: secret, passphrase: passphrase });
+  }
+
   // ── Update auth slot in top bar ──
   function updateAuthSlot() {
     var slot = document.getElementById("authSlot");
@@ -257,6 +265,8 @@
     loginUser: loginUser,
     logout: logout,
     getAlpacaKeys: getAlpacaKeys,
-    saveAlpacaKeys: saveAlpacaKeys
+    saveAlpacaKeys: saveAlpacaKeys,
+    getPolyKeys: getPolyKeys,
+    savePolyKeys: savePolyKeys
   };
 })();

@@ -91,7 +91,11 @@
       </div>
     </div>
     <form class="field-grid" id="reviewForm">
-      <div class="field"><label for="reviewSymbol">Symbol</label><input id="reviewSymbol" value="AAPL"></div>
+      <div class="field">
+        <label for="reviewSymbol">Symbol</label>
+        <input id="reviewSymbol" value="AAPL">
+        <div id="reviewSymbolHint" class="symbol-hint">Type a symbol to fetch the latest price.</div>
+      </div>
       <div class="field"><label for="reviewSide">Side</label><select id="reviewSide"><option value="long">Long</option><option value="short">Short</option></select></div>
       <div class="field"><label for="reviewQty">Qty</label><input id="reviewQty" type="number" step="0.000001" value="1"></div>
       <div class="field"><label for="reviewSetup">Setup</label><select id="reviewSetup"><option>Breakout</option><option>Pullback</option><option>VWAP</option><option>Reversal</option><option>Other</option></select></div>

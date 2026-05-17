@@ -16,6 +16,43 @@
     S.toast("Setup loaded into review form.", "success");
   });
 
+  // ── Auto-price / Symbol lookup ──
+  var symbolInput = document.getElementById("reviewSymbol");
+  var symbolHint = document.getElementById("reviewSymbolHint");
+  var lookupTimeout;
+
+  if (symbolInput) {
+    symbolInput.addEventListener("input", function() {
+      var sym = D.cleanSymbol(symbolInput.value);
+      if (!sym) {
+        if (symbolHint) { symbolHint.textContent = "Type a symbol to fetch the latest price."; symbolHint.className = "symbol-hint"; }
+        return;
+      }
+      
+      if (symbolHint) { symbolHint.textContent = "Fetching " + sym + "…"; symbolHint.className = "symbol-hint fetching"; }
+      
+      clearTimeout(lookupTimeout);
+      lookupTimeout = setTimeout(function() {
+        D.fetchCandles(sym).then(function(candles) {
+          if (!candles || !candles.length) throw new Error("No data");
+          var lastCandle = candles[candles.length - 1];
+          
+          if (!val("reviewEntry")) setVal("reviewEntry", lastCandle.close);
+          
+          if (symbolHint) {
+            symbolHint.textContent = "Last close: " + D.fmtPrice(lastCandle.close);
+            symbolHint.className = "symbol-hint";
+          }
+        }).catch(function(err) {
+          if (symbolHint) {
+            symbolHint.textContent = "Could not fetch price for " + sym + ".";
+            symbolHint.className = "symbol-hint";
+          }
+        });
+      }, 500); // 500ms debounce
+    });
+  }
+
   // ── Review form ──
   var form = document.getElementById("reviewForm");
   if (form) form.addEventListener("submit", function (e) {

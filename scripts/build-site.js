@@ -89,7 +89,10 @@ function cssBundle() {
     "plan.css",
     "execute.css",
     "review.css",
-    "login.css"
+    "login.css",
+    "bot.css",
+    "poly.css",
+    "sim.css"
   ];
 
   const output = [

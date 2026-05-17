@@ -19,6 +19,57 @@
     computeRisk(); gradeSetup(); S.toast("Setup loaded.", "success");
   });
 
+  // ── Auto-price / Symbol lookup ──
+  var symbolInput = document.getElementById("symbol");
+  var symbolHint = document.getElementById("planSymbolHint");
+  var lookupTimeout;
+
+  if (symbolInput) {
+    symbolInput.addEventListener("input", function() {
+      var sym = D.cleanSymbol(symbolInput.value);
+      if (!sym) {
+        if (symbolHint) { symbolHint.textContent = "Type a symbol to fetch the latest price and bias."; symbolHint.className = "symbol-hint"; }
+        return;
+      }
+      
+      if (symbolHint) { symbolHint.textContent = "Fetching " + sym + "…"; symbolHint.className = "symbol-hint fetching"; }
+      
+      clearTimeout(lookupTimeout);
+      lookupTimeout = setTimeout(function() {
+        D.fetchCandles(sym).then(function(candles) {
+          if (!candles || !candles.length) throw new Error("No data");
+          var r = D.analyzeCandles(sym, candles);
+          
+          setVal("assetType", D.isCryptoSymbol(sym) ? "crypto" : "stock");
+          
+          if (!val("entry")) setVal("entry", r.raw.price);
+          if (!val("stop")) setVal("stop", r.raw.stop);
+          if (!val("target")) setVal("target", r.raw.target);
+          if (!val("support")) setVal("support", r.raw.support);
+          if (!val("resistance")) setVal("resistance", r.raw.resistance);
+          
+          if (r.rating === "BUY" && !val("side")) setVal("side", "long");
+          if (r.rating === "SELL" && !val("side")) setVal("side", "short");
+          
+          setVal("rating", r.rating);
+          
+          if (symbolHint) {
+            symbolHint.textContent = "Current price: " + D.fmtPrice(r.raw.price) + " (" + r.rating + ")";
+            symbolHint.className = "symbol-hint";
+          }
+          
+          computeRisk();
+          gradeSetup();
+        }).catch(function(err) {
+          if (symbolHint) {
+            symbolHint.textContent = "Could not fetch price for " + sym + ".";
+            symbolHint.className = "symbol-hint";
+          }
+        });
+      }, 500); // 500ms debounce
+    });
+  }
+
   // ── Save setup form ──
   var form = document.getElementById("planSetupForm");
   if (form) form.addEventListener("submit", function (e) {

@@ -1,0 +1,52 @@
+<section class="page-hero">
+  <div class="hero-block">
+    <span class="eyebrow">Prediction Markets</span>
+    <h1>Polymarket</h1>
+    <p class="lead">View live prediction markets and event contracts. Prices represent the probability (0–1 USDC) of the event occurring.</p>
+  </div>
+  <aside class="hero-aside stack">
+    <div class="metric-card">
+      <span>Polymarket API</span>
+      <strong id="polyApiStatus" class="status-warning">Read-only</strong>
+      <small>L2 keys not found in local storage.</small>
+    </div>
+    <div class="metric-card">
+      <span>Market count</span>
+      <strong id="polyMarketCount">0</strong>
+      <small>Active liquid markets tracked.</small>
+    </div>
+  </aside>
+</section>
+
+<section class="market-grid">
+  <article id="polyConfig" class="surface section-anchor stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Credentials</span>
+        <h2>L2 Key Configuration</h2>
+      </div>
+    </div>
+    <form class="field-grid" id="polyKeyForm">
+      <div class="field"><label>API Key</label><input id="polyApiKey" type="password" placeholder="Paste your API key"></div>
+      <div class="field"><label>Secret</label><input id="polyApiSecret" type="password" placeholder="Paste your Secret key"></div>
+      <div class="field"><label>Passphrase</label><input id="polyApiPassphrase" type="password" placeholder="Paste your Passphrase"></div>
+      <div class="field full">
+        <button class="primary-btn" type="submit">Save Polymarket Keys locally</button>
+      </div>
+    </form>
+    <div class="analysis-note">
+      Your Polymarket L2 keys are stored securely in your browser's local storage. They are only sent to your local backend proxy to sign orders. If you leave these blank, you can still view live market probabilities in read-only mode.
+    </div>
+  </article>
+
+  <article id="polyFeed" class="surface section-anchor stack" style="grid-column: span 2;">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Live Feed</span>
+        <h2>Active Markets</h2>
+      </div>
+      <button class="secondary-btn" id="polyRefreshBtn" type="button">Refresh Markets</button>
+    </div>
+    <div id="polyMarketGrid" class="benchmark-grid loading-state" style="grid-template-columns: 1fr;">Loading Polymarket events...</div>
+  </article>
+</section>

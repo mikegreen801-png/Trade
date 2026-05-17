@@ -1,0 +1,4 @@
+/* poly.css */
+#polyMarketGrid .surface:hover {
+  background-color: var(--bg-soft);
+}

@@ -85,7 +85,11 @@
     </div>
   </div>
   <form class="field-grid" id="planSetupForm">
-    <div class="field"><label for="symbol">Symbol</label><input id="symbol" value="AAPL"></div>
+    <div class="field">
+      <label for="symbol">Symbol</label>
+      <input id="symbol" value="AAPL">
+      <div id="planSymbolHint" class="symbol-hint">Type a symbol to fetch the latest price and bias.</div>
+    </div>
     <div class="field"><label for="assetType">Asset</label><select id="assetType"><option value="stock">Stock</option><option value="crypto">Crypto</option></select></div>
     <div class="field"><label for="side">Side</label><select id="side"><option value="long">Long</option><option value="short">Short</option></select></div>
     <div class="field"><label for="timeframe">Timeframe</label><select id="timeframe"><option value="intraday">Intraday</option><option value="swing">Swing</option><option value="scalp">Scalp</option></select></div>

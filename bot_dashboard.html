@@ -1,732 +1,163 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Automated Bot Dashboard | Day Trader OS</title>
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="assets/daytrader-os.css">
-    <style>
-        :root {
-            --dto-bg:      #f5f5f7;
-            --dto-panel:   #ffffff;
-            --dto-panel-2: #f5f5f7;
-            --dto-border:  rgba(0,0,0,0.06);
-            --dto-text:    #1d1d1f;
-            --dto-muted:   #6e6e73;
-            --dto-cyan:    #0066ff;
-            --dto-green:   #00c805;
-            --dto-gold:    #ff9500;
-            --dto-red:     #ff3b30;
-        }
-
-        body {
-            margin: 0;
-            min-height: 100vh;
-            background: #f5f5f7;
-            color: #1d1d1f;
-            font-family: -apple-system, "SF Pro Text", "Inter", system-ui, sans-serif;
-        }
-
-
-
-        a { color: inherit; }
-
-        .shell {
-            position: relative;
-            width: min(1380px, calc(100% - 32px));
-            margin: 0 auto;
-            padding: 26px 0 36px;
-        }
-
-        /* ── TOPBAR ── */
-        .topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 18px;
-            padding: 12px 0 22px;
-            border-bottom: 1px solid rgba(220, 231, 245, 0.12);
-            margin-bottom: 30px;
-        }
-
-        .brand {
-            font-family: "JetBrains Mono", monospace;
-            font-weight: 800;
-            letter-spacing: 0.22em;
-            color: #ffffff;
-            text-transform: uppercase;
-            text-decoration: none;
-        }
-        .brand span { color: var(--dto-cyan); }
-
-        .nav-links {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .nav-links a {
-            border: 1px solid rgba(0, 215, 255, 0.24);
-            border-radius: 999px;
-            padding: 8px 10px;
-            background: rgba(9, 16, 26, 0.76);
-            color: #cfe6f0;
-            font: 700 10px/1 "JetBrains Mono", monospace;
-            letter-spacing: 0.1em;
-            text-decoration: none;
-            text-transform: uppercase;
-            transition: all 0.15s;
-        }
-        .nav-links a:hover {
-            border-color: rgba(0, 215, 255, 0.72);
-            background: rgba(0, 215, 255, 0.14);
-            color: #ffffff;
-        }
-        .nav-links a.active {
-            border-color: rgba(0, 224, 138, 0.65);
-            background: linear-gradient(135deg, var(--dto-cyan), var(--dto-green));
-            color: #061017;
-        }
-
-        .top-right {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-        }
-
-        .status-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            border: 1px solid rgba(0, 215, 255, 0.24);
-            border-radius: 999px;
-            padding: 8px 12px;
-            background: rgba(9, 16, 26, 0.76);
-            color: #cfe6f0;
-            font: 700 10px/1 "JetBrains Mono", monospace;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-        }
-
-        .engine-status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--dto-muted);
-        }
-        .engine-status-dot.online {
-            background: var(--dto-green);
-            box-shadow: 0 0 10px var(--dto-green);
-            animation: pulse-glow 2s ease-in-out infinite;
-        }
-        .engine-status-dot.offline {
-            background: var(--dto-red);
-            box-shadow: 0 0 10px var(--dto-red);
-        }
-
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 10px var(--dto-green); }
-            50% { box-shadow: 0 0 18px var(--dto-green), 0 0 30px rgba(0, 224, 138, 0.3); }
-        }
-
-        /* ── LAYOUT ── */
-        .grid-main {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 20px;
-        }
-
-        .sidebar { display: grid; gap: 20px; align-content: start; }
-
-        .panel {
-            border: 1px solid rgba(220, 231, 245, 0.13);
-            border-radius: 8px;
-            background: linear-gradient(180deg, rgba(17, 25, 39, 0.94), rgba(8, 13, 21, 0.95));
-            padding: 24px;
-            box-shadow: 0 20px 70px rgba(0, 0, 0, 0.26);
-        }
-
-        .panel-kicker {
-            font-family: "JetBrains Mono", monospace;
-            color: var(--dto-cyan);
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 0.14em;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-        }
-
-        h2 {
-            margin: 0 0 20px;
-            color: #ffffff;
-            font-size: 32px;
-            line-height: 0.95;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        h2.small { font-size: 24px; margin-bottom: 16px; }
-
-        /* ── BOT STATE ── */
-        .bot-state {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .state-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            background: rgba(3, 8, 15, 0.44);
-            border: 1px solid rgba(220, 231, 245, 0.08);
-            border-radius: 6px;
-        }
-
-        .state-label {
-            font-family: "JetBrains Mono", monospace;
-            font-size: 10px;
-            font-weight: 800;
-            color: var(--dto-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-        }
-
-        .state-value {
-            font-family: "JetBrains Mono", monospace;
-            font-size: 14px;
-            font-weight: 700;
-            color: #fff;
-        }
-
-        .btn-action {
-            width: 100%;
-            border: 0;
-            border-radius: 6px;
-            padding: 16px;
-            font: 800 12px/1 "JetBrains Mono", monospace;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .btn-start {
-            background: var(--dto-green);
-            color: #03120c;
-        }
-        .btn-start:hover { box-shadow: 0 0 15px rgba(0, 224, 138, 0.4); transform: translateY(-1px); }
-
-        .btn-stop {
-            background: var(--dto-red);
-            color: #190307;
-        }
-        .btn-stop:hover { box-shadow: 0 0 15px rgba(255, 91, 110, 0.4); transform: translateY(-1px); }
-
-        /* ── WATCHLIST EDITOR ── */
-        .watch-form {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-
-        .watch-form input {
-            flex: 1;
-            min-width: 0;
-            border: 1px solid rgba(0, 215, 255, 0.35);
-            border-radius: 6px;
-            background: #050a12;
-            color: #ffffff;
-            padding: 12px 14px;
-            font: 700 13px/1 "JetBrains Mono", monospace;
-            letter-spacing: 0.1em;
-            outline: none;
-            text-transform: uppercase;
-        }
-        .watch-form input:focus {
-            border-color: var(--dto-cyan);
-            box-shadow: 0 0 0 3px rgba(0, 215, 255, 0.09);
-        }
-
-        .watch-form button {
-            border: 0;
-            border-radius: 6px;
-            background: var(--dto-cyan);
-            color: #031018;
-            padding: 0 16px;
-            font: 800 11px/1 "JetBrains Mono", monospace;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .watch-form button:hover { background: #00b8d4; }
-
-        .watch-cap {
-            font: 600 10px/1.3 "JetBrains Mono", monospace;
-            color: var(--dto-muted);
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            margin-bottom: 12px;
-        }
-
-        .watch-list {
-            display: grid;
-            gap: 8px;
-        }
-
-        .watch-item {
-            display: grid;
-            grid-template-columns: auto 1fr auto auto;
-            gap: 10px;
-            align-items: center;
-            padding: 10px 12px;
-            background: rgba(3, 8, 15, 0.44);
-            border: 1px solid rgba(220, 231, 245, 0.08);
-            border-radius: 6px;
-            transition: border-color 0.15s;
-        }
-        .watch-item:hover { border-color: rgba(0, 215, 255, 0.35); }
-
-        .watch-symbol {
-            font: 800 14px/1 "JetBrains Mono", monospace;
-            color: #ffffff;
-            letter-spacing: 0.08em;
-        }
-
-        .watch-meta {
-            font: 600 11px/1.3 "JetBrains Mono", monospace;
-            color: var(--dto-muted);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .watch-signal {
-            border: 1px solid rgba(0, 215, 255, 0.24);
-            border-radius: 999px;
-            padding: 6px 10px;
-            font: 800 10px/1 "JetBrains Mono", monospace;
-            letter-spacing: 0.08em;
-            text-decoration: none;
-            text-transform: uppercase;
-            color: var(--dto-cyan);
-            transition: all 0.15s;
-        }
-        .watch-signal:hover { background: rgba(0, 215, 255, 0.12); color: #fff; }
-
-        .watch-remove {
-            border: 1px solid rgba(255, 91, 110, 0.2);
-            border-radius: 4px;
-            padding: 5px 8px;
-            background: transparent;
-            color: var(--dto-muted);
-            font: 700 10px/1 "JetBrains Mono", monospace;
-            cursor: pointer;
-            transition: all 0.15s;
-        }
-        .watch-remove:hover { border-color: var(--dto-red); color: var(--dto-red); }
-
-        .watch-empty {
-            text-align: center;
-            padding: 20px;
-            color: var(--dto-muted);
-            font: 600 12px/1.6 "JetBrains Mono", monospace;
-        }
-
-        /* ── TABLE ── */
-        .table-container { overflow-x: auto; }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-family: "JetBrains Mono", monospace;
-        }
-
-        th {
-            text-align: left;
-            padding: 12px;
-            color: var(--dto-muted);
-            font-size: 10px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            border-bottom: 1px solid rgba(220, 231, 245, 0.1);
-        }
-
-        td {
-            padding: 14px 12px;
-            font-size: 12px;
-            color: #d8e2ef;
-            border-bottom: 1px solid rgba(220, 231, 245, 0.06);
-        }
-
-        .buy { color: var(--dto-green); }
-        .sell { color: var(--dto-red); }
-
-        .api-error-banner {
-            display: none;
-            margin-bottom: 20px;
-            padding: 14px;
-            background: rgba(255, 91, 110, 0.1);
-            border: 1px solid rgba(255, 91, 110, 0.3);
-            border-radius: 6px;
-            color: var(--dto-red);
-            font: 600 12px/1.4 "JetBrains Mono", monospace;
-            text-transform: uppercase;
-        }
-
-        @media (max-width: 900px) {
-            .grid-main { grid-template-columns: 1fr; }
-            .topbar { flex-direction: column; align-items: flex-start; }
-            .top-right { justify-content: flex-start; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day Trader OS | Automation</title>
+  <meta name="description" content="Bot Engine and automation tools.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/app.css?v=20260516">
 </head>
-<body>
-    <div class="shell">
-        <header class="topbar">
-            <a href="index.html" class="brand">Day<span>Trader</span>OS</a>
-            <div class="top-right">
-                <nav class="nav-links" aria-label="Main navigation">
-                    <a href="index.html">Home</a>
-                    <a href="bot_dashboard.html" class="active">Bot Engine</a>
-                    <a href="portfolio.html">Portfolio</a>
-                    <a href="signal_dashboard.html">Signals</a>
-                    <a href="market_workbench.html">Market Desk</a>
-                    <a href="trade_planner.html">Planner</a>
-                    <a href="execution_workbench.html">Execution</a>
-                </nav>
-                <div class="status-pill">
-                    <span id="engine-dot" class="engine-status-dot"></span>
-                    <span id="connection-text">Engine: Offline</span>
-                </div>
-            </div>
-        </header>
-
-        <div id="api-error" class="api-error-banner">
-            <strong>Critical Error:</strong> Connection to Trading Engine Failed
-        </div>
-
-        <div class="grid-main">
-            <div class="sidebar">
-                <!-- Bot Engine Control -->
-                <aside class="panel">
-                    <div class="panel-kicker">Automation Control</div>
-                    <h2>Bot Engine</h2>
-                    
-                    <div class="bot-state">
-                        <div class="state-item">
-                            <span class="state-label">Status</span>
-                            <span id="bot-status" class="state-value">Unknown</span>
-                        </div>
-                        <div class="state-item">
-                            <span class="state-label">Active Algos</span>
-                            <span id="active-strategies" class="state-value">-</span>
-                        </div>
-                        <div class="state-item">
-                            <span class="state-label">Symbols</span>
-                            <span id="active-symbols" class="state-value">-</span>
-                        </div>
-                    </div>
-
-                    <div id="control-buttons">
-                        <button id="btn-start" class="btn-action btn-start" onclick="toggleBot(true)">Start Monitoring</button>
-                        <button id="btn-stop" class="btn-action btn-stop" onclick="toggleBot(false)" style="display: none;">Halt Operations</button>
-                    </div>
-                </aside>
-
-                <!-- Connection Console -->
-                <aside class="panel">
-                    <div class="panel-kicker">Alpaca Markets</div>
-                    <h2 class="small">Connection Console</h2>
-                    
-                    <div class="bot-state">
-                        <div class="state-item">
-                            <span class="state-label">Mode</span>
-                            <span id="alpaca-mode" class="state-value">-</span>
-                        </div>
-                        <div class="state-item">
-                            <span class="state-label">Buying Power</span>
-                            <span id="alpaca-bp" class="state-value">-</span>
-                        </div>
-                        <div class="state-item">
-                            <span class="state-label">Equity</span>
-                            <span id="alpaca-eq" class="state-value">-</span>
-                        </div>
-                    </div>
-                    
-                    <div id="connection-controls">
-                        <button class="btn-action" style="background:var(--dto-border);color:#fff;" onclick="toggleConnectionMode()">Toggle Paper / Live</button>
-                    </div>
-                </aside>
-
-                <!-- Watchlist Editor -->
-                <aside class="panel">
-                    <div class="panel-kicker">Shared Watchlist</div>
-                    <h2 class="small" style="display:flex; justify-content:space-between; align-items:center;">
-                        Watchlist
-                        <button onclick="clearWatchlist()" style="font-size:10px; padding:4px 8px; background:transparent; border:1px solid var(--dto-red); color:var(--dto-red); border-radius:4px; cursor:pointer;">CLEAR ALL</button>
-                    </h2>
-                    <div class="watch-cap" id="watch-cap">0 / 15 symbols</div>
-                    <form class="watch-form" id="watch-form">
-                        <input id="watch-input" placeholder="AAPL, TSLA..." autocomplete="off">
-                        <button type="submit">Add</button>
-                    </form>
-                    <div class="watch-list" id="watch-list"></div>
-                </aside>
-            </div>
-
-            <!-- Trade History -->
-            <main class="panel">
-                <div class="panel-kicker">Persistent Logs</div>
-                <h2>Trade History</h2>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Timestamp</th>
-                                <th>Strategy</th>
-                                <th>Symbol</th>
-                                <th>Side</th>
-                                <th>Qty</th>
-                                <th>Price</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="trades-body">
-                            <tr><td colspan="7" style="text-align: center; color: var(--dto-muted); padding: 40px;">Syncing ledger...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </main>
-        </div>
+<body class="app-shell page-bot" data-dto-shell="modern" data-page-id="bot">
+  <header class="top-app-bar">
+  <div class="brand-lockup">
+    <a class="brand-mark" href="index.html">Day Trader <span>OS</span></a>
+    <p class="brand-subtitle">A calmer trading workspace</p>
+  </div>
+  <nav class="top-nav" aria-label="Primary navigation">
+    <a class="top-nav-link" href="index.html">Home</a><a class="top-nav-link" href="market_intel.html">Market</a><a class="top-nav-link" href="trade_planner.html">Plan</a><a class="top-nav-link" href="execution_workbench.html">Execute</a><a class="top-nav-link" href="review_workbench.html">Review</a>
+  </nav>
+  <div class="top-app-actions">
+    <details class="more-menu">
+      <summary>More</summary>
+      <div class="more-panel">
+        
+    <a class="more-link" href="bot_dashboard.html">
+      <strong>Automation</strong>
+      <span>Bot Engine and automation tools.</span>
+    </a>
+    <a class="more-link" href="polymarket.html">
+      <strong>Prediction Markets</strong>
+      <span>Secondary market context and sentiment tools.</span>
+    </a>
+    <a class="more-link" href="backtest_simulator.html">
+      <strong>Backtesting</strong>
+      <span>Archived advanced replay and simulation.</span>
+    </a>
+    <a class="more-link" href="tradingview_course.html">
+      <strong>Learning</strong>
+      <span>Archived education and course material.</span>
+    </a>
+      </div>
+    </details>
+    <div class="session-pill">
+      <span data-session-label>Loading</span>
+      <strong data-et-clock>--:-- ET</strong>
     </div>
+    <div class="auth-slot" id="authSlot">
+      <a class="auth-link" href="login.html">Sign in</a>
+    </div>
+  </div>
+</header>
 
-    <script>
-        const ENGINE_URL = '/api/bot';
-        const WATCHLIST_KEY = 'dtoScannerWatchlist';
-        const MAX_SYMBOLS = 15;
+  <main class="page-shell">
+    <section class="page-hero">
+  <div class="hero-block">
+    <span class="eyebrow">Automation</span>
+    <h1>Bot Engine</h1>
+    <p class="lead">Manage active trading algorithms, monitor automated execution, and view persistent logs across all sessions.</p>
+  </div>
+  <aside class="hero-aside stack">
+    <div class="metric-card">
+      <span>Engine status</span>
+      <strong id="botEngineStatus" class="status-negative">Offline</strong>
+      <small>Automated trading is currently paused.</small>
+    </div>
+    <div class="metric-card">
+      <span>Active algos</span>
+      <strong id="botActiveAlgosCount">0</strong>
+      <small>Strategies currently deployed.</small>
+    </div>
+    <div class="metric-card">
+      <span>Alpaca environment</span>
+      <strong id="botAlpacaEnv">Not Configured</strong>
+      <small>Check Sign In page to configure keys.</small>
+    </div>
+  </aside>
+</section>
 
-        // ── Watchlist helpers ──
-        function readWatchlist() {
-            try { return JSON.parse(localStorage.getItem(WATCHLIST_KEY) || '[]'); }
-            catch { return []; }
-        }
+<section class="market-grid">
+  <article id="control" class="surface section-anchor stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Control</span>
+        <h2>Automation Control</h2>
+      </div>
+    </div>
+    <div class="field-grid">
+      <div class="field full">
+        <label>Engine Power</label>
+        <button id="botToggleEngineBtn" class="primary-btn" style="width: 100%; justify-content: center;">Start Monitoring</button>
+      </div>
+    </div>
+    
+    <div class="section-header" style="margin-top: 24px;">
+      <div>
+        <span class="eyebrow">Strategies</span>
+        <h2>Deployed Algos</h2>
+      </div>
+    </div>
+    <div id="botAlgosList" class="simple-list empty-state">No algorithms are currently active.</div>
+    
+    <div class="section-header" style="margin-top: 24px;">
+      <div>
+        <span class="eyebrow">Connection</span>
+        <h2>Alpaca Markets</h2>
+      </div>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Mode</label><input id="botAlpacaMode" value="--" readonly></div>
+      <div class="field"><label>Buying Power</label><input id="botAlpacaBp" value="--" readonly></div>
+      <div class="field full"><label>Equity</label><input id="botAlpacaEq" value="--" readonly></div>
+    </div>
+  </article>
 
-        function writeWatchlist(list) {
-            localStorage.setItem(WATCHLIST_KEY, JSON.stringify(list));
-        }
+  <article id="logs" class="surface section-anchor stack" style="grid-column: span 2;">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Ledger</span>
+        <h2>Persistent Logs</h2>
+      </div>
+      <button class="secondary-btn" id="botRefreshLogsBtn" type="button">Refresh Logs</button>
+    </div>
+    
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Strategy</th>
+            <th>Symbol</th>
+            <th>Side</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="botLogsTableBody">
+          <tr>
+            <td colspan="7" class="empty-state" style="text-align: center; padding: 48px 0;">Syncing ledger...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </article>
+</section>
 
-        function cleanSymbol(raw) {
-            return String(raw || '').trim().toUpperCase().replace(/[^A-Z0-9.-]/g, '');
-        }
+    <footer class="site-footer">
+  <p>Designed for active retail traders who need a cleaner workflow, not more dashboard noise.</p>
+  <p class="footer-note">Educational tools only. Verify prices, news, and risk with your broker before trading.</p>
+</footer>
 
-        function watchlistSymbols() {
-            return readWatchlist().map(item =>
-                typeof item === 'string' ? item : (item?.symbol || '')
-            ).filter(Boolean);
-        }
+  </main>
+  <nav class="bottom-nav" aria-label="Mobile navigation">
+  <a class="bottom-nav-link" href="index.html">Home</a><a class="bottom-nav-link" href="market_intel.html">Market</a><a class="bottom-nav-link" href="trade_planner.html">Plan</a><a class="bottom-nav-link" href="execution_workbench.html">Execute</a><a class="bottom-nav-link" href="review_workbench.html">Review</a>
+</nav>
 
-        function addToWatchlist(rawSymbol) {
-            const symbol = cleanSymbol(rawSymbol);
-            if (!symbol) return;
-            const list = readWatchlist();
-            // Check if already exists
-            if (list.some(item => (typeof item === 'string' ? item : item?.symbol) === symbol)) return;
-            if (list.length >= MAX_SYMBOLS) {
-                alert(`Watchlist is capped at ${MAX_SYMBOLS} symbols. Remove one first.`);
-                return;
-            }
-            list.unshift({ symbol, type: 'Watch', level: '', note: '', savedAt: new Date().toISOString() });
-            writeWatchlist(list);
-            renderWatchlist();
-            syncWatchlistToEngine();
-        }
-
-        function removeFromWatchlist(symbol) {
-            const list = readWatchlist().filter(item =>
-                (typeof item === 'string' ? item : item?.symbol) !== symbol
-            );
-            writeWatchlist(list);
-            renderWatchlist();
-            syncWatchlistToEngine();
-        }
-
-        function clearWatchlist() {
-            if (!confirm("Are you sure you want to clear the entire watchlist?")) return;
-            writeWatchlist([]);
-            renderWatchlist();
-            syncWatchlistToEngine();
-        }
-
-        function renderWatchlist() {
-            const list = readWatchlist();
-            const symbols = list.map(item => typeof item === 'string' ? item : item?.symbol).filter(Boolean);
-            document.getElementById('watch-cap').textContent = `${symbols.length} / ${MAX_SYMBOLS} symbols`;
-            const container = document.getElementById('watch-list');
-            
-            if (!symbols.length) {
-                container.innerHTML = '<div class="watch-empty">No symbols in watchlist.<br>Add tickers above or use Market Desk.</div>';
-                return;
-            }
-
-            container.innerHTML = symbols.map(sym => {
-                const meta = list.find(item => (typeof item === 'string' ? item : item?.symbol) === sym);
-                const note = typeof meta === 'object' ? (meta.type || '') : '';
-                return `<div class="watch-item">
-                    <span class="watch-symbol">${sym}</span>
-                    <span class="watch-meta">${note}</span>
-                    <a class="watch-signal" href="signal_dashboard.html?symbol=${encodeURIComponent(sym)}">Signal</a>
-                    <button class="watch-remove" onclick="removeFromWatchlist('${sym}')" title="Remove">✕</button>
-                </div>`;
-            }).join('');
-        }
-
-        async function syncWatchlistToEngine() {
-            const symbols = watchlistSymbols();
-            if (!symbols.length) return;
-            try {
-                await fetch(`${ENGINE_URL}/watchlist`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ symbols })
-                });
-            } catch {
-                // Engine offline — localStorage is the source of truth
-            }
-        }
-
-        document.getElementById('watch-form').addEventListener('submit', e => {
-            e.preventDefault();
-            const input = document.getElementById('watch-input');
-            // Support comma-separated input
-            const raw = input.value.split(/[,\s]+/).filter(Boolean);
-            raw.forEach(sym => addToWatchlist(sym));
-            input.value = '';
-        });
-
-        // ── Bot status ──
-        async function fetchStatus() {
-            try {
-                const res = await fetch(`${ENGINE_URL}/status`);
-                if (!res.ok) throw new Error('Engine unreachable');
-                const data = await res.json();
-                
-                document.getElementById('api-error').style.display = 'none';
-                document.getElementById('engine-dot').className = 'engine-status-dot online';
-                document.getElementById('connection-text').innerText = 'Engine: Connected';
-                
-                const isRunning = data.is_running;
-                document.getElementById('bot-status').innerText = isRunning ? 'RUNNING' : 'STOPPED';
-                document.getElementById('bot-status').style.color = isRunning ? 'var(--dto-green)' : 'var(--dto-red)';
-                
-                document.getElementById('btn-start').style.display = isRunning ? 'none' : 'block';
-                document.getElementById('btn-stop').style.display = isRunning ? 'block' : 'none';
-                
-                document.getElementById('active-strategies').innerText = data.strategies.join(', ').replace(/_/g, ' ');
-                document.getElementById('active-symbols').innerText = data.active_symbols.join(', ');
-                
-                if (data.alpaca) {
-                    const modeSpan = document.getElementById('alpaca-mode');
-                    modeSpan.textContent = data.alpaca.mode.toUpperCase();
-                    modeSpan.style.color = data.alpaca.mode === 'live' ? 'var(--dto-red)' : 'var(--dto-gold)';
-                    
-                    document.getElementById('alpaca-bp').textContent = data.alpaca.buying_power ? '$' + data.alpaca.buying_power.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '$0.00';
-                    document.getElementById('alpaca-eq').textContent = data.alpaca.equity ? '$' + data.alpaca.equity.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '$0.00';
-                }
-                
-            } catch (error) {
-                document.getElementById('api-error').style.display = 'block';
-                document.getElementById('engine-dot').className = 'engine-status-dot offline';
-                document.getElementById('connection-text').innerText = 'Engine: Offline';
-                document.getElementById('bot-status').innerText = 'OFFLINE';
-            }
-        }
-
-        async function toggleConnectionMode() {
-            const currentMode = document.getElementById('alpaca-mode').textContent.toLowerCase();
-            if (currentMode === '-') return;
-            const targetMode = currentMode === 'paper' ? 'live' : 'paper';
-            if (targetMode === 'live') {
-                if (!confirm("WARNING: Switching to LIVE mode will execute real trades with real money. Proceed?")) return;
-            }
-            try {
-                await fetch(`${ENGINE_URL}/connection`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ mode: targetMode })
-                });
-                fetchStatus();
-            } catch (e) {
-                alert("Failed to toggle connection mode.");
-            }
-        }
-
-        async function fetchTrades() {
-            try {
-                const res = await fetch(`${ENGINE_URL}/trades`);
-                if (!res.ok) throw new Error();
-                const trades = await res.json();
-                
-                const tbody = document.getElementById('trades-body');
-                tbody.innerHTML = '';
-                
-                if (trades.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--dto-muted); padding: 40px;">No trades recorded in database.</td></tr>';
-                    return;
-                }
-                
-                trades.forEach(t => {
-                    const tr = document.createElement('tr');
-                    const sideClass = t.side.toLowerCase() === 'buy' ? 'buy' : 'sell';
-                    const date = new Date(t.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-                    
-                    tr.innerHTML = `
-                        <td>${date}</td>
-                        <td style="color:var(--dto-cyan)">${t.strategy_name.replace(/_/g, ' ')}</td>
-                        <td style="font-weight:700">${t.symbol}</td>
-                        <td class="${sideClass}">${t.side.toUpperCase()}</td>
-                        <td>${t.qty}</td>
-                        <td>$${t.price ? t.price.toFixed(2) : '---'}</td>
-                        <td style="opacity:0.7; font-size:10px">${t.status.toUpperCase()}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (error) {
-                // Background sync failure
-            }
-        }
-
-        async function toggleBot(start) {
-            const endpoint = start ? '/start' : '/stop';
-            try {
-                await fetch(`${ENGINE_URL}${endpoint}`, { method: 'POST' });
-                await fetchStatus();
-            } catch (error) {
-                alert('Command execution failed. Check backend logs.');
-            }
-        }
-
-        // Listen for watchlist changes from other pages
-        window.addEventListener('storage', event => {
-            if (event.key === WATCHLIST_KEY) renderWatchlist();
-        });
-
-        // Boot
-        renderWatchlist();
-        fetchStatus();
-        fetchTrades();
-        syncWatchlistToEngine();
-        setInterval(() => {
-            fetchStatus();
-            fetchTrades();
-        }, 2000);
-    </script>
+  <script src="assets/dto-core.js" defer></script>
+<script src="assets/scripts/site.js" defer></script>
+<script src="assets/scripts/bot.js" defer></script>
 </body>
 </html>

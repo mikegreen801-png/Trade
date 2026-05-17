@@ -1,0 +1,92 @@
+<section class="page-hero">
+  <div class="hero-block">
+    <span class="eyebrow">Automation</span>
+    <h1>Bot Engine</h1>
+    <p class="lead">Manage active trading algorithms, monitor automated execution, and view persistent logs across all sessions.</p>
+  </div>
+  <aside class="hero-aside stack">
+    <div class="metric-card">
+      <span>Engine status</span>
+      <strong id="botEngineStatus" class="status-negative">Offline</strong>
+      <small>Automated trading is currently paused.</small>
+    </div>
+    <div class="metric-card">
+      <span>Active algos</span>
+      <strong id="botActiveAlgosCount">0</strong>
+      <small>Strategies currently deployed.</small>
+    </div>
+    <div class="metric-card">
+      <span>Alpaca environment</span>
+      <strong id="botAlpacaEnv">Not Configured</strong>
+      <small>Check Sign In page to configure keys.</small>
+    </div>
+  </aside>
+</section>
+
+<section class="market-grid">
+  <article id="control" class="surface section-anchor stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Control</span>
+        <h2>Automation Control</h2>
+      </div>
+    </div>
+    <div class="field-grid">
+      <div class="field full">
+        <label>Engine Power</label>
+        <button id="botToggleEngineBtn" class="primary-btn" style="width: 100%; justify-content: center;">Start Monitoring</button>
+      </div>
+    </div>
+    
+    <div class="section-header" style="margin-top: 24px;">
+      <div>
+        <span class="eyebrow">Strategies</span>
+        <h2>Deployed Algos</h2>
+      </div>
+    </div>
+    <div id="botAlgosList" class="simple-list empty-state">No algorithms are currently active.</div>
+    
+    <div class="section-header" style="margin-top: 24px;">
+      <div>
+        <span class="eyebrow">Connection</span>
+        <h2>Alpaca Markets</h2>
+      </div>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label>Mode</label><input id="botAlpacaMode" value="--" readonly></div>
+      <div class="field"><label>Buying Power</label><input id="botAlpacaBp" value="--" readonly></div>
+      <div class="field full"><label>Equity</label><input id="botAlpacaEq" value="--" readonly></div>
+    </div>
+  </article>
+
+  <article id="logs" class="surface section-anchor stack" style="grid-column: span 2;">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Ledger</span>
+        <h2>Persistent Logs</h2>
+      </div>
+      <button class="secondary-btn" id="botRefreshLogsBtn" type="button">Refresh Logs</button>
+    </div>
+    
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Strategy</th>
+            <th>Symbol</th>
+            <th>Side</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="botLogsTableBody">
+          <tr>
+            <td colspan="7" class="empty-state" style="text-align: center; padding: 48px 0;">Syncing ledger...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </article>
+</section>

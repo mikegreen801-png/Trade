@@ -47,6 +47,30 @@
       "title": "Day Trader OS | Sign In",
       "description": "Sign in to connect your Alpaca account and save your trading workspace.",
       "scripts": ["assets/scripts/login.js"]
+    },
+    {
+      "id": "bot",
+      "file": "bot_dashboard.html",
+      "template": "bot.njk",
+      "title": "Day Trader OS | Automation",
+      "description": "Bot Engine and automation tools.",
+      "scripts": ["assets/scripts/bot.js"]
+    },
+    {
+      "id": "poly",
+      "file": "polymarket.html",
+      "template": "poly.njk",
+      "title": "Day Trader OS | Prediction Markets",
+      "description": "Live event contracts and sentiment odds.",
+      "scripts": ["assets/scripts/poly.js"]
+    },
+    {
+      "id": "sim",
+      "file": "backtest_simulator.html",
+      "template": "sim.njk",
+      "title": "Day Trader OS | Backtest Simulator",
+      "description": "Train your edge by replaying historical price action.",
+      "scripts": ["assets/scripts/sim.js"]
     }
   ],
   "redirects": [

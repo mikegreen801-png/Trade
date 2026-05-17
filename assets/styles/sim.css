@@ -1,0 +1,32 @@
+/* sim.css */
+#simCanvas {
+  display: block;
+}
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.data-table th, .data-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.data-table th {
+  font-weight: 600;
+  color: var(--text-soft);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: var(--bg-soft);
+}
+.data-table tbody tr:hover {
+  background-color: var(--bg-soft);
+}
