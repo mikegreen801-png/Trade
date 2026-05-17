@@ -740,3 +740,4 @@
     streamStockPrice,
     stopStream
   };
+})();

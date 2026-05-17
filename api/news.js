@@ -5,6 +5,7 @@
  */
 
 const AlpacaClient = require('./alpaca-client');
+const cache = require('./cache');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'public, max-age=120'); // Cache 2 minutes
@@ -27,6 +28,10 @@ module.exports = async function handler(req, res) {
     });
   }
 
+  const cacheKey = `news:${symbol}:${limit}`;
+  const cached = cache.get(cacheKey);
+  if (cached) return res.json(cached);
+
   try {
     const client = new AlpacaClient();
     const data   = await client.getNews(symbol, limit);
@@ -43,7 +48,9 @@ module.exports = async function handler(req, res) {
       images:    (article.images || []).slice(0, 1)
     }));
 
-    return res.json({ ok: true, symbol, articles });
+    const payload = { ok: true, symbol, articles };
+    cache.set(cacheKey, payload, 120_000);
+    return res.json(payload);
   } catch (err) {
     console.error('[API/news] Error:', err?.error || err.message);
     return res.status(200).json({

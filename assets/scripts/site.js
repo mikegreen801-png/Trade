@@ -42,7 +42,8 @@
   }
 
   tickClock();
-  setInterval(tickClock, 15000);
+  // Start the repeating tick after first paint so it doesn't compete with initial render
+  requestAnimationFrame(function () { setInterval(tickClock, 15000); });
 
   // ── LocalStorage Helpers ──
   var KEYS = {

@@ -136,7 +136,8 @@ app.get("/api/alerts/stream", (req, res) => {
   req.on("close", () => sseClients.delete(res));
 });
 
-// Poll prices every 30s and check alerts
+// Poll prices every 30s and check alerts — reuses the candles cache when warm
+const apiCache = require(path.join(webRoot, "api", "cache.js"));
 setInterval(async () => {
   if (sseClients.size === 0) return;
   const symbols = Object.keys(activeAlerts);
@@ -144,16 +145,20 @@ setInterval(async () => {
 
   for (const sym of symbols) {
     try {
-      const candlesMod = require(path.join(webRoot, "api", "candles.js"));
-      // We simulate a req/res to call the candles handler directly
-      let candleData = null;
-      await candlesMod(
-        { query: { symbol: sym, limit: 1 } },
-        { json: (data) => { candleData = data; }, status: () => ({ json: () => {} }) }
-      );
-      
+      // Check cache first (filled by /api/candles requests); only hit network when cold
+      let candleData = apiCache.get(`candles:${sym}:1h:160`) ||
+                       apiCache.get(`candles:${sym}:1h:1`);
+
+      if (!candleData) {
+        const candlesMod = require(path.join(webRoot, "api", "candles.js"));
+        await candlesMod(
+          { query: { symbol: sym, limit: 1 } },
+          { json: (data) => { candleData = data; }, status: () => ({ json: () => {} }) }
+        );
+      }
+
       if (candleData && candleData.candles && candleData.candles.length) {
-        const currentPrice = candleData.candles[0].close;
+        const currentPrice = candleData.candles[candleData.candles.length - 1].close;
         const matchedAlerts = activeAlerts[sym].filter(a => {
           if (a.direction === "above" && currentPrice >= a.price) return true;
           if (a.direction === "below" && currentPrice <= a.price) return true;

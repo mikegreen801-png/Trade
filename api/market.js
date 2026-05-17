@@ -4,6 +4,7 @@
  */
 
 const AlpacaClient = require('./alpaca-client');
+const cache = require('./cache');
 
 module.exports = async function handler(req, res) {
   try {
@@ -52,6 +53,10 @@ async function handleLatestBars(client, req, res) {
       });
     }
 
+    const cacheKey = `market:latest:${symbols}`;
+    const cached = cache.get(cacheKey);
+    if (cached) return res.json(cached);
+
     const bars = await client.getLatestBars(symbols);
 
     const formatted = {};
@@ -68,11 +73,9 @@ async function handleLatestBars(client, req, res) {
       };
     }
 
-    return res.json({
-      ok: true,
-      data: formatted,
-      timestamp: new Date().toISOString()
-    });
+    const payload = { ok: true, data: formatted, timestamp: new Date().toISOString() };
+    cache.set(cacheKey, payload, 30_000);
+    return res.json(payload);
   } catch (error) {
     throw new Error(`Failed to fetch latest bars: ${error.message}`);
   }
@@ -131,15 +134,19 @@ async function handleBarHistory(client, req, res) {
  */
 async function handleClock(client, res) {
   try {
-    const clock = await client.getClock();
+    const cached = cache.get('market:clock');
+    if (cached) return res.json(cached);
 
-    return res.json({
+    const clock = await client.getClock();
+    const payload = {
       ok: true,
       timestamp: new Date(clock.timestamp).toISOString(),
       isOpen: clock.is_open,
       nextOpen: new Date(clock.next_open).toISOString(),
       nextClose: new Date(clock.next_close).toISOString()
-    });
+    };
+    cache.set('market:clock', payload, 30_000);
+    return res.json(payload);
   } catch (error) {
     throw new Error(`Failed to fetch market clock: ${error.message}`);
   }
@@ -150,6 +157,9 @@ async function handleClock(client, res) {
  */
 async function handleCalendar(client, res) {
   try {
+    const cached = cache.get('market:calendar');
+    if (cached) return res.json(cached);
+
     const calendar = await client.getTradingCalendar();
 
     const formatted = calendar.map(day => ({
@@ -160,11 +170,9 @@ async function handleCalendar(client, res) {
       sessionClose: new Date(day.close).toISOString()
     }));
 
-    return res.json({
-      ok: true,
-      calendar: formatted,
-      count: formatted.length
-    });
+    const payload = { ok: true, calendar: formatted, count: formatted.length };
+    cache.set('market:calendar', payload, 3_600_000); // calendar only changes daily
+    return res.json(payload);
   } catch (error) {
     throw new Error(`Failed to fetch calendar: ${error.message}`);
   }

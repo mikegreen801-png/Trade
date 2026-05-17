@@ -159,10 +159,16 @@ async function fetchStooqCandles(sym) {
   }
 }
 
+const cache = require('./cache');
+
 module.exports = async function handler(req, res) {
   const sym = cleanSymbol(req.query?.symbol);
   const interval = req.query?.interval || '1h';
   const limit = Math.min(parseInt(req.query?.limit) || 160, 500);
+
+  const cacheKey = `candles:${sym}:${interval}:${limit}`;
+  const cached = cache.get(cacheKey);
+  if (cached) return res.json(cached);
 
   try {
     // Try sources in priority order
@@ -194,7 +200,7 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    return res.json({
+    const payload = {
       ok: true,
       symbol: sym,
       interval,
@@ -202,7 +208,9 @@ module.exports = async function handler(req, res) {
       source: result.source,
       delayed: result.delayed,
       count: result.candles.length
-    });
+    };
+    cache.set(cacheKey, payload, 60_000);
+    return res.json(payload);
   } catch (error) {
     return res.status(502).json({
       ok: false,

@@ -1443,3 +1443,34 @@ dialog.site-dialog::backdrop {
 }
 
 .nav-tabs .secondary-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
+
+/* ── Skeleton loading shimmer ── */
+@keyframes shimmer {
+  from { background-position: -400px 0; }
+  to   { background-position:  400px 0; }
+}
+
+.skeleton {
+  background: linear-gradient(90deg,
+    var(--surface-soft) 25%,
+    var(--line) 50%,
+    var(--surface-soft) 75%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 10px;
+  color: transparent !important;
+  pointer-events: none;
+  user-select: none;
+}
+
+.skeleton * { visibility: hidden; }
+
+.skeleton-line {
+  height: 14px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.skeleton-line.wide  { width: 80%; }
+.skeleton-line.short { width: 40%; }
