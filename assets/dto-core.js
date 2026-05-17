@@ -1,3 +1,9 @@
+/* dto-core.js — Shared business logic and state for Day Trader OS */
+(function() {
+  "use strict";
+
+  const STORAGE_KEY = "dto_engine_state";
+
   function readJson(key, fallback) {
     try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
     catch (error) { return fallback; }
@@ -6,6 +12,14 @@
   function formatMoney(value) {
     const sign = value < 0 ? "-" : "";
     return `${sign}$${Math.abs(value).toFixed(2)}`;
+  }
+
+  function formatVolume(v) {
+    if (!v || !Number.isFinite(v)) return "--";
+    if (v >= 1e9) return (v / 1e9).toFixed(2) + "B";
+    if (v >= 1e6) return (v / 1e6).toFixed(2) + "M";
+    if (v >= 1e3) return (v / 1e3).toFixed(1) + "K";
+    return v.toString();
   }
 
   function compactNumber(value) {
@@ -588,7 +602,7 @@
         target: fmtPrice(levels.target),
         rr: levels.riskReward ? `${levels.riskReward.toFixed(2)}R` : "--",
         rsi: rsiValue === null ? "--" : rsiValue.toFixed(0),
-        volume: volRatio ? `${volRatio.toFixed(1)}x avg` : "--"
+        volume: lastVol ? formatVolume(lastVol) : "--"
       },
       raw: {
         price,

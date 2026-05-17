@@ -90,7 +90,13 @@
           grid.innerHTML = results.map(function (r) {
             if (!r) return "";
             var rc = r.rating === "BUY" ? "buy" : r.rating === "SELL" ? "sell" : "hold";
-            return '<div class="benchmark-card"><strong>' + D.escapeHtml(r.symbol) + '</strong> <span class="mini-chip ' + rc + '" style="font-size:11px">' + r.rating + "</span><span>" + D.escapeHtml(r.metrics.price) + " · RSI " + D.escapeHtml(r.metrics.rsi) + "</span></div>";
+            return '<div class="benchmark-card">' +
+                     '<div style="display: flex; justify-content: space-between; align-items: flex-start;">' +
+                       '<strong style="font-family: var(--font-sans);">' + D.escapeHtml(r.symbol) + '</strong>' +
+                       '<span class="mini-chip ' + rc + '" style="font-size:11px;">' + r.rating + '</span>' +
+                     '</div>' +
+                     '<span style="font-family: var(--font-mono);">' + D.escapeHtml(r.metrics.price) + ' · V: ' + D.escapeHtml(r.metrics.volume) + ' · RSI: ' + D.escapeHtml(r.metrics.rsi) + '</span>' +
+                   '</div>';
           }).join("");
         }
       });
@@ -113,7 +119,13 @@
           grid.className = "scanner-grid";
           grid.innerHTML = results.filter(Boolean).map(function (r) {
             var rc = r.rating === "BUY" ? "buy" : r.rating === "SELL" ? "sell" : "hold";
-            return '<div class="scanner-card"><strong>' + D.escapeHtml(r.symbol) + '</strong> <span class="mini-chip ' + rc + '" style="font-size:11px">' + r.rating + " " + r.confidence + "%</span><span>" + D.escapeHtml(r.metrics.price) + " · R:R " + D.escapeHtml(r.metrics.rr) + "</span></div>";
+            return '<div class="scanner-card">' +
+                     '<div style="display: flex; justify-content: space-between; align-items: flex-start;">' +
+                       '<strong style="font-family: var(--font-sans);">' + D.escapeHtml(r.symbol) + '</strong>' +
+                       '<span class="mini-chip ' + rc + '" style="font-size:11px;">' + r.rating + ' ' + r.confidence + '%</span>' +
+                     '</div>' +
+                     '<span style="font-family: var(--font-mono);">' + D.escapeHtml(r.metrics.price) + ' · V: ' + D.escapeHtml(r.metrics.volume) + ' · R:R: ' + D.escapeHtml(r.metrics.rr) + '</span>' +
+                   '</div>';
           }).join("");
         }
       });
@@ -127,7 +139,12 @@
     if (!list.length) { c.className = "watchlist-grid empty-state"; c.textContent = "No symbols saved yet."; return; }
     c.className = "watchlist-grid";
     c.innerHTML = list.map(function (sym) {
-      return '<div class="watch-card"><strong>' + D.escapeHtml(sym) + '</strong><span><button class="ghost-btn" data-remove-watch="' + D.escapeHtml(sym) + '" style="font-size:12px;min-height:30px;padding:0 10px">Remove</button></span></div>';
+    return '<div class="watch-card">' +
+             '<div style="display: flex; justify-content: space-between; align-items: flex-start;">' +
+               '<strong style="font-family: var(--font-sans);">' + D.escapeHtml(sym) + '</strong>' +
+               '<span><button class="ghost-btn" data-remove-watch="' + D.escapeHtml(sym) + '" style="font-size:12px;min-height:30px;padding:0 10px;margin-top:0;">Remove</button></span>' +
+             '</div>' +
+           '</div>';
     }).join("");
     c.querySelectorAll("[data-remove-watch]").forEach(function (b) {
       b.addEventListener("click", function () { S.removeFromWatchlist(b.dataset.removeWatch); renderWatchlist(); updateCounts(); S.toast("Removed.", "info"); });

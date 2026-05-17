@@ -1083,9 +1083,9 @@ dialog.site-dialog::backdrop {
   font: 700 16px/1.2 var(--font-mono);
 }
 
-.benchmark-card span,
-.scanner-card span,
-.watch-card span {
+.benchmark-card > span:not(.mini-chip),
+.scanner-card > span:not(.mini-chip),
+.watch-card > span:not(.mini-chip) {
   display: block;
   margin-top: 8px;
   color: var(--text-muted);
