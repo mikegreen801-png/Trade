@@ -53,7 +53,12 @@
     if (!grid) return;
     grid.innerHTML = '<div class="empty-state" style="padding: 48px 0; text-align: center;">Loading Polymarket events...</div>';
     
-    fetch("/api/polymarket?action=markets&limit=12")
+    var categorySelect = document.getElementById("polyCategory");
+    var category = categorySelect ? categorySelect.value : "";
+    var url = "/api/polymarket?action=markets&limit=12";
+    if (category) url += "&category=" + encodeURIComponent(category);
+
+    fetch(url)
       .then(function(r) { return r.json(); })
       .then(function(data) {
         if (!data || !data.ok) throw new Error(data.error || "Failed to load");
@@ -74,19 +79,20 @@
           var yPrice = parseFloat(m.outcomePrices[0] || 0);
           var nPrice = parseFloat(m.outcomePrices[1] || 0);
           var vol = (m.volume || 0).toLocaleString(undefined, { maximumFractionDigits: 0 });
+          var link = 'https://polymarket.com/event/' + (m.slug || '');
           
-          return '<div class="surface" style="padding: 24px;">' +
+          return '<a href="' + link + '" target="_blank" rel="noopener" class="surface" style="padding: 24px; text-decoration: none; color: inherit; display: block; border: 1px solid transparent; transition: border-color 0.15s ease;">' +
                  '<div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;">' +
                  '<div style="flex: 1;">' +
                  '<span class="eyebrow">' + D.escapeHtml(m.category) + ' · Vol: $' + vol + '</span>' +
                  '<h3 style="margin-top: 8px; font-size: 16px; font-weight: 500;">' + D.escapeHtml(m.question) + '</h3>' +
                  '</div>' +
                  '<div style="display: flex; gap: 8px; min-width: 140px; justify-content: flex-end;">' +
-                 '<button class="secondary-btn" style="flex: 1; justify-content: center; background: rgba(24, 128, 56, 0.05); color: #188038; border-color: rgba(24, 128, 56, 0.2);">Yes ' + Math.round(yPrice * 100) + '¢</button>' +
-                 '<button class="secondary-btn" style="flex: 1; justify-content: center; background: rgba(217, 48, 37, 0.05); color: #d93025; border-color: rgba(217, 48, 37, 0.2);">No ' + Math.round(nPrice * 100) + '¢</button>' +
+                 '<button class="secondary-btn" style="flex: 1; justify-content: center; background: rgba(24, 128, 56, 0.05); color: #188038; border-color: rgba(24, 128, 56, 0.2); pointer-events: none;">Yes ' + Math.round(yPrice * 100) + '¢</button>' +
+                 '<button class="secondary-btn" style="flex: 1; justify-content: center; background: rgba(217, 48, 37, 0.05); color: #d93025; border-color: rgba(217, 48, 37, 0.2); pointer-events: none;">No ' + Math.round(nPrice * 100) + '¢</button>' +
                  '</div>' +
                  '</div>' +
-                 '</div>';
+                 '</a>';
         }).join("");
       })
       .catch(function(err) {
@@ -96,6 +102,9 @@
 
   var refreshBtn = document.getElementById("polyRefreshBtn");
   if (refreshBtn) refreshBtn.addEventListener("click", fetchMarkets);
+  
+  var catSelect = document.getElementById("polyCategory");
+  if (catSelect) catSelect.addEventListener("change", fetchMarkets);
 
   renderKeys();
   fetchMarkets();

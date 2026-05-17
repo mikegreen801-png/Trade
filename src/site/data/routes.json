@@ -71,6 +71,14 @@
       "title": "Day Trader OS | Backtest Simulator",
       "description": "Train your edge by replaying historical price action.",
       "scripts": ["assets/scripts/sim.js"]
+    },
+    {
+      "id": "course",
+      "file": "tradingview_course.html",
+      "template": "course.njk",
+      "title": "Day Trader OS | TradingView Crash Course",
+      "description": "Master the platform in 30 minutes and start paper trading today.",
+      "scripts": ["assets/scripts/course.js"]
     }
   ],
   "redirects": [

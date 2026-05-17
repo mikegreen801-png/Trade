@@ -225,7 +225,7 @@
     D.fetchCandles(sym).then(function(c) {
       if (!c || !c.length) throw new Error("No data");
       state.candles = c;
-      state.index = 0; // Start at the beginning
+      state.index = Math.min(30, c.length - 1); // Show 30 candles of context initially
       state.trades = [];
       state.position = null;
       if (els.msg) els.msg.style.display = "none";

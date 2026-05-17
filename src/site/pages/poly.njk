@@ -45,7 +45,16 @@
         <span class="eyebrow">Live Feed</span>
         <h2>Active Markets</h2>
       </div>
-      <button class="secondary-btn" id="polyRefreshBtn" type="button">Refresh Markets</button>
+      <div style="display: flex; gap: 8px;">
+        <select id="polyCategory" style="padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px; font-family: var(--font-sans); background: var(--bg-main);">
+          <option value="">Top Volume</option>
+          <option value="politics">Politics</option>
+          <option value="crypto">Crypto</option>
+          <option value="sports">Sports</option>
+          <option value="macro">Economics</option>
+        </select>
+        <button class="secondary-btn" id="polyRefreshBtn" type="button">Refresh</button>
+      </div>
     </div>
     <div id="polyMarketGrid" class="benchmark-grid loading-state" style="grid-template-columns: 1fr;">Loading Polymarket events...</div>
   </article>

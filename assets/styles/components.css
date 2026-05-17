@@ -229,7 +229,7 @@
 /* ── Metric cards ── */
 .metric-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
 }
 
@@ -238,6 +238,7 @@
   border: 1px solid var(--line);
   border-radius: 20px;
   background: var(--surface-soft);
+  overflow: hidden;
 }
 
 .metric-card span {
@@ -247,13 +248,18 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .metric-card strong {
   display: block;
   margin-top: 8px;
-  font-size: clamp(20px, 2.5vw, 30px);
-  line-height: 1.1;
+  font-size: clamp(20px, 2.5vw, 26px);
+  line-height: 1.2;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .metric-card small {
@@ -262,6 +268,8 @@
   color: var(--text-soft);
   font-size: 13px;
   line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* ── Status colors ── */
