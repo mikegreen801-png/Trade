@@ -88,6 +88,11 @@
     var el = document.getElementById(id); if (el) el.addEventListener("input", computeRisk);
   });
 
+  // ── Live grade updates on every field change ──
+  var planForm = document.getElementById("planSetupForm");
+  if (planForm) planForm.addEventListener("input", gradeSetup);
+  if (planForm) planForm.addEventListener("change", gradeSetup);
+
   function computeRisk() {
     var entry = parseFloat(val("entry")), stop = parseFloat(val("stop")), target = parseFloat(val("target"));
     var acct = parseFloat(val("accountSize")) || 10000, riskPct = parseFloat(val("riskPercent")) || 1;
@@ -118,20 +123,57 @@
     var fields = ["symbol", "entry", "stop", "target", "thesis", "rating"];
     var filled = fields.filter(function (f) { return val(f).trim() !== ""; }).length;
     var pct = Math.round((filled / fields.length) * 100);
-    var grade = pct >= 85 ? "A" : pct >= 65 ? "B" : pct >= 45 ? "C" : "D";
+    var entry = parseFloat(val("entry")), stop = parseFloat(val("stop")), target = parseFloat(val("target"));
+    var confidence = parseInt(val("confidence"), 10) || 0;
+    var thesis = val("thesis").trim();
+    var rr = (entry && stop && target) ? Math.abs(target - entry) / Math.abs(entry - stop) : 0;
+
+    // Deduct for quality issues, not just presence
+    var qualityPenalty = 0;
+    if (rr > 0 && rr < 1.5) qualityPenalty += 10;
+    if (confidence > 0 && confidence < 40) qualityPenalty += 10;
+    if (thesis.length > 0 && thesis.length < 20) qualityPenalty += 5;
+    var adjustedPct = Math.max(0, pct - qualityPenalty);
+
+    var grade = adjustedPct >= 85 ? "A" : adjustedPct >= 65 ? "B" : adjustedPct >= 45 ? "C" : "D";
     setText("planGradeBadge", grade);
-    setText("planGradeSummary", filled + "/" + fields.length + " fields completed.");
+    setText("planGradeSummary", filled + "/" + fields.length + " fields · " + grade + "-grade setup");
+
     var notes = document.getElementById("planGradeNotes");
     if (!notes) return;
+
     var items = [];
-    if (!val("entry")) items.push("Entry price is missing.");
-    if (!val("stop")) items.push("Stop level is missing — you have no defined risk.");
-    if (!val("target")) items.push("Target is missing — R:R can't be calculated.");
-    if (!val("thesis").trim()) items.push("Thesis is empty — write why this trade matters.");
-    if (val("confidence") && parseInt(val("confidence"), 10) < 40) items.push("Low confidence — consider waiting for a better setup.");
-    if (!items.length) items.push("Setup looks complete. Review the risk tab before executing.");
+    // Structural issues first
+    if (!val("symbol")) items.push({ type: "need", msg: "Start with a symbol — which stock or crypto are you trading?" });
+    if (!val("entry")) items.push({ type: "need", msg: "Set an entry price to anchor your position sizing." });
+    if (!val("stop")) items.push({ type: "need", msg: "Define your stop loss — this is the most important line on the chart." });
+    if (!val("target")) items.push({ type: "need", msg: "Add a target so you know your reward before you risk anything." });
+    if (!thesis) items.push({ type: "need", msg: "Write your thesis — what is the catalyst and what needs to happen for this trade to work?" });
+
+    // Quality coaching
+    if (entry && stop && target) {
+      if (rr < 1.5) items.push({ type: "warn", msg: "R:R is " + rr.toFixed(2) + "R — professionals target 2R or better. Tighten the stop or push the target." });
+      else if (rr >= 3) items.push({ type: "good", msg: "Strong R:R of " + rr.toFixed(2) + "R — this is the kind of asymmetry that builds long-term edge." });
+    }
+    if (thesis && thesis.length < 20) items.push({ type: "warn", msg: "Thesis is too short. Explain the setup in one clear sentence: why now, why this level, what confirms it." });
+    if (confidence > 0 && confidence < 40) items.push({ type: "warn", msg: "Low conviction at " + confidence + "%. If you wouldn't bet a full unit, consider sitting out." });
+    if (!val("setupType")) items.push({ type: "tip", msg: "Tag the setup type (breakout, pullback, etc.) — it helps you track which setups work for you over time." });
+    if (!val("catalysts")) items.push({ type: "tip", msg: "Add a catalyst — what event or condition is driving this move?" });
+
+    // Positive close when complete
+    if (filled === fields.length && rr >= 1.5 && thesis.length >= 20) {
+      items.push({ type: "good", msg: "Setup is complete and structured. Execute with the same discipline you used to build it." });
+    }
+
+    var iconMap = { need: "○", warn: "▲", tip: "◇", good: "✓" };
+    var colorMap = { need: "var(--red)", warn: "var(--amber, #f59e0b)", tip: "var(--blue)", good: "var(--green)" };
     notes.className = "simple-list";
-    notes.innerHTML = items.map(function (i) { return '<div class="list-row"><span>' + D.escapeHtml(i) + "</span></div>"; }).join("");
+    notes.innerHTML = items.map(function (i) {
+      return '<div class="list-row" style="gap:10px;align-items:flex-start">' +
+        '<span style="font-size:12px;font-weight:700;color:' + colorMap[i.type] + ';flex-shrink:0;margin-top:2px">' + iconMap[i.type] + '</span>' +
+        '<span style="font-size:13px;line-height:1.5">' + D.escapeHtml(i.msg) + '</span>' +
+        '</div>';
+    }).join("");
   }
 
   // ── Presets with extended data ──

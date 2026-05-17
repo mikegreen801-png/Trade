@@ -35,8 +35,8 @@ async function handleMarkets(req, res) {
   const category = String(req.query.category || "").toLowerCase();
   const q        = String(req.query.q || "").trim();
 
-  // When a query is present, fetch more and filter server-side (Gamma's _c param is unreliable)
-  const fetchLimit = q ? 50 : limit;
+  // Fetch 50 whenever filtering is needed so we have enough after exclusions
+  const fetchLimit = (q || category) ? 50 : limit;
   const params = new URLSearchParams({
     limit: String(fetchLimit),
     active: "true",
@@ -55,11 +55,19 @@ async function handleMarkets(req, res) {
       raw = raw.filter(m => (m.question || "").toLowerCase().includes(ql));
       raw = raw.slice(0, limit);
     }
-    // Exclude sports markets from non-sports category filters (Gamma API tag filter is unreliable)
-    const SPORTS_RE = /\b(fc|united|city|arsenal|chelsea|liverpool|tottenham|manchester|premier league|nfl|nba|nhl|mlb|la liga|serie a|bundesliga|ligue 1|soccer|basketball|baseball|hockey|tennis|ufc|mma|golf|formula 1|f1|racing|wimbledon|euros|world cup|champions league)\b/i;
+    // Exclude sports game-result markets from non-sports categories.
+    // The Gamma API's tag filter is unreliable — PL matches routinely appear under "politics".
+    // Two layers: (1) broad team/league keyword list, (2) structural "will X win on/by date" pattern.
+    const SPORTS_TERMS = /\b(premier league|la liga|serie a|bundesliga|ligue 1|champions league|europa league|mls|nfl|nba|nhl|mlb|nba finals|super bowl|world series|stanley cup|ufc|mma|wimbledon|us open|australian open|french open|world cup|euros|copa america|afcon|six nations|rugby world cup|formula 1|f1|grand prix|nascar|pga|the masters|golf|cricket|ashes|ipl|soccer|football club|basketball|baseball|hockey|tennis|boxing|wrestling|esports|dota|league of legends|cs2|valorant|arsenal|chelsea|liverpool|man city|man utd|manchester city|manchester united|tottenham|spurs|newcastle|fulham|everton|brighton|wolves|bournemouth|brentford|crystal palace|west ham|aston villa|leicester|ipswich|southampton|nottingham|bayer leverkusen|barcelona|real madrid|atletico|juventus|inter milan|ac milan|napoli|psg|dortmund|ajax|porto|benfica|celtic|rangers|lakers|celtics|warriors|heat|bulls|knicks|yankees|dodgers|cubs|red sox|patriots|chiefs|eagles|cowboys|49ers)\b/i;
+    // Also catch the structural pattern: "Will [anything] win on/by [year]?" → always a game result
+    const SPORTS_WIN_PAT = /will .{1,40} win (on|by) \d{4}/i;
     if (category && category !== "sports") {
-      raw = raw.filter(m => !SPORTS_RE.test(m.question || ""));
+      raw = raw.filter(m => {
+        const q = m.question || "";
+        return !SPORTS_TERMS.test(q) && !SPORTS_WIN_PAT.test(q);
+      });
     }
+    raw = raw.slice(0, limit);
     const markets = raw.map(m => ({
       id:            m.id,
       conditionId:   m.conditionId,
