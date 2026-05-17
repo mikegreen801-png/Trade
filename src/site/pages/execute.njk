@@ -1,0 +1,112 @@
+<section class="page-hero">
+  <div class="hero-block">
+    <span class="eyebrow">Execute</span>
+    <h1>Keep execution simple and reversible.</h1>
+    <p class="lead">Open paper trades, watch exposure, and check broker readiness without burying the ticket under noise.</p>
+    <div class="button-row">
+      <button class="primary-btn" id="executeLoadSetup" type="button">Load active setup</button>
+      <button class="secondary-btn" id="refreshPortfolio" type="button">Refresh quotes</button>
+    </div>
+  </div>
+  <aside class="hero-aside stack">
+    <div class="metric-card">
+      <span>Cash</span>
+      <strong id="executeCash">$100,000.00</strong>
+      <small>Paper account cash</small>
+    </div>
+    <div class="metric-card">
+      <span>Open P&amp;L</span>
+      <strong id="executeOpenPnl">$0.00</strong>
+      <small>Open positions only</small>
+    </div>
+    <div class="metric-card">
+      <span>Open positions</span>
+      <strong id="executePositionCount">0</strong>
+      <small>Tracked in this browser</small>
+    </div>
+  </aside>
+</section>
+
+<section id="paper" class="surface section-anchor stack">
+  <div class="section-header">
+    <div>
+      <span class="eyebrow">Paper</span>
+      <h2>Order ticket</h2>
+    </div>
+  </div>
+  <form class="field-grid" id="paperTicketForm">
+    <div class="field"><label for="paperSymbol">Symbol</label><input id="paperSymbol" value="AAPL"></div>
+    <div class="field"><label for="paperSide">Side</label><select id="paperSide"><option value="long">Long</option><option value="short">Short</option></select></div>
+    <div class="field"><label for="paperQty">Qty</label><input id="paperQty" type="number" step="0.000001" value="1"></div>
+    <div class="field"><label for="paperEntry">Entry</label><input id="paperEntry" type="number" step="0.0001"></div>
+    <div class="field"><label for="paperStop">Stop</label><input id="paperStop" type="number" step="0.0001"></div>
+    <div class="field"><label for="paperTarget">Target</label><input id="paperTarget" type="number" step="0.0001"></div>
+    <div class="field full"><label for="paperThesis">Why this trade?</label><textarea id="paperThesis" placeholder="Keep the thesis short and specific."></textarea></div>
+    <div class="field full button-row">
+      <button class="primary-btn" type="submit">Open paper trade</button>
+      <button class="secondary-btn" id="paperClearForm" type="button">Clear</button>
+    </div>
+  </form>
+  <div id="paperTicketNote" class="analysis-note">Load the active setup or type the paper ticket manually.</div>
+</section>
+
+<section id="portfolio" class="portfolio-grid section-anchor">
+  <article class="surface stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Portfolio</span>
+        <h2>Open positions</h2>
+      </div>
+    </div>
+    <div id="positionList" class="position-list simple-list empty-state">No open paper positions yet.</div>
+  </article>
+
+  <article class="surface stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Summary</span>
+        <h2>Exposure snapshot</h2>
+      </div>
+    </div>
+    <div class="metric-grid">
+      <div class="metric-card"><span>Equity</span><strong id="executeEquity">$100,000.00</strong><small>Cash plus open P&amp;L</small></div>
+      <div class="metric-card"><span>Realized</span><strong id="executeRealized">$0.00</strong><small>Closed paper results</small></div>
+      <div class="metric-card"><span>Watchlist</span><strong id="executeWatchCount">0</strong><small>Saved symbols</small></div>
+      <div class="metric-card"><span>Last action</span><strong id="executeLastAction">--</strong><small>Most recent paper trade event</small></div>
+    </div>
+  </article>
+</section>
+
+<section class="module-grid two-col">
+  <article id="broker" class="surface section-anchor stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Broker</span>
+        <h2>Readiness checks</h2>
+      </div>
+      <button class="secondary-btn" id="checkBrokerStatus" type="button">Check status</button>
+    </div>
+    <div id="brokerStatusBox" class="status-box">Broker status will be checked against the local API when you ask for it.</div>
+  </article>
+
+  <article id="hedging" class="surface section-anchor stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Hedging</span>
+        <h2>Simple hedge preview</h2>
+      </div>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label for="hedgeStrike">Strike</label><input id="hedgeStrike" type="number" step="0.01"></div>
+      <div class="field"><label for="hedgePremium">Premium</label><input id="hedgePremium" type="number" step="0.01" value="1.25"></div>
+      <div class="field"><label for="hedgeContracts">Contracts</label><input id="hedgeContracts" type="number" step="1" value="1"></div>
+      <div class="field"><label for="hedgeType">Type</label><select id="hedgeType"><option value="put">Protective put</option><option value="call">Covered call</option></select></div>
+    </div>
+    <div class="metric-grid">
+      <div class="metric-card"><span>Premium cost</span><strong id="hedgeCost">$--</strong><small>Estimated option spend</small></div>
+      <div class="metric-card"><span>Coverage</span><strong id="hedgeCoverage">--</strong><small>Equivalent share coverage</small></div>
+      <div class="metric-card"><span>Breakeven</span><strong id="hedgeBreakeven">$--</strong><small>Simple estimate</small></div>
+      <div class="metric-card"><span>Note</span><strong id="hedgeDirection">--</strong><small>Planning only, not order routing</small></div>
+    </div>
+  </article>
+</section>

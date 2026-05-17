@@ -1,111 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Strategy Builder — Day Trader OS</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/daytrader-os.css?v=20260504-vercel1">
-<style>
-  * { box-sizing: border-box; }
-  body { margin: 0; background: #05070c; color: #dce7f5; font-family: "Barlow Condensed", system-ui, sans-serif; }
-  .shell { width: min(1240px, calc(100% - 32px)); margin: 0 auto; padding: 32px 0; }
-  header, .panel { border: 1px solid #24334a; border-radius: 8px; background: #0b111b; }
-  header { padding: 28px; margin-bottom: 16px; }
-  .eyebrow, label, button, textarea, input, select, .preview { font-family: "JetBrains Mono", monospace; }
-  .eyebrow { color: #00d7ff; font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
-  h1 { margin: 12px 0 8px; color: #fff; font-size: clamp(48px, 7vw, 88px); line-height: .9; text-transform: uppercase; }
-  .sub { color: #aebdd0; font: 14px/1.7 "JetBrains Mono", monospace; max-width: 850px; }
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  .panel { padding: 20px; }
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .field { display: flex; flex-direction: column; gap: 7px; }
-  label { color: #71839b; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; }
-  input, select, textarea { width: 100%; border: 1px solid #24334a; border-radius: 6px; background: #050a12; color: #fff; padding: 12px; outline: none; }
-  textarea { min-height: 94px; resize: vertical; }
-  .wide { grid-column: 1 / -1; }
-  button { border: 0; border-radius: 6px; background: #00e08a; color: #03120c; padding: 12px 14px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
-  .preview { white-space: pre-wrap; min-height: 520px; border: 1px solid rgba(220,231,245,.1); border-radius: 6px; padding: 16px; background: #070c14; color: #dce7f5; font-size: 12px; line-height: 1.65; }
-  .actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
-  .link { border: 1px solid rgba(0,215,255,.35); border-radius: 6px; padding: 11px 13px; color: #eaf9ff; text-decoration: none; font: 800 11px/1 "JetBrains Mono", monospace; letter-spacing: .12em; text-transform: uppercase; }
-  @media (max-width: 900px) { .grid, .form-grid { grid-template-columns: 1fr; } }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Strategy Builder | Redirect</title>
+  <meta name="description" content="Presets and setup frameworks now live together in the Plan hub.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/app.css?v=20260516">
 </head>
-<body>
-<a class="dto-home-link" href="index.html"><span class="dto-home-mark" aria-hidden="true">&larr;</span><span>Return Home</span></a>
-<main class="shell">
-  <header>
-    <div class="eyebrow">Interactive resource</div>
-    <h1>Strategy Builder</h1>
-    <p class="sub">Turn a setup idea into a written trade plan with entry criteria, invalidation, target logic, and review questions. The plan saves locally in this browser.</p>
-  </header>
-  <div class="grid">
-    <section class="panel">
-      <div class="form-grid">
-        <div class="field"><label>Strategy Name</label><input id="name" value="Opening Range Break"></div>
-        <div class="field"><label>Market</label><select id="market"><option>Stocks</option><option>Crypto</option><option>ETFs</option><option>Options</option></select></div>
-        <div class="field"><label>Primary Timeframe</label><input id="timeframe" value="5m / 15m"></div>
-        <div class="field"><label>Minimum R:R</label><input id="rr" value="2:1"></div>
-        <div class="field wide"><label>Setup Conditions</label><textarea id="conditions">High relative volume, clear premarket level, market direction aligned, clean opening range.</textarea></div>
-        <div class="field wide"><label>Entry Trigger</label><textarea id="entry">Break and hold above opening range high, or retest of breakout level with volume confirmation.</textarea></div>
-        <div class="field wide"><label>Stop / Invalidation</label><textarea id="stop">Stop below opening range midpoint or opposite side of range. Invalidate if breakout fails back into chop.</textarea></div>
-        <div class="field wide"><label>Targets / Management</label><textarea id="targets">First partial at 1R, second target at premarket high or next liquidity level, trail remainder after 2R.</textarea></div>
-        <div class="field wide"><label>Review Questions</label><textarea id="review">Did I wait for confirmation? Was volume real? Did I respect the stop? Was the target realistic?</textarea></div>
-      </div>
-      <div class="actions">
-        <button onclick="savePlan()">Save Plan</button>
-        <a class="link" href="risk_calculator.html">Risk Calculator</a>
-        <a class="link" href="trade_journal.html">Journal</a>
-      </div>
-    </section>
-    <section class="panel">
-      <div class="eyebrow">Generated Plan</div>
-      <div class="preview" id="preview"></div>
-    </section>
-  </div>
-</main>
-<script>
-const ids = ["name","market","timeframe","rr","conditions","entry","stop","targets","review"];
-function buildPlan() {
-  const v = Object.fromEntries(ids.map(id => [id, document.getElementById(id).value.trim()]));
-  return `STRATEGY: ${v.name}
-MARKET: ${v.market}
-TIMEFRAME: ${v.timeframe}
-MINIMUM R:R: ${v.rr}
+<body class="app-shell page-redirect" data-dto-shell="modern" data-page-id="redirect">
+  
+  <main class="page-shell">
+    <section class="legacy-redirect">
+  <article class="surface redirect-card stack">
+    <span class="eyebrow">Moved</span>
+    <h1>Strategy Builder moved into Plan.</h1>
+    <p class="lead">Presets and setup frameworks now live together in the Plan hub.</p>
+    <div class="button-row" style="justify-content:center">
+      <a class="primary-btn" href="trade_planner.html#presets">Open current page</a>
+      <a class="secondary-btn" href="index.html">Go home</a>
+    </div>
+    <p class="footer-note">Redirecting now. Query parameters will be preserved.</p>
+  </article>
+</section>
 
-SETUP CONDITIONS
-${v.conditions}
-
-ENTRY TRIGGER
-${v.entry}
-
-STOP / INVALIDATION
-${v.stop}
-
-TARGETS / MANAGEMENT
-${v.targets}
-
-REVIEW QUESTIONS
-${v.review}
-
-EXECUTION RULE
-If the entry, stop, and target cannot be defined before the trade, skip it.`;
-}
-function render() { document.getElementById("preview").textContent = buildPlan(); }
-function savePlan() {
-  localStorage.setItem("strategyBuilderPlan", JSON.stringify(Object.fromEntries(ids.map(id => [id, document.getElementById(id).value]))));
-  render();
-  alert("Strategy plan saved in this browser.");
-}
-function restore() {
-  const saved = JSON.parse(localStorage.getItem("strategyBuilderPlan") || "{}");
-  ids.forEach(id => { if (saved[id]) document.getElementById(id).value = saved[id]; });
-  ids.forEach(id => document.getElementById(id).addEventListener("input", render));
-  render();
-}
-restore();
-</script>
-<script src="assets/daytrader-os.js?v=20260504-vercel1" defer></script>
+    
+  </main>
+  
+  <script>window.__redirectTarget = "trade_planner.html#presets";</script>
+<script src="assets/scripts/redirect.js" defer></script>
 </body>
 </html>
-

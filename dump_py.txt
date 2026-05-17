@@ -1,0 +1,403 @@
+﻿#!/usr/bin/env python3
+import sys
+print(sys.argv[1])
+import asyncio
+import os
+from fastapi import FastAPI, BackgroundTasks, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
+from core.database import init_db, get_db, TradeRecord
+from strategies.sma_crossover import SMACrossover
+from strategies.rsi_mean_reversion import RSIMeanReversion
+from strategies.momentum import MomentumTracker
+
+app = FastAPI(title="Trading Engine API")
+
+_NODE_ORIGIN = os.getenv("NODE_ORIGIN", "http://localhost:3000")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[_NODE_ORIGIN],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Global bot state
+bot_state = {
+    "is_running": False,
+    "active_symbols": ["AAPL", "MSFT", "SPY"],
+    "strategies": []
+}
+
+def get_alpaca_info():
+    """Safely read Alpaca connection status without crashing if keys are missing."""
+    try:
+        from core.alpaca_broker import AlpacaBroker, IS_LIVE, API_KEY
+        account = AlpacaBroker.get_account()
+        return {
+            "connected": True,
+            "mode": "live" if IS_LIVE else "paper",
+            "account_id": account.id if hasattr(account, 'id') else str(account.get('id', ''))[:8],
+            "buying_power": float(account.buying_power) if hasattr(account, 'buying_power') else float(account.get('buying_power', 0)),
+            "portfolio_value": float(account.portfolio_value) if hasattr(account, 'portfolio_value') else float(account.get('portfolio_value', 0)),
+            "cash": float(account.cash) if hasattr(account, 'cash') else float(account.get('cash', 0)),
+            "equity": float(account.equity) if hasattr(account, 'equity') else float(account.get('equity', 0)),
+            "day_trade_count": int(account.daytrade_count) if hasattr(account, 'daytrade_count') else int(account.get('daytrade_count', 0)),
+            "pattern_day_trader": bool(account.pattern_day_trader) if hasattr(account, 'pattern_day_trader') else bool(account.get('pattern_day_trader', False)),
+            "api_key_preview": API_KEY[:4] + "..." + API_KEY[-4:] if API_KEY and len(API_KEY) > 8 else "set",
+        }
+    except Exception as e:
+        return {
+            "connected": False,
+            "mode": "paper",
+            "error": str(e),
+            "buying_power": 0,
+            "portfolio_value": 0,
+            "cash": 0,
+            "equity": 0,
+            "day_trade_count": 0,
+            "pattern_day_trader": False,
+            "api_key_preview": "not set",
+        }
+
+@app.on_event("startup")
+def on_startup():
+    init_db()
+    # Initialize strategies
+    bot_state["strategies"] = [
+        SMACrossover(bot_state["active_symbols"]),
+        RSIMeanReversion(bot_state["active_symbols"]),
+        MomentumTracker(bot_state["active_symbols"])
+    ]
+
+async def trading_loop():
+    while bot_state["is_running"]:
+        print("Running strategy evaluation cycle...")
+        for strategy in bot_state["strategies"]:
+            try:
+                strategy.run()
+            except Exception as e:
+                print(f"Error running strategy {strategy.name}: {e}")
+        # Wait before next evaluation (e.g. 5 minutes)
+        await asyncio.sleep(300)
+
+@app.get("/api/bot/status")
+def get_status():
+    alpaca = get_alpaca_info()
+    return {
+        "is_running": bot_state["is_running"],
+        "active_symbols": bot_state["active_symbols"],
+        "strategies": [s.name for s in bot_state["strategies"]],
+        "alpaca": alpaca,
+    }
+
+@app.post("/api/bot/start")
+def start_bot(background_tasks: BackgroundTasks):
+    if not bot_state["is_running"]:
+        bot_state["is_running"] = True
+        background_tasks.add_task(trading_loop)
+    return {"message": "Bot started", "is_running": True}
+
+@app.post("/api/bot/stop")
+def stop_bot():
+    bot_state["is_running"] = False
+    return {"message": "Bot stopped", "is_running": False}
+
+@app.get("/api/bot/connection")
+def get_connection():
+    """Return Alpaca connection details for the dashboard Connection Console."""
+    return get_alpaca_info()
+
+@app.post("/api/bot/connection")
+def update_connection(payload: dict):
+    """Toggle paper/live mode by setting env var and reinitializing."""
+    mode = payload.get("mode", "paper").lower()
+    if mode not in ("paper", "live"):
+        return {"error": "mode must be 'paper' or 'live'"}, 400
+    os.environ["ALPACA_IS_LIVE"] = "true" if mode == "live" else "false"
+    # Force reimport of alpaca_broker with new env
+    import importlib
+    import core.alpaca_broker as broker_mod
+    importlib.reload(broker_mod)
+    return get_alpaca_info()
+
+@app.get("/api/bot/watchlist")
+def get_watchlist():
+    return {"symbols": bot_state["active_symbols"]}
+
+@app.post("/api/bot/watchlist")
+def update_watchlist(payload: dict):
+    symbols = payload.get("symbols", [])
+    if not isinstance(symbols, list):
+        return {"error": "symbols must be a list"}, 400
+    # Clean and cap at 15
+    cleaned = list(dict.fromkeys(
+        s.strip().upper() for s in symbols if isinstance(s, str) and s.strip()
+    ))[:15]
+    bot_state["active_symbols"] = cleaned
+    # Reinitialize strategies with updated symbols
+    bot_state["strategies"] = [
+        SMACrossover(cleaned),
+        RSIMeanReversion(cleaned),
+        MomentumTracker(cleaned)
+    ]
+    return {"symbols": cleaned, "message": f"Watchlist updated to {len(cleaned)} symbols"}
+
+@app.get("/api/bot/trades")
+def get_trades(db: Session = Depends(get_db), limit: int = 50):
+    trades = db.query(TradeRecord).order_by(TradeRecord.timestamp.desc()).limit(limit).all()
+    return trades
+import os
+from dotenv import load_dotenv
+from alpaca.trading.client import TradingClient
+from alpaca.trading.requests import MarketOrderRequest
+from alpaca.trading.enums import OrderSide, TimeInForce
+from alpaca.data.historical import StockHistoricalDataClient
+from alpaca.data.requests import StockBarsRequest
+from alpaca.data.timeframe import TimeFrame
+
+load_dotenv()
+
+# We look for a LIVE flag, default to True for Paper
+IS_LIVE = os.getenv("ALPACA_IS_LIVE", "false").lower() == "true"
+
+# Use appropriate keys
+if IS_LIVE:
+    API_KEY = os.getenv("ALPACA_LIVE_API_KEY_ID")
+    SECRET_KEY = os.getenv("ALPACA_LIVE_API_SECRET_KEY")
+else:
+    API_KEY = os.getenv("ALPACA_API_KEY_ID")
+    SECRET_KEY = os.getenv("ALPACA_API_SECRET_KEY")
+
+if not API_KEY or not SECRET_KEY:
+    raise ValueError(f"Alpaca API keys are missing. IS_LIVE={IS_LIVE}")
+
+trading_client = TradingClient(API_KEY, SECRET_KEY, paper=not IS_LIVE)
+data_client = StockHistoricalDataClient(API_KEY, SECRET_KEY)
+
+class AlpacaBroker:
+    @staticmethod
+    def get_account():
+        return trading_client.get_account()
+
+    @staticmethod
+    def submit_market_order(symbol: str, qty: float, side: str):
+        order_side = OrderSide.BUY if side.lower() == 'buy' else OrderSide.SELL
+        order_data = MarketOrderRequest(
+            symbol=symbol,
+            qty=qty,
+            side=order_side,
+            time_in_force=TimeInForce.DAY
+        )
+        return trading_client.submit_order(order_data=order_data)
+
+    @staticmethod
+    def get_historical_bars(symbol: str, timeframe: TimeFrame, start, end):
+        req = StockBarsRequest(
+            symbol_or_symbols=[symbol],
+            timeframe=timeframe,
+            start=start,
+            end=end
+        )
+        return data_client.get_stock_bars(req)
+import os
+from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, Boolean
+from sqlalchemy.orm import declarative_base, sessionmaker
+from datetime import datetime
+
+# SQLite database in the trading_engine folder
+DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'trades.db')
+engine = create_engine(f'sqlite:///{DB_PATH}', connect_args={'check_same_thread': False})
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+class TradeRecord(Base):
+    __tablename__ = 'trades'
+    
+    id = Column(Integer, primary_key=True, index=True)
+    strategy_name = Column(String, index=True)
+    symbol = Column(String, index=True)
+    side = Column(String) # 'buy' or 'sell'
+    qty = Column(Float)
+    price = Column(Float)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    status = Column(String) # 'filled', 'pending', 'failed'
+
+class Watchlist(Base):
+    __tablename__ = "watchlist"
+    id = Column(Integer, primary_key=True, index=True)
+    symbol = Column(String, unique=True, index=True)
+    is_active = Column(Boolean, default=True)
+
+def init_db():
+    Base.metadata.create_all(bind=engine)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+from abc import ABC, abstractmethod
+from core.alpaca_broker import AlpacaBroker
+from core.database import SessionLocal, TradeRecord
+from datetime import datetime
+import pandas as pd
+
+class BaseStrategy(ABC):
+    def __init__(self, name: str, symbols: list):
+        self.name = name
+        self.symbols = symbols
+        self.db = SessionLocal()
+
+    @abstractmethod
+    def run(self):
+        """Execute the strategy logic for the current interval"""
+        pass
+
+    def record_trade(self, symbol: str, side: str, qty: float, price: float, status: str):
+        trade = TradeRecord(
+            strategy_name=self.name,
+            symbol=symbol,
+            side=side,
+            qty=qty,
+            price=price,
+            timestamp=datetime.utcnow(),
+            status=status
+        )
+        self.db.add(trade)
+        self.db.commit()
+
+    def get_data(self, symbol: str, timeframe, start, end) -> pd.DataFrame:
+        bars = AlpacaBroker.get_historical_bars(symbol, timeframe, start, end)
+        if not bars.data or symbol not in bars.data:
+            return pd.DataFrame()
+        
+        data = []
+        for bar in bars.data[symbol]:
+            data.append({
+                'timestamp': bar.timestamp,
+                'open': bar.open,
+                'high': bar.high,
+                'low': bar.low,
+                'close': bar.close,
+                'volume': bar.volume,
+            })
+        df = pd.DataFrame(data)
+        df.set_index('timestamp', inplace=True)
+        return df
+
+    def execute_trade(self, symbol: str, side: str, qty: float):
+        try:
+            order = AlpacaBroker.submit_market_order(symbol, qty, side)
+            # Roughly estimate price for local DB log since market order is pending
+            self.record_trade(symbol, side, qty, 0.0, "submitted")
+            return order
+        except Exception as e:
+            print(f"Error executing trade {side} {qty} {symbol}: {e}")
+            self.record_trade(symbol, side, qty, 0.0, "failed")
+            return None
+from strategies.base_strategy import BaseStrategy
+from alpaca.data.timeframe import TimeFrame
+from datetime import datetime, timedelta
+import pandas as pd
+
+class MomentumTracker(BaseStrategy):
+    def __init__(self, symbols, lookback_periods=5):
+        super().__init__("Momentum_Tracker", symbols)
+        self.lookback_periods = lookback_periods
+
+    def run(self):
+        end = datetime.utcnow()
+        start = end - timedelta(days=10) # Enough data for lookback
+        
+        for symbol in self.symbols:
+            df = self.get_data(symbol, TimeFrame.Day, start, end)
+            if df.empty or len(df) <= self.lookback_periods:
+                continue
+                
+            # Calculate simple momentum (Rate of Change)
+            current_close = df['close'].iloc[-1]
+            past_close = df['close'].iloc[-(self.lookback_periods + 1)]
+            
+            momentum_pct = ((current_close - past_close) / past_close) * 100
+            
+            if momentum_pct > 5.0: # Strong positive momentum
+                print(f"[{self.name}] BUY signal for {symbol} (Momentum: +{momentum_pct:.2f}%)")
+                self.execute_trade(symbol, "buy", 1.0)
+                
+            elif momentum_pct < -5.0: # Strong negative momentum
+                print(f"[{self.name}] SELL signal for {symbol} (Momentum: {momentum_pct:.2f}%)")
+                self.execute_trade(symbol, "sell", 1.0)
+from strategies.base_strategy import BaseStrategy
+from alpaca.data.timeframe import TimeFrame
+from datetime import datetime, timedelta
+import ta
+
+class RSIMeanReversion(BaseStrategy):
+    def __init__(self, symbols, rsi_window=14, overbought=70, oversold=30):
+        super().__init__("RSI_Mean_Reversion", symbols)
+        self.rsi_window = rsi_window
+        self.overbought = overbought
+        self.oversold = oversold
+
+    def run(self):
+        end = datetime.utcnow()
+        start = end - timedelta(days=30)
+        
+        for symbol in self.symbols:
+            df = self.get_data(symbol, TimeFrame.Hour, start, end)
+            if df.empty or len(df) < self.rsi_window:
+                continue
+                
+            df['rsi'] = ta.momentum.rsi(df['close'], window=self.rsi_window)
+            
+            last_row = df.iloc[-1]
+            prev_row = df.iloc[-2]
+            
+            # Crosses below oversold -> BUY (mean reversion expects it to bounce back up)
+            if prev_row['rsi'] >= self.oversold and last_row['rsi'] < self.oversold:
+                print(f"[{self.name}] BUY signal for {symbol} (RSI: {last_row['rsi']:.2f})")
+                self.execute_trade(symbol, "buy", 1.0)
+                
+            # Crosses above overbought -> SELL
+            elif prev_row['rsi'] <= self.overbought and last_row['rsi'] > self.overbought:
+                print(f"[{self.name}] SELL signal for {symbol} (RSI: {last_row['rsi']:.2f})")
+                self.execute_trade(symbol, "sell", 1.0)
+from strategies.base_strategy import BaseStrategy
+from alpaca.data.timeframe import TimeFrame
+from datetime import datetime, timedelta
+import ta
+
+class SMACrossover(BaseStrategy):
+    def __init__(self, symbols, fast_window=10, slow_window=30):
+        super().__init__("SMA_Crossover", symbols)
+        self.fast_window = fast_window
+        self.slow_window = slow_window
+
+    def run(self):
+        end = datetime.utcnow()
+        start = end - timedelta(days=60) # Fetch enough data for slow MA
+        
+        for symbol in self.symbols:
+            df = self.get_data(symbol, TimeFrame.Day, start, end)
+            if df.empty or len(df) < self.slow_window:
+                continue
+                
+            df['fast_sma'] = ta.trend.sma_indicator(df['close'], window=self.fast_window)
+            df['slow_sma'] = ta.trend.sma_indicator(df['close'], window=self.slow_window)
+            
+            # Get last two rows to check for crossover
+            last_row = df.iloc[-1]
+            prev_row = df.iloc[-2]
+            
+            # Fast crosses over Slow -> BUY
+            if prev_row['fast_sma'] <= prev_row['slow_sma'] and last_row['fast_sma'] > last_row['slow_sma']:
+                print(f"[{self.name}] BUY signal for {symbol}")
+                self.execute_trade(symbol, "buy", 1.0)
+                
+            # Fast crosses under Slow -> SELL
+            elif prev_row['fast_sma'] >= prev_row['slow_sma'] and last_row['fast_sma'] < last_row['slow_sma']:
+                print(f"[{self.name}] SELL signal for {symbol}")
+                self.execute_trade(symbol, "sell", 1.0)

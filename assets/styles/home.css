@@ -1,0 +1,27 @@
+.home-hero .hero-aside {
+  display: grid;
+  gap: 12px;
+}
+
+.home-hero .metric-card strong {
+  font-size: 28px;
+}
+
+.workspace-actions {
+  display: grid;
+  gap: 12px;
+}
+
+.action-tile {
+  display: grid;
+  gap: 8px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface-soft);
+}
+
+.action-tile p {
+  margin: 0;
+  font-size: 14px;
+}

@@ -1,218 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Market Intelligence - Day Trader OS</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=JetBrains+Mono:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/daytrader-os.css?v=20260504-vercel1">
-<link rel="stylesheet" href="assets/ultra-tools.css?v=20260504-vercel1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Market Desk | Redirect</title>
+  <meta name="description" content="Scanning, watchlists, and context now live together in the Market hub.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/app.css?v=20260516">
 </head>
-<body>
-<a class="dto-home-link" href="index.html"><span class="dto-home-mark" aria-hidden="true">&larr;</span><span>Return Home</span></a>
-<main class="ultra-shell">
-  <header class="ultra-top">
-    <div>
-      <div class="kicker">Scan / Context / Prep / Alerts</div>
-      <h1>Market Intelligence</h1>
-      <p class="sub">One command desk for pre-market prep, scanner watchlists, market context, catalyst checks, and local alert plans. Use this before opening a single trade idea.</p>
+<body class="app-shell page-redirect" data-dto-shell="modern" data-page-id="redirect">
+  
+  <main class="page-shell">
+    <section class="legacy-redirect">
+  <article class="surface redirect-card stack">
+    <span class="eyebrow">Moved</span>
+    <h1>Market Desk moved into Market.</h1>
+    <p class="lead">Scanning, watchlists, and context now live together in the Market hub.</p>
+    <div class="button-row" style="justify-content:center">
+      <a class="primary-btn" href="market_intel.html#scanner">Open current page</a>
+      <a class="secondary-btn" href="index.html">Go home</a>
     </div>
-    <nav class="ultra-flow" aria-label="Workflow">
-      <a href="index.html">Home</a>
-      <a href="portfolio.html">Portfolio</a>
-      <a href="signal_dashboard.html">Signal</a>
-      <a href="trade_planner.html">Plan</a>
-      <a href="execution_workbench.html">Execute</a>
-    </nav>
-  </header>
+    <p class="footer-note">Redirecting now. Query parameters will be preserved.</p>
+  </article>
+</section>
 
-  <section class="ultra-grid">
-    <article class="panel span-5">
-      <div class="panel-head">
-        <div><div class="kicker">Live symbol check</div><h2>Quick Read</h2></div>
-        <span class="tag" id="feedTag">Public API</span>
-      </div>
-      <form class="form-grid" id="quickForm">
-        <div class="field two"><label for="quickSymbol">Symbol</label><input id="quickSymbol" value="AAPL"></div>
-        <button class="primary" type="submit">Analyze</button>
-        <a class="btn" id="openSignal" href="signal_dashboard.html">Open Signal</a>
-      </form>
-      <div class="metric-grid" style="margin-top:14px">
-        <div class="metric"><span>Price</span><strong id="quickPrice">--</strong></div>
-        <div class="metric"><span>Rating</span><strong id="quickRating">--</strong></div>
-        <div class="metric"><span>Source</span><strong id="quickSource">--</strong></div>
-        <div class="metric"><span>Updated</span><strong id="quickTime">--</strong></div>
-      </div>
-      <div class="note" id="quickNote" style="margin-top:14px">Hosted Vercel mode can pull `/api/analyze`. Local file mode opens the Signal page for chart-first analysis.</div>
-    </article>
-
-    <article class="panel span-7">
-      <div class="panel-head">
-        <div><div class="kicker">Scanner hub merged</div><h2>Watchlist Board</h2></div>
-        <span class="tag">Saved locally</span>
-      </div>
-      <form class="form-grid" id="watchForm">
-        <div class="field"><label for="watchSymbol">Symbol</label><input id="watchSymbol" value="NVDA"></div>
-        <div class="field"><label for="watchType">Setup</label><select id="watchType"><option>Breakout</option><option>Pullback</option><option>VWAP reclaim</option><option>Reversal</option><option>Gap mover</option><option>Crypto momentum</option></select></div>
-        <div class="field"><label for="watchLevel">Key Level</label><input id="watchLevel" placeholder="Alert level"></div>
-        <div class="field"><label for="watchNote">Note</label><input id="watchNote" placeholder="Why it matters"></div>
-        <button class="primary" type="submit">Add Watch</button>
-      </form>
-      <div class="action-row" id="quickChips"></div>
-      <div class="list" id="watchList" style="margin-top:14px"></div>
-    </article>
-
-    <article class="panel span-4">
-      <div class="panel-head"><div><div class="kicker">Daily context</div><h2>Market Gate</h2></div></div>
-      <div class="list" id="contextChecks"></div>
-    </article>
-
-    <article class="panel span-4">
-      <div class="panel-head"><div><div class="kicker">Prep merged</div><h2>Game Plan</h2></div></div>
-      <div class="field"><label for="biasNotes">Market Bias</label><textarea id="biasNotes" placeholder="SPY/QQQ/VIX/BTC direction, earnings, macro, sector pressure..."></textarea></div>
-      <div class="field" style="margin-top:12px"><label for="gamePlan">Trade Plan</label><textarea id="gamePlan" placeholder="What will you trade, avoid, and wait for?"></textarea></div>
-      <button class="primary" id="savePrep" type="button" style="margin-top:12px">Save Prep</button>
-    </article>
-
-    <article class="panel span-4">
-      <div class="panel-head"><div><div class="kicker">Alert center merged</div><h2>Alert Plans</h2></div></div>
-      <form class="form-grid" id="alertForm">
-        <div class="field two"><label for="alertSymbol">Symbol</label><input id="alertSymbol" value="SPY"></div>
-        <div class="field"><label for="alertTrigger">Trigger</label><select id="alertTrigger"><option>Price near support</option><option>Price near resistance</option><option>R:R becomes valid</option><option>Volume spike</option></select></div>
-        <div class="field"><label for="alertLevel">Level</label><input id="alertLevel" placeholder="Price"></div>
-        <div class="field full"><label for="alertNote">Action</label><input id="alertNote" placeholder="What to check when this fires"></div>
-        <button class="primary" type="submit">Save Alert</button>
-      </form>
-      <div class="list" id="alertList" style="margin-top:14px"></div>
-    </article>
-
-    <article class="panel span-12">
-      <div class="panel-head"><div><div class="kicker">Specialist modules</div><h2>Still Available</h2></div></div>
-      <div class="action-row">
-        <a class="btn" href="scanner_hub.html">Old Scanner</a>
-        <a class="btn" href="premarket_prep.html">Pre-Market Prep</a>
-        <a class="btn" href="market_context.html">Market Context</a>
-        <a class="btn" href="alert_center.html">Alert Center</a>
-      </div>
-    </article>
-  </section>
-</main>
-<script src="assets/daytrader-os.js?v=20260504-vercel1"></script>
-<script>
-const $ = id => document.getElementById(id);
-const read = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch { return fallback; } };
-const write = (key, value) => { localStorage.setItem(key, JSON.stringify(value)); return value; };
-const clean = value => String(value || "").trim().toUpperCase().replace(/[^A-Z0-9.-]/g, "");
-const money = value => Number.isFinite(Number(value)) ? "$" + Number(value).toFixed(Number(value) >= 100 ? 2 : 4).replace(/\.?0+$/, "") : "--";
-
-async function api(path) {
-  const cleanPath = String(path).replace(/^\/+/, "");
-  const urls = [`/api/${cleanPath}`, `/.netlify/functions/${cleanPath}`];
-  let last;
-  for (const url of urls) {
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || res.status);
-      return data;
-    } catch (error) { last = error; }
-  }
-  throw last || new Error("API unavailable");
-}
-
-function renderWatch() {
-  const list = read("dtoScannerWatchlist", []);
-  $("watchList").innerHTML = list.length ? list.map(item => `
-    <div class="row"><div><strong>${item.symbol}</strong><span>${item.type} / ${item.level || "no level"} / ${item.note || "no note"}</span></div><a class="btn" href="signal_dashboard.html?symbol=${encodeURIComponent(item.symbol)}">Signal</a></div>
-  `).join("") : `<div class="note">No watchlist names yet. Add 3-5 high-conviction ideas only.</div>`;
-}
-
-function renderAlerts() {
-  const list = read("dtoAlerts", []);
-  $("alertList").innerHTML = list.length ? list.slice(0, 6).map(item => `
-    <div class="row"><div><strong>${item.symbol}</strong><span>${item.trigger} ${item.level ? "near " + item.level : ""}. ${item.note || ""}</span></div><span>${item.priority || "Plan"}</span></div>
-  `).join("") : `<div class="note">No alert plans saved yet.</div>`;
-}
-
-function renderContext() {
-  const checks = [
-    "SPY/QQQ trend agrees with trade direction",
-    "VIX is not warning of sudden risk-off tape",
-    "Earnings and macro calendar checked",
-    "Sector or crypto beta supports the setup",
-    "Ground News/catalyst bias checked before reacting",
-    "Plan includes no-trade condition"
-  ];
-  const saved = read("dtoMarketGate", {});
-  $("contextChecks").innerHTML = checks.map((text, index) => `
-    <label class="row" style="grid-template-columns:auto 1fr"><input type="checkbox" data-check="${index}" ${saved[index] ? "checked" : ""}><span>${text}</span></label>
-  `).join("");
-  document.querySelectorAll("[data-check]").forEach(input => input.addEventListener("change", () => {
-    const next = read("dtoMarketGate", {});
-    next[input.dataset.check] = input.checked;
-    write("dtoMarketGate", next);
-  }));
-}
-
-async function analyze(symbol) {
-  const sym = clean(symbol || $("quickSymbol").value || "AAPL");
-  $("quickSymbol").value = sym;
-  $("openSignal").href = `signal_dashboard.html?symbol=${encodeURIComponent(sym)}`;
-  $("quickNote").textContent = "Checking public server feed...";
-  if (!/^https?:$/.test(location.protocol)) {
-    $("quickNote").textContent = "Local file mode cannot call hosted API functions. Use Open Signal or deploy to Vercel to test the public feed.";
-    return;
-  }
-  try {
-    const data = await api(`analyze?symbol=${encodeURIComponent(sym)}`);
-    $("quickPrice").textContent = money(data.price);
-    $("quickRating").textContent = data.rating || "CHECK";
-    $("quickSource").textContent = (data.candleSource || data.source || "API").replace(/^Alpaca /, "Alpaca ");
-    $("quickTime").textContent = new Date(data.asOf || Date.now()).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    $("quickNote").textContent = `${data.name || data.symbol || sym}: ${(data.rationale || []).slice(0, 2).join(" ") || "Review chart, levels, and catalyst before planning."}`;
-  } catch (error) {
-    $("quickPrice").textContent = "--";
-    $("quickRating").textContent = "CHECK";
-    $("quickSource").textContent = "Blocked";
-    $("quickNote").textContent = error.message || "Public feed unavailable.";
-  }
-}
-
-$("quickForm").addEventListener("submit", event => { event.preventDefault(); analyze(); });
-$("watchForm").addEventListener("submit", event => {
-  event.preventDefault();
-  const item = { symbol: clean($("watchSymbol").value), type: $("watchType").value, level: $("watchLevel").value, note: $("watchNote").value, savedAt: new Date().toISOString() };
-  if (!item.symbol) return;
-  write("dtoScannerWatchlist", [item, ...read("dtoScannerWatchlist", []).filter(old => old.symbol !== item.symbol)].slice(0, 30));
-  renderWatch();
-});
-$("alertForm").addEventListener("submit", event => {
-  event.preventDefault();
-  const item = { symbol: clean($("alertSymbol").value), trigger: $("alertTrigger").value, level: $("alertLevel").value, note: $("alertNote").value, savedAt: new Date().toISOString() };
-  if (!item.symbol) return;
-  write("dtoAlerts", [item, ...read("dtoAlerts", [])].slice(0, 40));
-  renderAlerts();
-});
-$("savePrep").addEventListener("click", () => {
-  write("dtoPrepWorkbench", { bias: $("biasNotes").value, plan: $("gamePlan").value, savedAt: new Date().toISOString() });
-  $("savePrep").textContent = "Saved";
-  setTimeout(() => $("savePrep").textContent = "Save Prep", 900);
-});
-["AAPL","TSLA","NVDA","SPY","QQQ","BTC","ETH","SOL","INTC","AMD"].forEach(sym => {
-  const btn = document.createElement("button");
-  btn.type = "button";
-  btn.textContent = sym;
-  btn.addEventListener("click", () => { $("quickSymbol").value = sym; $("watchSymbol").value = sym; analyze(sym); });
-  $("quickChips").appendChild(btn);
-});
-const prep = read("dtoPrepWorkbench", {});
-$("biasNotes").value = prep.bias || "";
-$("gamePlan").value = prep.plan || "";
-renderWatch();
-renderAlerts();
-renderContext();
-analyze("AAPL");
-</script>
+    
+  </main>
+  
+  <script>window.__redirectTarget = "market_intel.html#scanner";</script>
+<script src="assets/scripts/redirect.js" defer></script>
 </body>
 </html>
-

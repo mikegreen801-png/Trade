@@ -1,0 +1,27 @@
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 24px;
+}
+
+.position-list .list-row {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+}
+
+.status-box {
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+}
+
+@media (max-width: 980px) {
+  .portfolio-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .position-list .list-row {
+    grid-template-columns: 1fr;
+  }
+}

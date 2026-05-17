@@ -692,3 +692,37 @@
   window.streamCryptoPrice = streamCryptoPrice;
   window.streamStockPrice = streamStockPrice;
   window.stopStream = stopStream;
+
+  // Expose core utilities for page scripts
+  window.DTO = {
+    readJson,
+    formatMoney,
+    compactNumber,
+    fmtPrice,
+    avg,
+    rsi,
+    isCryptoSymbol,
+    tradingViewSymbol,
+    tradingViewUrl,
+    tradingViewEmbedUrl,
+    sourceUrls,
+    sourceDeckHtml,
+    cleanSymbol,
+    escapeHtml,
+    isStaticOnlyHost,
+    fetchJson,
+    fetchPublicApiJson,
+    fetchJsonWithFallback,
+    fetchBackendCandles,
+    fetchCandles,
+    analyzeCandles,
+    marketContextForSymbol,
+    nearestLevel,
+    pctDistance,
+    tradeLevels,
+    cryptoMap,
+    cryptoDataMap,
+    streamCryptoPrice,
+    streamStockPrice,
+    stopStream
+  };

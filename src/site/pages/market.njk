@@ -1,0 +1,103 @@
+<section class="page-hero">
+  <div class="hero-block">
+    <span class="eyebrow">Market</span>
+    <h1>Analyze first, then decide.</h1>
+    <p class="lead">Keep the market read, watchlist, context, and alerts on one page. No more bouncing between thin tools.</p>
+    <form class="search-bar" id="marketAnalyzeForm">
+      <input id="marketSymbolInput" type="text" placeholder="Search a symbol" autocomplete="off">
+      <button class="primary-btn" type="submit">Analyze</button>
+    </form>
+  </div>
+  <aside class="hero-aside stack">
+    <div class="metric-card">
+      <span>Session</span>
+      <strong data-market-phase>Loading</strong>
+      <small>Updated from Eastern Time.</small>
+    </div>
+    <div class="metric-card">
+      <span>Saved watchlist</span>
+      <strong id="marketWatchCount">0</strong>
+      <small>Shared across the whole app.</small>
+    </div>
+    <div class="metric-card">
+      <span>Saved alerts</span>
+      <strong id="marketAlertCount">0</strong>
+      <small>Local alerts trigger browser notifications.</small>
+    </div>
+  </aside>
+</section>
+
+<section id="overview" class="surface section-anchor stack">
+  <div class="section-header">
+    <div>
+      <span class="eyebrow">Overview</span>
+      <h2>Benchmarks and risk appetite</h2>
+    </div>
+    <button class="secondary-btn" id="refreshMarketOverview" type="button">Refresh</button>
+  </div>
+  <div id="marketOverviewGrid" class="benchmark-grid loading-state">Loading benchmark reads…</div>
+</section>
+
+<section class="market-grid">
+  <article id="details" class="surface section-anchor stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Details</span>
+        <h2>Current symbol</h2>
+      </div>
+      <button class="secondary-btn" id="marketAddWatchlist" type="button">Add to watchlist</button>
+    </div>
+    <div id="marketAnalysisCard" class="empty-state">Analyze a symbol to load price, levels, rationale, and next step.</div>
+  </article>
+
+  <article id="context" class="surface section-anchor stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Context</span>
+        <h2>What to verify next</h2>
+      </div>
+    </div>
+    <div id="marketContextCard" class="empty-state">Source links, headlines, and the context read appear after analysis.</div>
+  </article>
+</section>
+
+<section id="scanner" class="surface section-anchor stack">
+  <div class="section-header">
+    <div>
+      <span class="eyebrow">Scanner</span>
+      <h2>Quick reads on liquid names</h2>
+    </div>
+    <button class="secondary-btn" id="runQuickScan" type="button">Run scan</button>
+  </div>
+  <div id="scannerGrid" class="scanner-grid loading-state">Scanner results will appear here.</div>
+</section>
+
+<section id="watchlist" class="surface section-anchor stack">
+  <div class="section-header">
+    <div>
+      <span class="eyebrow">Watchlist</span>
+      <h2>Your saved symbols</h2>
+    </div>
+  </div>
+  <div id="marketWatchlist" class="watchlist-grid empty-state">No symbols saved yet.</div>
+</section>
+
+<section id="alerts" class="surface section-anchor stack">
+  <div class="section-header">
+    <div>
+      <span class="eyebrow">Alerts</span>
+      <h2>Simple browser alerts</h2>
+    </div>
+  </div>
+  <form class="field-grid" id="alertForm">
+    <div class="field"><label for="alertSymbol">Symbol</label><input id="alertSymbol" type="text"></div>
+    <div class="field"><label for="alertDirection">Direction</label><select id="alertDirection"><option value="above">Above</option><option value="below">Below</option></select></div>
+    <div class="field"><label for="alertPrice">Price</label><input id="alertPrice" type="number" step="0.0001"></div>
+    <div class="field"><label for="alertTrigger">Label</label><input id="alertTrigger" type="text" placeholder="Breakout, support test, etc."></div>
+    <div class="field full"><label for="alertNote">Note</label><textarea id="alertNote" placeholder="What should you check when it fires?"></textarea></div>
+    <div class="field full">
+      <button class="primary-btn" type="submit">Save alert</button>
+    </div>
+  </form>
+  <div id="alertList" class="simple-list empty-state">No alerts saved yet.</div>
+</section>

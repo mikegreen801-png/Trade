@@ -1,7 +1,35 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Trade Review Coach - Day Trader OS</title><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/daytrader-os.css?v=20260504-vercel1"><style>*{box-sizing:border-box}body{margin:0;background:#05070c;color:#d8e2ef;font-family:JetBrains Mono,monospace;padding:86px 28px 110px}main{max-width:1120px;margin:auto}.kicker{color:#00d7ff;font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}h1{font-family:Barlow Condensed,sans-serif;font-size:clamp(52px,9vw,112px);line-height:.85;margin:10px 0 24px;color:#fff;text-transform:uppercase}.panel{border:1px solid #223047;border-radius:10px;background:#0c111a;padding:22px;margin-top:18px}.review-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.coach-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field{display:flex;flex-direction:column;gap:8px}.field.full{grid-column:1/-1}.field label{color:#8190a8;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.field input,.field select,.field textarea{width:100%;min-height:48px;border:1px solid rgba(127,141,163,.3);border-radius:7px;background:#070c14;color:#f4f8ff;font:600 14px/1.4 JetBrains Mono,monospace;padding:12px;outline:none}.field textarea{min-height:130px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:#00d7ff;box-shadow:0 0 0 3px rgba(0,215,255,.09)}.primary{min-height:48px;border:0;border-radius:7px;background:#00e08a;color:#03110a;cursor:pointer;font:900 12px/1 JetBrains Mono,monospace;letter-spacing:.08em;padding:12px;text-transform:uppercase}@media(max-width:850px){.review-grid,.coach-form{grid-template-columns:1fr}body{padding-inline:16px}}</style></head><body><a class="dto-home-link" href="index.html"><span class="dto-home-mark" aria-hidden="true">&larr;</span><span>Return Home</span></a><main><div class="kicker">Improve / Mistake Tags / Discipline Score</div><h1>Review Coach</h1><section class="review-grid"><div class="panel"><form class="coach-form" id="reviewForm"><div class="field"><label for="symbol">Symbol</label><input id="symbol"></div><div class="field"><label for="pnl">P&L</label><input id="pnl" type="number" step="0.01"></div><div class="field"><label for="setupType">Setup</label><select id="setupType"><option>Breakout</option><option>Pullback</option><option>Reversal</option><option>VWAP</option><option>Other</option></select></div><div class="field"><label for="mistake">Mistake</label><select id="mistake"><option>None</option><option>Chased</option><option>Oversized</option><option>No Stop</option><option>Ignored Plan</option><option>Exited Early</option><option>Revenge Trade</option></select></div><div class="field full"><label for="notes">What Happened</label><textarea id="notes" rows="4"></textarea></div><div class="field"><label for="discipline">Discipline 1-10</label><input id="discipline" type="number" min="1" max="10" value="7"></div><button class="primary" type="submit">Save Review</button></form></div><div class="panel" id="coachBox"></div></section><section class="panel" id="historyBox"></section></main><script src="assets/daytrader-os.js?v=20260504-vercel1"></script><script>
-function reviews(){return DTO.readJson("dtoTradeReviews",[])}
-function render(){const list=reviews();const avg=list.length?list.reduce((s,r)=>s+Number(r.discipline||0),0)/list.length:null;const mistakes=list.reduce((m,r)=>(m[r.mistake]=(m[r.mistake]||0)+1,m),{});const top=Object.entries(mistakes).sort((a,b)=>b[1]-a[1])[0];document.getElementById("coachBox").innerHTML=`<div class="dto-panel-kicker">Coach Read</div><h3>${avg?avg.toFixed(1)+"/10":"No Score Yet"}</h3><p>${top?`Most common tag: ${DTO.escapeHtml(top[0])}. Build tomorrow's rules around avoiding that.`:"Review a trade to generate your focus point."}</p><div class="dto-warning">${avg&&avg<7?"Discipline is below target. Reduce size and paper trade until execution stabilizes.":"Good process beats one lucky result. Keep tagging every trade."}</div>`;document.getElementById("historyBox").innerHTML=`<div class="dto-panel-kicker">Recent Reviews</div>${list.length?list.slice(0,10).map(r=>`<div class="dto-list-row"><strong>${DTO.escapeHtml(r.symbol)} ${DTO.money(r.pnl)}</strong><span>${DTO.escapeHtml(r.setupType)} / ${DTO.escapeHtml(r.mistake)} / ${r.discipline}/10</span></div>`).join(""):"<p>No reviews yet.</p>"}`;}
-document.getElementById("reviewForm").addEventListener("submit",e=>{e.preventDefault();const r={symbol:document.getElementById("symbol").value.toUpperCase(),pnl:Number(document.getElementById("pnl").value||0),setupType:document.getElementById("setupType").value,mistake:document.getElementById("mistake").value,notes:document.getElementById("notes").value,discipline:Number(document.getElementById("discipline").value),closedAt:new Date().toISOString()};DTO.writeJson("dtoTradeReviews",[r,...reviews()].slice(0,100));DTO.recordTrade({...r,source:"review"});render();});render();
-</script></body></html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trade Review Coach | Redirect</title>
+  <meta name="description" content="Mistakes, lessons, and next-session guidance now live in the Review hub.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/app.css?v=20260516">
+</head>
+<body class="app-shell page-redirect" data-dto-shell="modern" data-page-id="redirect">
+  
+  <main class="page-shell">
+    <section class="legacy-redirect">
+  <article class="surface redirect-card stack">
+    <span class="eyebrow">Moved</span>
+    <h1>Review Coach moved into Review.</h1>
+    <p class="lead">Mistakes, lessons, and next-session guidance now live in the Review hub.</p>
+    <div class="button-row" style="justify-content:center">
+      <a class="primary-btn" href="review_workbench.html#lessons">Open current page</a>
+      <a class="secondary-btn" href="index.html">Go home</a>
+    </div>
+    <p class="footer-note">Redirecting now. Query parameters will be preserved.</p>
+  </article>
+</section>
 
+    
+  </main>
+  
+  <script>window.__redirectTarget = "review_workbench.html#lessons";</script>
+<script src="assets/scripts/redirect.js" defer></script>
+</body>
+</html>

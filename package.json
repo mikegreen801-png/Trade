@@ -6,6 +6,11 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "build:site": "node scripts/build-site.js",
+    "dev:site": "node scripts/watch-site.js",
+    "dev:server": "node scripts/dev-server.js",
+    "dev:browser": "node scripts/dev-browser.js",
+    "dev": "concurrently --names \"BUILD,WEB,PREVIEW\" --prefix-colors \"yellow,cyan,green\" \"npm run dev:site\" \"npm run dev:server\" \"npm run dev:browser\"",
     "start:engine": "cd trading_engine && uvicorn main:app --host 0.0.0.0 --port 8000 --reload",
     "start:all": "concurrently --names \"WEB,BOT\" --prefix-colors \"cyan,yellow\" \"npm run start\" \"npm run start:engine\""
   },
@@ -19,6 +24,10 @@
     "ws": "^8.20.0"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "browser-sync": "^3.0.3",
+    "chokidar-cli": "^3.0.0",
+    "concurrently": "^9.2.1",
+    "nodemon": "^3.1.10",
+    "nunjucks": "^3.2.4"
   }
 }

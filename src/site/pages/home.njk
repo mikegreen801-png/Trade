@@ -1,0 +1,107 @@
+<section class="page-hero home-hero">
+  <div class="hero-block">
+    <span class="eyebrow">Home</span>
+    <h1>Start with one good idea.</h1>
+    <p class="lead">Check the session, analyze a symbol, and move into planning, execution, or review without fighting the interface.</p>
+    <form class="search-bar" id="homeAnalyzeForm">
+      <input id="homeSymbolInput" type="text" placeholder="AAPL, NVDA, BTC, ETH" autocomplete="off">
+      <button class="primary-btn" type="submit">Analyze</button>
+    </form>
+    <div class="quick-symbol-row">
+      <button class="chip-btn" type="button" data-symbol="AAPL">AAPL</button>
+      <button class="chip-btn" type="button" data-symbol="NVDA">NVDA</button>
+      <button class="chip-btn" type="button" data-symbol="SPY">SPY</button>
+      <button class="chip-btn" type="button" data-symbol="BTC">BTC</button>
+      <button class="chip-btn" type="button" data-symbol="ETH">ETH</button>
+      <button class="chip-btn" type="button" data-symbol="SOL">SOL</button>
+    </div>
+  </div>
+  <aside class="hero-aside">
+    <div class="metric-card">
+      <span>Session</span>
+      <strong id="homeSessionState">Loading</strong>
+      <small id="homeSessionNote">Checking market phase.</small>
+    </div>
+    <div class="metric-card">
+      <span>Active setup</span>
+      <strong id="homeActiveSetup">None</strong>
+      <small id="homeActiveSetupNote">Analyze a symbol to create one.</small>
+    </div>
+    <div class="metric-card">
+      <span>Paper P&amp;L</span>
+      <strong id="homePaperPnl">$0.00</strong>
+      <small id="homePaperNote">No open paper positions yet.</small>
+    </div>
+    <div class="metric-card">
+      <span>Journal edge</span>
+      <strong id="homeJournalEdge">0%</strong>
+      <small id="homeJournalNote">No review history yet.</small>
+    </div>
+  </aside>
+</section>
+
+<section class="module-grid two-col">
+  <article class="surface stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Analyze</span>
+        <h2>Current symbol read</h2>
+      </div>
+      <button class="secondary-btn" id="homeAddWatchlist" type="button">Add to watchlist</button>
+    </div>
+    <div id="homeAnalysisCard" class="empty-state">Analyze one symbol to get a quick read, save the setup, and keep the rest of the workflow in sync.</div>
+  </article>
+
+  <article class="surface stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Watchlist</span>
+        <h2>Shared names to keep an eye on</h2>
+      </div>
+      <a class="secondary-btn" href="market_intel.html#watchlist">Open Market</a>
+    </div>
+    <div id="homeWatchlist" class="simple-list empty-state">No symbols saved yet.</div>
+  </article>
+</section>
+
+<section class="module-grid three-col">
+  <article class="surface workspace-actions">
+    <div>
+      <span class="eyebrow">Next step</span>
+      <h2>Move through the workflow</h2>
+      <p class="section-copy">The product is intentionally smaller now: Market for context, Plan for the setup, Execute for paper trades and broker checks, Review for lessons.</p>
+    </div>
+    <a class="action-tile" href="market_intel.html">
+      <strong>Market</strong>
+      <p>Scan the tape, update your watchlist, and collect context before committing.</p>
+    </a>
+    <a class="action-tile" id="homePlanLink" href="trade_planner.html">
+      <strong>Plan</strong>
+      <p>Build a setup, check the levels, and save the idea in one clean form.</p>
+    </a>
+  </article>
+
+  <article class="surface workspace-actions">
+    <div>
+      <span class="eyebrow">Execution</span>
+      <h2>Keep risk visible</h2>
+      <p class="section-copy">Use paper trading first, then review the outcome before touching anything real.</p>
+    </div>
+    <a class="action-tile" id="homeExecuteLink" href="execution_workbench.html">
+      <strong>Execute</strong>
+      <p>Paper order ticket, open positions, and broker readiness checks.</p>
+    </a>
+  </article>
+
+  <article class="surface workspace-actions">
+    <div>
+      <span class="eyebrow">Review</span>
+      <h2>Make the next session better</h2>
+      <p class="section-copy">Review only matters if it is easy to do. The new Review hub keeps stats, rules, and lessons together.</p>
+    </div>
+    <a class="action-tile" href="review_workbench.html">
+      <strong>Review</strong>
+      <p>Log the trade, tag the mistake, and set tomorrow’s rule.</p>
+    </a>
+  </article>
+</section>

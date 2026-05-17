@@ -1,0 +1,4836 @@
+﻿/**
+ * Alpaca Integration Library - Frontend JavaScript
+ * Include this in your HTML to access Alpaca APIs easily
+ * 
+ * Usage:
+ *   <script src="/alpaca-integration.js"></script>
+ *   <script>
+ *     alpacaAPI.getAccount().then(acc => console.log(acc));
+ *   </script>
+ */
+
+const alpacaAPI = {
+  baseUrl: '/api',
+  liveMode: false,
+
+  /**
+   * Generic API call wrapper
+   */
+  async call(endpoint, method = 'GET', body = null, query = {}) {
+    let currentLiveMode = this.liveMode;
+    try {
+      const userJson = localStorage.getItem('dtoActiveUser');
+      if (userJson) {
+        const user = JSON.parse(userJson);
+        if (user.alpacaMode === 'live') currentLiveMode = true;
+      }
+    } catch(e) {}
+    
+    query.isLive = currentLiveMode;
+    const params = new URLSearchParams(query).toString();
+    const url = `${this.baseUrl}${endpoint}${params ? '?' + params : ''}`;
+
+    try {
+      const options = {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+
+      try {
+        const userJson = localStorage.getItem('dtoActiveUser');
+        if (userJson) {
+          const user = JSON.parse(userJson);
+          if (user.alpacaApiKey && user.alpacaApiSecret) {
+            options.headers['X-Alpaca-Key-Id'] = user.alpacaApiKey;
+            options.headers['X-Alpaca-Secret-Key'] = user.alpacaApiSecret;
+          }
+        }
+      } catch(e) {}
+
+      if (body) {
+        options.body = JSON.stringify(body);
+      }
+
+      const response = await fetch(url, options);
+      const data = await response.json();
+
+      if (!response.ok && !data.ok) {
+        throw new Error(data.error || `API Error: ${response.status}`);
+      }
+
+      return data;
+    } catch (error) {
+      console.error(`[Alpaca API] ${endpoint} failed:`, error.message);
+      throw error;
+    }
+  },
+
+  /**
+   * ACCOUNT OPERATIONS
+   */
+
+  async getAccount() {
+    return this.call('/account', 'GET', null, { action: 'info' });
+  },
+
+  async getPositions() {
+    return this.call('/account', 'GET', null, { action: 'positions' });
+  },
+
+  async getOrders(status = 'all') {
+    return this.call('/account', 'GET', null, { action: 'orders', status: status });
+  },
+
+  /**
+   * TRADING OPERATIONS
+   */
+
+  async submitOrder(symbol, qty, side, orderType = 'market', limitPrice = null, stopPrice = null) {
+    if (!this.liveMode && orderType !== 'market') {
+      console.warn('[Alpaca] Paper trading: limit/stop orders may behave differently');
+    }
+
+    const body = {
+      symbol: symbol.toUpperCase(),
+      qty: qty,
+      side: side.toLowerCase(),
+      orderType: orderType.toLowerCase(),
+      limitPrice: limitPrice,
+      stopPrice: stopPrice
+    };
+
+    return this.call('/trading', 'POST', body, { action: 'submit' });
+  },
+
+  async buyMarket(symbol, qty) {
+    return this.submitOrder(symbol, qty, 'buy', 'market');
+  },
+
+  async sellMarket(symbol, qty) {
+    return this.submitOrder(symbol, qty, 'sell', 'market');
+  },
+
+  async buyLimit(symbol, qty, limitPrice) {
+    return this.submitOrder(symbol, qty, 'buy', 'limit', limitPrice);
+  },
+
+  async sellLimit(symbol, qty, limitPrice) {
+    return this.submitOrder(symbol, qty, 'sell', 'limit', limitPrice);
+  },
+
+  async cancelOrder(orderId) {
+    return this.call('/trading', 'POST', null, { action: 'cancel', orderId: orderId });
+  },
+
+  async cancelAllOrders() {
+    return this.call('/trading', 'POST', null, { action: 'cancel-all' });
+  },
+
+  /**
+   * MARKET DATA
+   */
+
+  async getLatestBars(symbols) {
+    // symbols can be string "AAPL" or array ["AAPL", "MSFT"]
+    const symbolStr = Array.isArray(symbols) ? symbols.join(',') : symbols;
+    return this.call('/market', 'GET', null, { action: 'latest', symbols: symbolStr });
+  },
+
+  async getLatestPrice(symbol) {
+    const result = await this.getLatestBars(symbol);
+    return result.data[symbol.toUpperCase()]?.close || null;
+  },
+
+  async getBarHistory(symbol, timeframe = '1Day', limit = 100) {
+    return this.call('/market', 'GET', null, { 
+      action: 'history', 
+      symbol: symbol.toUpperCase(), 
+      timeframe: timeframe, 
+      limit: limit 
+    });
+  },
+
+  async getMarketClock() {
+    return this.call('/market', 'GET', null, { action: 'clock' });
+  },
+
+  async isMarketOpen() {
+    const clock = await this.getMarketClock();
+    return clock.isOpen;
+  },
+
+  async getTradingCalendar() {
+    return this.call('/market', 'GET', null, { action: 'calendar' });
+  },
+
+  /**
+   * UTILITY FUNCTIONS
+   */
+
+  setLiveMode(enabled) {
+    if (enabled) {
+      const confirmed = confirm(
+        'âš ï¸ WARNING: LIVE TRADING MODE\n\n' +
+        'You are about to enable LIVE TRADING with REAL MONEY.\n\n' +
+        'Proceed only if you:\n' +
+        '- Have tested thoroughly on paper trading\n' +
+        '- Understand the risks\n' +
+        '- Can afford losses\n\n' +
+        'Continue?'
+      );
+      this.liveMode = confirmed;
+      if (confirmed) {
+        console.warn('%cðŸ”´ LIVE MODE ACTIVE - REAL MONEY TRADING ENABLED', 'color: red; font-weight: bold; font-size: 16px;');
+      }
+    } else {
+      this.liveMode = false;
+      console.log('Paper trading mode enabled');
+    }
+    return this.liveMode;
+  },
+
+  /**
+   * Calculate position size based on risk
+   */
+  calculatePositionSize(currentPrice, riskAmount, entryPrice, stopPrice) {
+    if (!currentPrice || !riskAmount) return 0;
+    
+    const riskPerShare = Math.abs(entryPrice - stopPrice);
+    if (riskPerShare === 0) return 0;
+    
+    return Math.floor(riskAmount / riskPerShare);
+  },
+
+  /**
+   * Calculate R:R ratio
+   */
+  calculateRiskReward(entryPrice, stopPrice, targetPrice) {
+    const risk = Math.abs(entryPrice - stopPrice);
+    const reward = Math.abs(targetPrice - entryPrice);
+    return risk > 0 ? (reward / risk).toFixed(2) : 0;
+  },
+
+  /**
+   * Format currency
+   */
+  formatCurrency(value) {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(value);
+  },
+
+  /**
+   * Format percentage
+   */
+  formatPercent(value) {
+    return (value * 100).toFixed(2) + '%';
+  }
+};
+
+// Make available globally
+if (typeof window !== 'undefined') {
+  window.alpacaAPI = alpacaAPI;
+}
+
+// Also export for Node.js/modules if needed
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = alpacaAPI;
+}
+require("dotenv").config();
+const path = require("path");
+const fs = require("fs");
+const express = require("express");
+const { WebSocket: NodeWS, WebSocketServer } = require("ws");
+
+const app = express();
+const port = Number(process.env.PORT || 3000);
+const root = __dirname;
+
+function chooseWebRoot() {
+  const extractedRoot = path.join(root, "extracted-files");
+  const extractedIndex = path.join(extractedRoot, "index.html");
+  const rootIndex = path.join(root, "index.html");
+
+  if (fs.existsSync(extractedIndex)) {
+    return { webRoot: extractedRoot, source: "extracted-files" };
+  }
+  if (fs.existsSync(rootIndex)) {
+    return { webRoot: root, source: "repo-root" };
+  }
+
+  const checked = [extractedIndex, rootIndex];
+  const error = new Error(`No index.html found. Checked: ${checked.join(" | ")}`);
+  error.code = "NO_INDEX_FOUND";
+  throw error;
+}
+
+let selected;
+try {
+  selected = chooseWebRoot();
+} catch (error) {
+  console.error("[DayTraderOS] Startup root detection failed:", error.message);
+  process.exit(1);
+}
+
+const webRoot = selected.webRoot;
+const startupIndex = path.join(webRoot, "index.html");
+const startupApiDir = path.join(webRoot, "api");
+
+app.disable("x-powered-by");
+
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: true }));
+
+// Static assets and pages
+app.use(express.static(webRoot, { extensions: ["html"] }));
+
+// Keep Netlify-style function paths working by forwarding to Vercel-style API files
+app.use("/.netlify/functions/:name", async (req, res, next) => {
+  try {
+    req.url = `/api/${req.params.name}${req.url.includes("?") ? req.url.slice(req.url.indexOf("?")) : ""}`;
+    next();
+  } catch (error) {
+    res.status(500).json({ ok: false, error: error.message || "Rewrite failed" });
+  }
+});
+
+// â”€â”€ Python Trading Engine Proxy â”€â”€
+const http = require("http");
+const _botUrl = new URL((process.env.PYTHON_BOT_URL || "http://localhost:8000").replace(/\/$/, ""));
+const BOT_HOSTNAME = _botUrl.hostname;
+const BOT_PORT = Number(_botUrl.port) || 8000;
+const BOT_HOST = _botUrl.host;
+
+app.all("/api/bot/*", (req, res) => {
+  const target = new URL(req.url, "http://localhost");
+  const options = {
+    hostname: BOT_HOSTNAME,
+    port: BOT_PORT,
+    path: target.pathname + target.search,
+    method: req.method,
+    headers: { ...req.headers, host: BOT_HOST },
+  };
+
+  const proxy = http.request(options, (pythonRes) => {
+    res.status(pythonRes.statusCode);
+    Object.entries(pythonRes.headers).forEach(([k, v]) => {
+      if (!["transfer-encoding", "connection"].includes(k.toLowerCase())) res.setHeader(k, v);
+    });
+    pythonRes.pipe(res, { end: true });
+  });
+
+  proxy.on("error", (err) => {
+    console.error("[DayTraderOS] Python bot proxy error:", err.message);
+    res.status(502).json({ ok: false, error: "Trading engine unavailable", detail: err.message });
+  });
+
+  if (req.body && ["POST", "PUT", "PATCH"].includes(req.method)) {
+    proxy.write(JSON.stringify(req.body));
+  }
+  proxy.end();
+});
+
+// Minimal API bridge that executes extracted-files/api/*.js handlers
+app.all("/api/:name", async (req, res, next) => {
+  if (req.params.name === "alerts") return next(); // Handled below
+  try {
+    const apiPath = path.join(webRoot, "api", `${req.params.name}.js`);
+    delete require.cache[require.resolve(apiPath)];
+    const handler = require(apiPath);
+    if (typeof handler !== "function") {
+      return res.status(500).json({ ok: false, error: `Invalid API handler: ${req.params.name}` });
+    }
+    return handler(req, res);
+  } catch (error) {
+    if (error.code === "MODULE_NOT_FOUND") {
+      return res.status(404).json({ ok: false, error: `API route not found: ${req.params.name}` });
+    }
+    return res.status(500).json({ ok: false, error: error.message || "API error" });
+  }
+});
+
+// â”€â”€ Alert System SSE & State â”€â”€
+let activeAlerts = {}; // { symbol: [ {id, price, direction, message} ] }
+let sseClients = new Set();
+
+app.post("/api/alerts", (req, res) => {
+  const alerts = req.body.alerts || [];
+  activeAlerts = {};
+  alerts.forEach(a => {
+    if (!a.symbol || !a.price) return;
+    if (!activeAlerts[a.symbol]) activeAlerts[a.symbol] = [];
+    activeAlerts[a.symbol].push(a);
+  });
+  res.json({ ok: true, count: alerts.length });
+});
+
+app.get("/api/alerts/stream", (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+
+  sseClients.add(res);
+  req.on("close", () => sseClients.delete(res));
+});
+
+// Poll prices every 30s and check alerts
+setInterval(async () => {
+  if (sseClients.size === 0) return;
+  const symbols = Object.keys(activeAlerts);
+  if (!symbols.length) return;
+
+  for (const sym of symbols) {
+    try {
+      const candlesMod = require(path.join(webRoot, "api", "candles.js"));
+      // We simulate a req/res to call the candles handler directly
+      let candleData = null;
+      await candlesMod(
+        { query: { symbol: sym, limit: 1 } },
+        { json: (data) => { candleData = data; }, status: () => ({ json: () => {} }) }
+      );
+      
+      if (candleData && candleData.candles && candleData.candles.length) {
+        const currentPrice = candleData.candles[0].close;
+        const matchedAlerts = activeAlerts[sym].filter(a => {
+          if (a.direction === "above" && currentPrice >= a.price) return true;
+          if (a.direction === "below" && currentPrice <= a.price) return true;
+          return false;
+        });
+
+        if (matchedAlerts.length > 0) {
+          const payload = JSON.stringify({ symbol: sym, price: currentPrice, alerts: matchedAlerts });
+          sseClients.forEach(client => client.write(`data: ${payload}\n\n`));
+        }
+      }
+    } catch (e) {
+      // Ignore poll errors
+    }
+  }
+}, 30000);
+
+// Friendly routes without .html
+app.get("/:page", (req, res, next) => {
+  if (req.params.page.includes(".")) return next();
+  const target = path.join(webRoot, `${req.params.page}.html`);
+  res.sendFile(target, err => {
+    if (err) next();
+  });
+});
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(webRoot, "index.html"));
+});
+
+// â”€â”€ HTTP server shared by Express + WebSocket â”€â”€
+const server = http.createServer(app);
+
+// â”€â”€ Stock price WebSocket proxy â”€â”€
+const wss = new WebSocketServer({ server });
+
+let alpacaWs = null;
+const stockSubs = new Map();  // symbol -> Set<browser ws>
+const clientSubs = new Map(); // browser ws -> Set<symbol>
+
+function ensureAlpacaConnection() {
+  if (alpacaWs && alpacaWs.readyState === NodeWS.OPEN) return;
+  const key = process.env.ALPACA_PAPER_API_KEY_ID || process.env.ALPACA_API_KEY_ID || "";
+  const secret = process.env.ALPACA_PAPER_API_SECRET_KEY || process.env.ALPACA_API_SECRET_KEY || "";
+  if (!key || !secret) {
+    console.warn("[DayTraderOS] No Alpaca keys â€” stock WebSocket proxy disabled");
+    return;
+  }
+  alpacaWs = new NodeWS("wss://stream.data.alpaca.markets/v2/iex");
+  alpacaWs.on("open", () => {
+    alpacaWs.send(JSON.stringify({ action: "auth", key, secret }));
+  });
+  alpacaWs.on("message", (raw) => {
+    let msgs;
+    try { msgs = JSON.parse(raw); } catch { return; }
+    if (!Array.isArray(msgs)) msgs = [msgs];
+    for (const msg of msgs) {
+      if (msg.T === "success" && msg.msg === "authenticated") {
+        const all = [...stockSubs.keys()];
+        if (all.length) alpacaWs.send(JSON.stringify({ action: "subscribe", quotes: all }));
+      }
+      if (msg.T === "q" && msg.S && msg.ap != null) {
+        const payload = JSON.stringify({ symbol: msg.S, price: msg.ap, type: "stock" });
+        (stockSubs.get(msg.S) || []).forEach(c => {
+          if (c.readyState === NodeWS.OPEN) c.send(payload);
+        });
+      }
+    }
+  });
+  alpacaWs.on("close", () => { alpacaWs = null; });
+  alpacaWs.on("error", (err) => console.error("[DayTraderOS] Alpaca WSS error:", err.message));
+}
+
+wss.on("connection", (ws) => {
+  clientSubs.set(ws, new Set());
+  ws.on("message", (raw) => {
+    let msg; try { msg = JSON.parse(raw); } catch { return; }
+    if (msg.action === "subscribe" && Array.isArray(msg.symbols)) {
+      const newSyms = [];
+      for (const s of msg.symbols) {
+        const sym = String(s).toUpperCase();
+        if (!stockSubs.has(sym)) { stockSubs.set(sym, new Set()); newSyms.push(sym); }
+        stockSubs.get(sym).add(ws);
+        clientSubs.get(ws).add(sym);
+      }
+      if (newSyms.length) {
+        ensureAlpacaConnection();
+        if (alpacaWs && alpacaWs.readyState === NodeWS.OPEN)
+          alpacaWs.send(JSON.stringify({ action: "subscribe", quotes: newSyms }));
+      }
+    }
+    if (msg.action === "unsubscribe" && Array.isArray(msg.symbols)) {
+      const drop = [];
+      for (const s of msg.symbols) {
+        const sym = String(s).toUpperCase();
+        stockSubs.get(sym)?.delete(ws);
+        clientSubs.get(ws)?.delete(sym);
+        if (!stockSubs.get(sym)?.size) { stockSubs.delete(sym); drop.push(sym); }
+      }
+      if (drop.length && alpacaWs?.readyState === NodeWS.OPEN)
+        alpacaWs.send(JSON.stringify({ action: "unsubscribe", quotes: drop }));
+    }
+  });
+  ws.on("close", () => {
+    const mySyms = clientSubs.get(ws) || new Set();
+    const drop = [];
+    for (const sym of mySyms) {
+      stockSubs.get(sym)?.delete(ws);
+      if (!stockSubs.get(sym)?.size) { stockSubs.delete(sym); drop.push(sym); }
+    }
+    clientSubs.delete(ws);
+    if (drop.length && alpacaWs?.readyState === NodeWS.OPEN)
+      alpacaWs.send(JSON.stringify({ action: "unsubscribe", quotes: drop }));
+  });
+});
+
+server.listen(port, () => {
+  console.log(`[DayTraderOS] Web service running on port ${port}`);
+  console.log(`[DayTraderOS] webRoot source: ${selected.source}`);
+  console.log(`[DayTraderOS] webRoot path: ${webRoot}`);
+  console.log(`[DayTraderOS] index.html exists: ${fs.existsSync(startupIndex)}`);
+  console.log(`[DayTraderOS] api directory exists: ${fs.existsSync(startupApiDir)}`);
+});
+async function readBody(req) {
+  if (req.body === undefined || req.body === null) return "";
+  if (typeof req.body === "string") return req.body;
+  if (Buffer.isBuffer(req.body)) return req.body.toString("utf8");
+  return JSON.stringify(req.body);
+}
+
+function normalizeQuery(query = {}) {
+  return Object.fromEntries(
+    Object.entries(query).map(([key, value]) => [key, Array.isArray(value) ? value[0] : value])
+  );
+}
+
+async function adapt(handler, req, res) {
+  const result = await handler({
+    httpMethod: req.method || "GET",
+    queryStringParameters: normalizeQuery(req.query || {}),
+    headers: req.headers || {},
+    body: await readBody(req)
+  });
+
+  Object.entries(result.headers || {}).forEach(([key, value]) => res.setHeader(key, value));
+  res.status(result.statusCode || 200).send(result.body || "");
+}
+
+module.exports = { adapt };
+/**
+ * Account API Handler - /api/account
+ * Manages account information, positions, and order history
+ */
+
+const AlpacaClient = require('./alpaca-client');
+
+module.exports = async function handler(req, res) {
+  try {
+    const isLive = req.query.isLive === 'true';
+    const client = new AlpacaClient(isLive, req.headers);
+    const action = req.query.action || 'info';
+
+    switch (action) {
+      case 'info':
+        return handleAccountInfo(client, res);
+      
+      case 'positions':
+        return handlePositions(client, res);
+      
+      case 'orders':
+        return handleOrders(client, req, res);
+      
+      default:
+        return res.status(400).json({ 
+          ok: false, 
+          error: `Unknown action: ${action}` 
+        });
+    }
+  } catch (error) {
+    console.error('[API] Account error:', error.message);
+    return res.status(500).json({ 
+      ok: false, 
+      error: error.message || 'Account operation failed' 
+    });
+  }
+};
+
+/**
+ * Get account information
+ */
+async function handleAccountInfo(client, res) {
+  try {
+    const account = await client.getAccount();
+    
+    return res.json({
+      ok: true,
+      account: {
+        accountNumber: account.account_number,
+        status: account.status,
+        cash: parseFloat(account.cash),
+        buyingPower: parseFloat(account.buying_power),
+        portfolioValue: parseFloat(account.portfolio_value),
+        dayTradesRemaining: account.daytrade_buying_power_check === 'both' 
+          ? parseInt(account.daytrading_buying_power) 
+          : parseInt(account.daytrade_buying_power_check),
+        isPatternDayTrader: account.pattern_day_trader,
+        tradingSuspended: account.trading_suspended
+      }
+    });
+  } catch (error) {
+    throw new Error(`Failed to fetch account info: ${error.message}`);
+  }
+}
+
+/**
+ * Get all positions
+ */
+async function handlePositions(client, res) {
+  try {
+    const positions = await client.getAccountPositions();
+
+    const formattedPositions = positions.map(pos => ({
+      symbol: pos.symbol,
+      qty: parseInt(pos.qty),
+      side: pos.side,
+      avgFillPrice: parseFloat(pos.avg_fill_price),
+      currentPrice: parseFloat(pos.current_price),
+      unrealizedGain: parseFloat(pos.unrealized_gain),
+      unrealizedGainPercent: parseFloat(pos.unrealized_gainpct) * 100,
+      value: parseFloat(pos.market_value),
+      assetId: pos.asset_id
+    }));
+
+    return res.json({
+      ok: true,
+      positions: formattedPositions,
+      count: formattedPositions.length
+    });
+  } catch (error) {
+    throw new Error(`Failed to fetch positions: ${error.message}`);
+  }
+}
+
+/**
+ * Get orders
+ */
+async function handleOrders(client, req, res) {
+  try {
+    const status = req.query.status || 'all';
+    const orders = await client.getOrders(status);
+
+    const formattedOrders = orders.map(order => ({
+      id: order.id,
+      symbol: order.symbol,
+      qty: parseFloat(order.qty),
+      filledQty: parseFloat(order.filled_qty),
+      side: order.side,
+      type: order.order_type,
+      timeInForce: order.time_in_force,
+      limitPrice: order.limit_price ? parseFloat(order.limit_price) : null,
+      stopPrice: order.stop_price ? parseFloat(order.stop_price) : null,
+      status: order.status,
+      createdAt: new Date(order.created_at).toISOString(),
+      filledAt: order.filled_at ? new Date(order.filled_at).toISOString() : null,
+      cancelledAt: order.cancelled_at ? new Date(order.cancelled_at).toISOString() : null
+    }));
+
+    return res.json({
+      ok: true,
+      orders: formattedOrders,
+      count: formattedOrders.length
+    });
+  } catch (error) {
+    throw new Error(`Failed to fetch orders: ${error.message}`);
+  }
+}
+const { adapt } = require("../vercel-adapter");
+const { handler } = require("../netlify/functions/alpaca-account");
+
+module.exports = (req, res) => adapt(handler, req, res);
+/**
+ * Alpaca API Client - Centralized connection to Alpaca Markets
+ * Handles authentication and all trading operations
+ */
+
+const https = require('https');
+
+class AlpacaClient {
+  constructor(isLive = false, headers = {}) {
+    this.isLive = isLive === 'true' || isLive === true;
+    
+    // BYOK (Bring Your Own Key) support via custom headers
+    const byokKey = headers['x-alpaca-key-id'];
+    const byokSecret = headers['x-alpaca-secret-key'];
+    
+    if (byokKey && byokSecret) {
+      this.apiKey = byokKey;
+      this.secretKey = byokSecret;
+      this.baseUrl = this.isLive ? 'https://api.alpaca.markets' : 'https://paper-api.alpaca.markets';
+    } else if (this.isLive) {
+      this.apiKey = process.env.ALPACA_LIVE_API_KEY_ID || process.env.ALPACA_API_KEY_ID;
+      this.secretKey = process.env.ALPACA_LIVE_API_SECRET_KEY || process.env.ALPACA_API_SECRET_KEY;
+      this.baseUrl = process.env.ALPACA_LIVE_BASE_URL || 'https://api.alpaca.markets';
+    } else {
+      this.apiKey = process.env.ALPACA_PAPER_API_KEY_ID || process.env.ALPACA_API_KEY_ID;
+      this.secretKey = process.env.ALPACA_PAPER_API_SECRET_KEY || process.env.ALPACA_API_SECRET_KEY;
+      this.baseUrl = process.env.ALPACA_PAPER_BASE_URL || process.env.ALPACA_TRADING_BASE_URL || 'https://paper-api.alpaca.markets';
+    }
+    
+    this.dataBaseUrl = process.env.ALPACA_DATA_BASE_URL || 'https://data.alpaca.markets';
+    
+    if (!this.apiKey || !this.secretKey) {
+      throw new Error(`Missing Alpaca API keys for ${this.isLive ? 'LIVE' : 'PAPER'} environment`);
+    }
+  }
+
+  /**
+   * Generic HTTPS request handler
+   */
+  async request(method, path, body = null, isData = false) {
+    return new Promise((resolve, reject) => {
+      const url = new URL((isData ? this.dataBaseUrl : this.baseUrl) + path);
+      
+      const options = {
+        hostname: url.hostname,
+        port: 443,
+        path: url.pathname + url.search,
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+          'APCA-API-KEY-ID': this.apiKey,
+          'APCA-API-SECRET-KEY': this.secretKey
+        }
+      };
+
+      const req = https.request(options, (res) => {
+        let data = '';
+        res.on('data', chunk => data += chunk);
+        res.on('end', () => {
+          try {
+            const parsed = JSON.parse(data);
+            if (res.statusCode >= 400) {
+              reject({ status: res.statusCode, error: parsed });
+            } else {
+              resolve(parsed);
+            }
+          } catch (e) {
+            reject({ status: res.statusCode, error: data });
+          }
+        });
+      });
+
+      req.on('error', reject);
+      
+      if (body) {
+        req.write(JSON.stringify(body));
+      }
+      req.end();
+    });
+  }
+
+  /**
+   * Account Operations
+   */
+  async getAccount() {
+    return this.request('GET', '/v2/account');
+  }
+
+  async getAccountPositions() {
+    return this.request('GET', '/v2/positions');
+  }
+
+  async getOrders(status = 'all') {
+    return this.request('GET', `/v2/orders?status=${status}&limit=100`);
+  }
+
+  async getOrder(orderId) {
+    return this.request('GET', `/v2/orders/${orderId}`);
+  }
+
+  /**
+   * Order Execution
+   */
+  async submitOrder(symbol, qty, side, orderType = 'market', timeInForce = 'day', limitPrice = null, stopPrice = null) {
+    const orderData = {
+      symbol: symbol.toUpperCase(),
+      qty: qty,
+      side: side.toLowerCase(), // 'buy' or 'sell'
+      type: orderType.toLowerCase(), // 'market', 'limit', 'stop', 'stop_limit'
+      time_in_force: timeInForce // 'day', 'gtc', 'ioc', 'fok'
+    };
+
+    if (limitPrice) orderData.limit_price = limitPrice;
+    if (stopPrice) orderData.stop_price = stopPrice;
+
+    return this.request('POST', '/v2/orders', orderData);
+  }
+
+  async cancelOrder(orderId) {
+    return this.request('DELETE', `/v2/orders/${orderId}`);
+  }
+
+  async cancelAllOrders() {
+    return this.request('DELETE', '/v2/orders');
+  }
+
+  /**
+   * Market Data
+   */
+  async getLatestBars(symbols) {
+    const symbolStr = Array.isArray(symbols) ? symbols.join(',') : symbols;
+    return this.request('GET', `/v2/bars/latest?symbols=${symbolStr}`, null, true);
+  }
+
+  async getBarHistory(symbol, timeframe = '1Min', limit = 100) {
+    // timeframe: '1Min', '5Min', '15Min', '1H', '1D'
+    return this.request('GET', `/v2/bars?symbols=${symbol}&timeframe=${timeframe}&limit=${limit}`, null, true);
+  }
+
+  async getTradingCalendar() {
+    return this.request('GET', '/v2/calendar');
+  }
+
+  async getClock() {
+    return this.request('GET', '/v2/clock');
+  }
+
+  /**
+   * Safety Checks
+   */
+  async isMarketOpen() {
+    const clock = await this.getClock();
+    return clock.is_open;
+  }
+
+  async isDayTraderCompliant(account) {
+    return account.buying_power > 0 && account.portfolio_value >= 25000;
+  }
+
+  /**
+   * News
+   */
+  async getNews(symbol, limit = 10) {
+    const sym = String(symbol || '').trim().toUpperCase();
+    const params = sym
+      ? `/v1beta1/news?symbols=${encodeURIComponent(sym)}&limit=${limit}`
+      : `/v1beta1/news?limit=${limit}`;
+    return this.request('GET', params, null, true);
+  }
+}
+
+module.exports = AlpacaClient;
+const { adapt } = require("../vercel-adapter");
+const { handler } = require("../netlify/functions/alpaca-order-preview");
+
+module.exports = (req, res) => adapt(handler, req, res);
+const { adapt } = require("../vercel-adapter");
+const { handler } = require("../netlify/functions/alpaca-order-submit");
+
+module.exports = (req, res) => adapt(handler, req, res);
+const { adapt } = require("../vercel-adapter");
+const { handler } = require("../netlify/functions/analyze");
+
+module.exports = (req, res) => adapt(handler, req, res);
+/**
+ * Server-Side Candle Proxy - /api/candles
+ * Fetches candle data server-side to eliminate CORS issues.
+ * Supports stocks (Yahoo) and crypto (Binance/Coinbase).
+ *
+ * Usage: GET /api/candles?symbol=AAPL&interval=1h&limit=160
+ */
+
+const CRYPTO_MAP = {
+  BTC:'BTCUSDT',BITCOIN:'BTCUSDT',ETH:'ETHUSDT',ETHEREUM:'ETHUSDT',
+  SOL:'SOLUSDT',SOLANA:'SOLUSDT',DOGE:'DOGEUSDT',DOGECOIN:'DOGEUSDT',
+  XRP:'XRPUSDT',ADA:'ADAUSDT',BNB:'BNBUSDT',AVAX:'AVAXUSDT',
+  LINK:'LINKUSDT',LTC:'LTCUSDT',BCH:'BCHUSDT',DOT:'DOTUSDT',
+  MATIC:'MATICUSDT',POL:'POLUSDT',UNI:'UNIUSDT',AAVE:'AAVEUSDT',
+  ATOM:'ATOMUSDT',NEAR:'NEARUSDT',OP:'OPUSDT',ARB:'ARBUSDT',
+  FIL:'FILUSDT',SUI:'SUIUSDT',APT:'APTUSDT',PEPE:'PEPEUSDT',
+  SHIB:'SHIBUSDT',BONK:'BONKUSDT',FET:'FETUSDT',RENDER:'RENDERUSDT',
+  TAO:'TAOUSDT',HBAR:'HBARUSDT',ICP:'ICPUSDT',INJ:'INJUSDT',
+  WIF:'WIFUSDT',TRX:'TRXUSDT',XLM:'XLMUSDT',ETC:'ETCUSDT'
+};
+
+function cleanSymbol(raw) {
+  return String(raw || '').trim().toUpperCase().replace(/[^A-Z0-9.-]/g, '') || 'AAPL';
+}
+
+function cryptoPair(sym) {
+  const clean = cleanSymbol(sym);
+  if (CRYPTO_MAP[clean]) return CRYPTO_MAP[clean];
+  if (/^[A-Z0-9]{2,12}USDT$/.test(clean)) return clean;
+  return null;
+}
+
+function cryptoBase(sym) {
+  const pair = cryptoPair(sym);
+  return pair ? pair.replace(/USDT$/, '') : null;
+}
+
+async function fetchJSON(url) {
+  const res = await fetch(url, {
+    headers: { 'accept': 'application/json', 'user-agent': 'DayTraderOS/1.0' }
+  });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  return res.json();
+}
+
+async function fetchText(url) {
+  const res = await fetch(url, {
+    headers: { 'accept': 'text/plain,*/*', 'user-agent': 'DayTraderOS/1.0' }
+  });
+  if (!res.ok) throw new Error(`${res.status}`);
+  return res.text();
+}
+
+// â”€â”€ Crypto candles from Binance â”€â”€
+async function fetchCryptoCandles(sym, interval, limit) {
+  const pair = cryptoPair(sym);
+  if (!pair) return null;
+
+  const binanceUrls = [
+    `https://data-api.binance.vision/api/v3/klines?symbol=${pair}&interval=${interval}&limit=${limit}`,
+    `https://api.binance.com/api/v3/klines?symbol=${pair}&interval=${interval}&limit=${limit}`,
+  ];
+
+  for (const url of binanceUrls) {
+    try {
+      const rows = await fetchJSON(url);
+      const candles = rows.map(r => ({
+        time: Math.floor(r[0] / 1000),
+        open: +r[1], high: +r[2], low: +r[3], close: +r[4], volume: +r[5]
+      })).filter(c => Number.isFinite(c.close));
+      if (candles.length) return { candles, source: 'Binance', delayed: false };
+    } catch (e) { /* try next */ }
+  }
+
+  // Coinbase fallback
+  const base = cryptoBase(sym);
+  if (base) {
+    try {
+      const granMap = { '15m': 900, '1h': 3600, '4h': 21600, '1d': 86400 };
+      const rows = await fetchJSON(
+        `https://api.exchange.coinbase.com/products/${base}-USD/candles?granularity=${granMap[interval] || 3600}`
+      );
+      const candles = rows
+        .map(r => ({ time: r[0], open: +r[3], high: +r[2], low: +r[1], close: +r[4], volume: +r[5] }))
+        .filter(c => Number.isFinite(c.close))
+        .sort((a, b) => a.time - b.time)
+        .slice(-limit);
+      if (candles.length) return { candles, source: 'Coinbase', delayed: false };
+    } catch (e) { /* fall through */ }
+  }
+
+  return null;
+}
+
+// â”€â”€ Stock candles from Yahoo â”€â”€
+async function fetchYahooCandles(sym, interval, limit) {
+  const rangeMap = { '15m': '5d', '1h': '1mo', '4h': '3mo', '1d': '6mo' };
+  const yahooInterval = interval === '4h' ? '1h' : interval;
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=${rangeMap[interval] || '1mo'}&interval=${yahooInterval}&includePrePost=true`;
+
+  try {
+    const data = await fetchJSON(url);
+    const result = data.chart?.result?.[0];
+    const q = result?.indicators?.quote?.[0];
+    if (!q?.close?.length) return null;
+
+    let candles = q.close.map((close, i) => ({
+      time: result.timestamp?.[i] || 0,
+      open: +q.open?.[i], high: +q.high?.[i], low: +q.low?.[i],
+      close: +close, volume: +q.volume?.[i]
+    })).filter(c => Number.isFinite(c.close) && Number.isFinite(c.high) && Number.isFinite(c.low));
+
+    // Aggregate to 4h if needed
+    if (interval === '4h') {
+      const agg = [];
+      for (let i = 0; i < candles.length; i += 4) {
+        const group = candles.slice(i, i + 4).filter(c => Number.isFinite(c.close));
+        if (group.length < 2) continue;
+        agg.push({
+          time: group[0].time,
+          open: group[0].open,
+          high: Math.max(...group.map(c => c.high)),
+          low: Math.min(...group.map(c => c.low)),
+          close: group[group.length - 1].close,
+          volume: group.reduce((s, c) => s + (c.volume || 0), 0)
+        });
+      }
+      candles = agg;
+    }
+
+    return candles.length ? { candles: candles.slice(-limit), source: 'Yahoo Finance', delayed: false } : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+// â”€â”€ Stooq daily fallback â”€â”€
+async function fetchStooqCandles(sym) {
+  if (cryptoPair(sym)) return null;
+  const clean = sym.toLowerCase().replace(/[^a-z0-9.-]/g, '');
+  if (!clean) return null;
+
+  try {
+    const csv = await fetchText(`https://stooq.com/q/d/l/?s=${encodeURIComponent(clean + '.us')}&i=d`);
+    const lines = csv.trim().split(/\r?\n/).filter(Boolean);
+    if (lines.length < 10 || !/^date,/i.test(lines[0])) return null;
+
+    const candles = lines.slice(1).map(line => {
+      const [date, open, high, low, close, volume] = line.split(',');
+      return {
+        time: Math.floor(new Date(`${date}T16:00:00-05:00`).getTime() / 1000),
+        open: +open, high: +high, low: +low, close: +close, volume: +volume
+      };
+    }).filter(c => Number.isFinite(c.close) && Number.isFinite(c.high)).slice(-180);
+
+    return candles.length ? { candles, source: 'Stooq daily', delayed: true } : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+module.exports = async function handler(req, res) {
+  const sym = cleanSymbol(req.query?.symbol);
+  const interval = req.query?.interval || '1h';
+  const limit = Math.min(parseInt(req.query?.limit) || 160, 500);
+
+  try {
+    // Try sources in priority order
+    let result = null;
+
+    // 1. Crypto (Binance/Coinbase)
+    if (cryptoPair(sym)) {
+      result = await fetchCryptoCandles(sym, interval, limit);
+    }
+
+    // 2. Yahoo Finance (stocks)
+    if (!result) {
+      result = await fetchYahooCandles(sym, interval, limit);
+    }
+
+    // 3. Stooq daily fallback (stocks only)
+    if (!result && interval === '1d') {
+      result = await fetchStooqCandles(sym);
+    }
+    if (!result) {
+      result = await fetchStooqCandles(sym);
+    }
+
+    if (!result || !result.candles?.length) {
+      return res.status(404).json({
+        ok: false,
+        error: `No candle data found for ${sym}`,
+        symbol: sym
+      });
+    }
+
+    return res.json({
+      ok: true,
+      symbol: sym,
+      interval,
+      candles: result.candles,
+      source: result.source,
+      delayed: result.delayed,
+      count: result.candles.length
+    });
+  } catch (error) {
+    return res.status(502).json({
+      ok: false,
+      error: error.message || 'Candle proxy error',
+      symbol: sym
+    });
+  }
+};
+/**
+ * Earnings calendar proxy â€” /api/earnings?symbols=AAPL,TSLA,...
+ * Data: Yahoo Finance calendar/events, public, no key required
+ */
+
+const https = require("https");
+
+const DEFAULT_SYMBOLS = [
+  "AAPL","TSLA","NVDA","MSFT","META","AMZN","GOOGL","AMD",
+  "NFLX","CRM","JPM","GS","COIN","HOOD","PLTR",
+];
+
+function fetchJson(url) {
+  return new Promise((resolve, reject) => {
+    const opts = {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; DayTraderOS/1.0)",
+        "Accept": "application/json",
+      },
+    };
+    https.get(url, opts, (res) => {
+      // follow one redirect
+      if (res.statusCode === 301 || res.statusCode === 302) {
+        return https.get(res.headers.location, opts, (res2) => {
+          let raw = "";
+          res2.on("data", d => { raw += d; });
+          res2.on("end", () => {
+            try { resolve(JSON.parse(raw)); }
+            catch { reject(new Error("Non-JSON response")); }
+          });
+        }).on("error", reject);
+      }
+      let raw = "";
+      res.on("data", d => { raw += d; });
+      res.on("end", () => {
+        try { resolve(JSON.parse(raw)); }
+        catch { reject(new Error("Non-JSON response")); }
+      });
+    }).on("error", reject);
+  });
+}
+
+const DAY_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+module.exports = async function handler(req, res) {
+  res.setHeader("Cache-Control", "public, max-age=3600");
+
+  const raw     = String(req.query.symbols || "").trim();
+  const symbols = raw ? raw.split(",").map(s => s.trim().toUpperCase()).filter(Boolean).slice(0, 20)
+                      : DEFAULT_SYMBOLS;
+
+  const now = Date.now();
+  const sevenDays = 7 * 86400000;
+
+  const results = await Promise.allSettled(
+    symbols.map(sym =>
+      fetchJson(`https://query1.finance.yahoo.com/v8/finance/calendar/events?symbol=${encodeURIComponent(sym)}`)
+        .then(data => {
+          const cal = data?.calendarEvents?.result?.[0];
+          if (!cal) return null;
+
+          const earningsArr = cal.earnings?.earningsDate || [];
+          const eps = cal.earnings?.earningsAverage?.raw ?? null;
+          const prevEps = cal.earnings?.earningsLow?.raw ?? null;
+
+          for (const ts of earningsArr) {
+            const ms = (typeof ts === "object" ? ts.raw : ts) * 1000;
+            if (ms >= now && ms <= now + sevenDays) {
+              const dt = new Date(ms);
+              const when = ms < (new Date(dt.toDateString()).getTime() + 12 * 3600000) ? "bmo" : "amc";
+              return {
+                symbol:     sym,
+                company:    cal.maxAge ? sym : sym,
+                date:       dt.toISOString().slice(0, 10),
+                dayName:    DAY_NAMES[dt.getDay()],
+                when,
+                epsEstimate: eps,
+                prevEps,
+              };
+            }
+          }
+          return null;
+        })
+        .catch(() => null)
+    )
+  );
+
+  const earnings = results
+    .filter(r => r.status === "fulfilled" && r.value)
+    .map(r => r.value)
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  return res.json({ ok: true, earnings, count: earnings.length });
+};
+/**
+ * NASDAQ trading halt list proxy â€” /api/halts
+ * Data: NASDAQ dynamic halt file, public, no key required
+ * Format: pipe-delimited, refreshes throughout the trading day
+ */
+
+const https = require("https");
+
+const REASON_MAP = {
+  T1:   "News Pending",
+  T2:   "News Released",
+  T3:   "News and Resumption Times",
+  T5:   "Single Stock Circuit Breaker",
+  T6:   "Extraordinary Market Activity",
+  T8:   "ETF Component",
+  T12:  "Additional Information Requested",
+  H4:   "Non-Compliance",
+  H9:   "Not Current in Reporting",
+  H10:  "SEC Trading Suspension",
+  H11:  "Regulatory Concern",
+  LUDP: "Limit Up/Down Pause",
+  LUDS: "Limit Up/Down Straddle",
+  IPO1: "IPO Not Yet Trading",
+  M:    "Market-Wide Circuit Breaker",
+  MWC1: "Market-Wide Circuit Breaker Level 1",
+  MWC2: "Market-Wide Circuit Breaker Level 2",
+  MWC3: "Market-Wide Circuit Breaker Level 3",
+  R4:   "Qualifications Issues Resolved",
+  R9:   "Filing Requirements Satisfied",
+  C3:   "Issuer News Not Forthcoming",
+  C4:   "Qualifications Halt Ended",
+  C9:   "Not Current â€” Resolved",
+  C11:  "Regulatory Concern â€” Resolved",
+};
+
+function fetchText(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, { headers: { "User-Agent": "DayTraderOS/1.0" } }, (res) => {
+      let raw = "";
+      res.on("data", d => { raw += d; });
+      res.on("end", () => resolve(raw));
+    }).on("error", reject);
+  });
+}
+
+module.exports = async function handler(req, res) {
+  res.setHeader("Cache-Control", "public, max-age=60");
+
+  try {
+    const text = await fetchText("https://www.nasdaqtrader.com/dynamic/halts/halts.txt");
+    const lines = text.split(/\r?\n/).filter(Boolean);
+
+    // First line is header: Symbol|MarketCode|ReasonCode|HaltDate|HaltTime|ResumeDate|ResumeTime|PauseThreshold|...
+    const halts = [];
+    for (let i = 1; i < lines.length; i++) {
+      const parts = lines[i].split("|");
+      if (parts.length < 5) continue;
+      const [symbol, market, reasonCode, haltDate, haltTime, resumeDate, resumeTime] = parts;
+      if (!symbol || symbol === "Symbol") continue;
+      halts.push({
+        symbol:     symbol.trim(),
+        market:     market.trim(),
+        reasonCode: reasonCode.trim(),
+        reason:     REASON_MAP[reasonCode.trim()] || reasonCode.trim(),
+        haltDate:   haltDate.trim(),
+        haltTime:   haltTime.trim(),
+        resumeDate: (resumeDate || "").trim(),
+        resumeTime: (resumeTime || "").trim(),
+      });
+    }
+
+    return res.json({ ok: true, halts, count: halts.length });
+  } catch (err) {
+    console.error("[API/halts] error:", err.message);
+    return res.json({ ok: false, halts: [], error: err.message });
+  }
+};
+const { adapt } = require("../vercel-adapter");
+const { handler } = require("../netlify/functions/health");
+
+module.exports = (req, res) => adapt(handler, req, res);
+/**
+ * SEC EDGAR Form 4 insider trades proxy â€” /api/insider?limit=40
+ * Data: EDGAR full-text search, public, no key required
+ */
+
+const https = require("https");
+
+function fetchJson(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, { headers: { "User-Agent": "DayTraderOS/1.0 contact@daytrader.os" } }, (res) => {
+      let raw = "";
+      res.on("data", d => { raw += d; });
+      res.on("end", () => {
+        try { resolve(JSON.parse(raw)); }
+        catch { reject(new Error(`Non-JSON from ${url}`)); }
+      });
+    }).on("error", reject);
+  });
+}
+
+function dateStr(daysAgo) {
+  const d = new Date(Date.now() - daysAgo * 86400000);
+  return d.toISOString().slice(0, 10);
+}
+
+module.exports = async function handler(req, res) {
+  res.setHeader("Cache-Control", "public, max-age=300");
+
+  const limit = Math.min(60, Math.max(1, parseInt(req.query.limit) || 40));
+
+  const params = new URLSearchParams({
+    q: '"form 4"',
+    dateRange: "custom",
+    startdt: dateStr(2),
+    enddt: dateStr(0),
+    "hits.hits.total.value": "true",
+    "hits.hits._source": "period_of_report,display_names,file_date,entity_id",
+  });
+
+  try {
+    const data = await fetchJson(
+      `https://efts.sec.gov/LATEST/search-index?${params}`
+    );
+
+    const hits = (data.hits && data.hits.hits) ? data.hits.hits : [];
+
+    const filings = hits.slice(0, limit).map(hit => {
+      const src = hit._source || hit.fields || {};
+      const names = src.display_names || [];
+
+      // display_names: [{name, id}] â€” first is usually the issuer, second the filer
+      const issuerEntry = names.find(n => n.id && !n.id.startsWith("ticker:")) || names[0] || {};
+      const tickerEntry = names.find(n => n.id && n.id.startsWith("ticker:")) || {};
+      const filerEntry  = names.length > 1 ? names[names.length - 1] : {};
+
+      const issuer = issuerEntry.name || "Unknown";
+      const ticker = tickerEntry.id ? tickerEntry.id.replace("ticker:", "") : "";
+      const filer  = filerEntry.name && filerEntry !== issuerEntry ? filerEntry.name : "";
+      const fileDate = src.file_date || "";
+      const cik = issuerEntry.id || "";
+
+      const url = cik
+        ? `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${cik}&type=4&dateb=&owner=include&count=10`
+        : `https://efts.sec.gov/LATEST/search-index?q=%22form+4%22`;
+
+      return { issuer, ticker, cik, filer, fileDate, url };
+    }).filter(f => f.issuer && f.issuer !== "Unknown");
+
+    return res.json({ ok: true, filings, count: filings.length });
+  } catch (err) {
+    console.error("[API/insider] error:", err.message);
+    return res.json({ ok: false, filings: [], error: err.message });
+  }
+};
+/**
+ * Market Data API Handler - /api/market
+ * Provides real-time and historical market data
+ */
+
+const AlpacaClient = require('./alpaca-client');
+
+module.exports = async function handler(req, res) {
+  try {
+    const client = new AlpacaClient();
+    const action = req.query.action || 'latest';
+
+    switch (action) {
+      case 'latest':
+        return handleLatestBars(client, req, res);
+      
+      case 'history':
+        return handleBarHistory(client, req, res);
+      
+      case 'clock':
+        return handleClock(client, res);
+      
+      case 'calendar':
+        return handleCalendar(client, res);
+      
+      default:
+        return res.status(400).json({ 
+          ok: false, 
+          error: `Unknown action: ${action}` 
+        });
+    }
+  } catch (error) {
+    console.error('[API] Market data error:', error.message);
+    return res.status(500).json({ 
+      ok: false, 
+      error: error.message || 'Market data operation failed' 
+    });
+  }
+};
+
+/**
+ * Get latest bars for symbols
+ */
+async function handleLatestBars(client, req, res) {
+  try {
+    const symbols = req.query.symbols;
+
+    if (!symbols) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Missing symbols parameter (e.g., ?symbols=AAPL,MSFT,TSLA)'
+      });
+    }
+
+    const bars = await client.getLatestBars(symbols);
+
+    const formatted = {};
+    for (const [symbol, data] of Object.entries(bars)) {
+      formatted[symbol] = {
+        symbol: symbol,
+        timestamp: data.t * 1000, // Convert Unix timestamp to milliseconds
+        open: parseFloat(data.o),
+        high: parseFloat(data.h),
+        low: parseFloat(data.l),
+        close: parseFloat(data.c),
+        volume: parseInt(data.v),
+        vwap: data.vw ? parseFloat(data.vw) : null
+      };
+    }
+
+    return res.json({
+      ok: true,
+      data: formatted,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    throw new Error(`Failed to fetch latest bars: ${error.message}`);
+  }
+}
+
+/**
+ * Get historical bar data
+ */
+async function handleBarHistory(client, req, res) {
+  try {
+    const symbol = req.query.symbol;
+    const timeframe = req.query.timeframe || '1Day';
+    const limit = parseInt(req.query.limit) || 100;
+
+    if (!symbol) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Missing symbol parameter'
+      });
+    }
+
+    if (limit > 10000) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Maximum limit is 10,000 bars'
+      });
+    }
+
+    const bars = await client.getBarHistory(symbol, timeframe, limit);
+
+    const formatted = bars[symbol.toUpperCase()].map(bar => ({
+      timestamp: bar.t * 1000,
+      datetime: new Date(bar.t * 1000).toISOString(),
+      open: parseFloat(bar.o),
+      high: parseFloat(bar.h),
+      low: parseFloat(bar.l),
+      close: parseFloat(bar.c),
+      volume: parseInt(bar.v),
+      vwap: bar.vw ? parseFloat(bar.vw) : null
+    }));
+
+    return res.json({
+      ok: true,
+      symbol: symbol.toUpperCase(),
+      timeframe: timeframe,
+      bars: formatted,
+      count: formatted.length
+    });
+  } catch (error) {
+    throw new Error(`Failed to fetch bar history: ${error.message}`);
+  }
+}
+
+/**
+ * Get market clock
+ */
+async function handleClock(client, res) {
+  try {
+    const clock = await client.getClock();
+
+    return res.json({
+      ok: true,
+      timestamp: new Date(clock.timestamp).toISOString(),
+      isOpen: clock.is_open,
+      nextOpen: new Date(clock.next_open).toISOString(),
+      nextClose: new Date(clock.next_close).toISOString()
+    });
+  } catch (error) {
+    throw new Error(`Failed to fetch market clock: ${error.message}`);
+  }
+}
+
+/**
+ * Get trading calendar
+ */
+async function handleCalendar(client, res) {
+  try {
+    const calendar = await client.getTradingCalendar();
+
+    const formatted = calendar.map(day => ({
+      date: day.date,
+      open: day.open,
+      close: day.close,
+      sessionOpen: new Date(day.open).toISOString(),
+      sessionClose: new Date(day.close).toISOString()
+    }));
+
+    return res.json({
+      ok: true,
+      calendar: formatted,
+      count: formatted.length
+    });
+  } catch (error) {
+    throw new Error(`Failed to fetch calendar: ${error.message}`);
+  }
+}
+/**
+ * News API Handler â€” /api/news?symbol=AAPL&limit=8
+ * Fetches real headlines from Alpaca News (v1beta1).
+ * Falls back gracefully when Alpaca keys are not configured.
+ */
+
+const AlpacaClient = require('./alpaca-client');
+
+module.exports = async function handler(req, res) {
+  res.setHeader('Cache-Control', 'public, max-age=120'); // Cache 2 minutes
+
+  const symbol = String(req.query.symbol || '').trim().toUpperCase();
+  const limit  = Math.min(20, Math.max(1, parseInt(req.query.limit) || 8));
+
+  if (!symbol) {
+    return res.status(400).json({ ok: false, error: 'Missing ?symbol= query parameter' });
+  }
+
+  // Check keys exist before attempting connection
+  if (!process.env.ALPACA_API_KEY_ID || !process.env.ALPACA_API_SECRET_KEY) {
+    return res.status(200).json({
+      ok: false,
+      fallback: true,
+      symbol,
+      articles: [],
+      message: 'Alpaca keys not configured â€” add ALPACA_API_KEY_ID and ALPACA_API_SECRET_KEY to use live news.'
+    });
+  }
+
+  try {
+    const client = new AlpacaClient();
+    const data   = await client.getNews(symbol, limit);
+
+    const articles = (data.news || []).map(article => ({
+      id:        article.id,
+      headline:  article.headline,
+      summary:   article.summary || '',
+      url:       article.url || '',
+      source:    article.source || 'Alpaca News',
+      author:    article.author || '',
+      createdAt: article.created_at || article.updated_at || null,
+      symbols:   article.symbols || [symbol],
+      images:    (article.images || []).slice(0, 1)
+    }));
+
+    return res.json({ ok: true, symbol, articles });
+  } catch (err) {
+    console.error('[API/news] Error:', err?.error || err.message);
+    return res.status(200).json({
+      ok: false,
+      fallback: true,
+      symbol,
+      articles: [],
+      message: `News fetch failed: ${err?.error?.message || err.message || 'Unknown error'}`
+    });
+  }
+};
+/**
+ * Options flow sweep detector â€” /api/options-flow?symbols=AAPL,TSLA,...
+ * Data: Yahoo Finance options chain, public, no key required
+ * Sweep criteria: volume >= 200, vol/OI >= 2.5, premium >= $25K
+ */
+
+const https = require("https");
+
+const DEFAULT_SYMBOLS = [
+  "SPY","QQQ","AAPL","TSLA","NVDA","AMD","META","MSFT","AMZN","GOOGL",
+];
+
+function fetchJson(url) {
+  return new Promise((resolve, reject) => {
+    const opts = {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (compatible; DayTraderOS/1.0)",
+        "Accept": "application/json",
+      },
+    };
+    https.get(url, opts, (res) => {
+      if (res.statusCode === 301 || res.statusCode === 302) {
+        return https.get(res.headers.location, opts, (res2) => {
+          let raw = "";
+          res2.on("data", d => { raw += d; });
+          res2.on("end", () => {
+            try { resolve(JSON.parse(raw)); }
+            catch { reject(new Error("Non-JSON")); }
+          });
+        }).on("error", reject);
+      }
+      let raw = "";
+      res.on("data", d => { raw += d; });
+      res.on("end", () => {
+        try { resolve(JSON.parse(raw)); }
+        catch { reject(new Error("Non-JSON")); }
+      });
+    }).on("error", reject);
+  });
+}
+
+function detectSweeps(symbol, contracts, type) {
+  return contracts
+    .filter(c => {
+      const vol = c.volume || 0;
+      const oi  = c.openInterest || 1;
+      const last = c.lastPrice || 0;
+      const premium = last * vol * 100;
+      return vol >= 200 && vol / oi >= 2.5 && premium >= 25000;
+    })
+    .map(c => {
+      const vol = c.volume || 0;
+      const oi  = c.openInterest || 1;
+      const last = c.lastPrice || 0;
+      return {
+        symbol,
+        type,
+        strike:      c.strike || 0,
+        expiry:      c.expiration || c.expirationDate || "",
+        bid:         c.bid || 0,
+        ask:         c.ask || 0,
+        lastPrice:   last,
+        volume:      vol,
+        openInterest: oi,
+        volOiRatio:  parseFloat((vol / oi).toFixed(2)),
+        premiumEst:  Math.round(last * vol * 100),
+        sentiment:   type === "call" ? "bullish" : "bearish",
+        impliedVolatility: c.impliedVolatility ? parseFloat((c.impliedVolatility * 100).toFixed(1)) : null,
+      };
+    });
+}
+
+module.exports = async function handler(req, res) {
+  res.setHeader("Cache-Control", "public, max-age=90");
+
+  const raw     = String(req.query.symbols || "").trim();
+  const symbols = raw
+    ? raw.split(",").map(s => s.trim().toUpperCase()).filter(Boolean).slice(0, 15)
+    : DEFAULT_SYMBOLS;
+
+  const results = await Promise.allSettled(
+    symbols.map(sym =>
+      fetchJson(`https://query1.finance.yahoo.com/v7/finance/options/${encodeURIComponent(sym)}`)
+        .then(data => {
+          const chain = data?.optionChain?.result?.[0];
+          if (!chain) return [];
+
+          const options = chain.options?.[0];
+          if (!options) return [];
+
+          const calls = detectSweeps(sym, options.calls || [], "call");
+          const puts  = detectSweeps(sym, options.puts  || [], "put");
+          return [...calls, ...puts];
+        })
+        .catch(() => [])
+    )
+  );
+
+  const all = results
+    .filter(r => r.status === "fulfilled")
+    .flatMap(r => r.value)
+    .sort((a, b) => b.premiumEst - a.premiumEst)
+    .slice(0, 30);
+
+  return res.json({ ok: true, sweeps: all, count: all.length });
+};
+/**
+ * Polymarket API Proxy â€” /api/polymarket?action=...
+ * Browse + pin: no auth needed (Gamma + CLOB public endpoints)
+ * Order placement: requires Polymarket L2 credentials via BYOK headers
+ */
+
+const https = require("https");
+
+const GAMMA_BASE = "https://gamma-api.polymarket.com";
+const CLOB_BASE  = "https://clob.polymarket.com";
+
+const CATEGORY_TAG_MAP = {
+  macro:    "economics",
+  crypto:   "crypto",
+  politics: "politics",
+  earnings: "business",
+};
+
+function fetchJson(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, { headers: { "User-Agent": "DayTraderOS/1.0" } }, (res) => {
+      let raw = "";
+      res.on("data", d => { raw += d; });
+      res.on("end", () => {
+        try { resolve(JSON.parse(raw)); }
+        catch { reject(new Error(`Non-JSON response from ${url}`)); }
+      });
+    }).on("error", reject);
+  });
+}
+
+async function handleMarkets(req, res) {
+  res.setHeader("Cache-Control", "public, max-age=30");
+  const limit    = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
+  const category = String(req.query.category || "").toLowerCase();
+  const q        = String(req.query.q || "").trim();
+
+  // When a query is present, fetch more and filter server-side (Gamma's _c param is unreliable)
+  const fetchLimit = q ? 50 : limit;
+  const params = new URLSearchParams({
+    limit: String(fetchLimit),
+    active: "true",
+    closed: "false",
+    order: "volume24hr",
+    ascending: "false",
+  });
+  if (category && CATEGORY_TAG_MAP[category]) params.set("tag", CATEGORY_TAG_MAP[category]);
+
+  try {
+    const data = await fetchJson(`${GAMMA_BASE}/markets?${params}`);
+    let raw = (Array.isArray(data) ? data : data.markets || []);
+    // Client-side keyword filter when query present
+    if (q) {
+      const ql = q.toLowerCase();
+      raw = raw.filter(m => (m.question || "").toLowerCase().includes(ql));
+      raw = raw.slice(0, limit);
+    }
+    const markets = raw.map(m => ({
+      id:            m.id,
+      conditionId:   m.conditionId,
+      question:      m.question,
+      slug:          m.slug,
+      category:      m.category || category || "general",
+      outcomes:      safeJson(m.outcomes, ["Yes", "No"]),
+      outcomePrices: safeJson(m.outcomePrices, ["0.5", "0.5"]),
+      clobTokenIds:  safeJson(m.clobTokenIds, []),
+      volume:        parseFloat(m.volume || 0),
+      volume24hr:    parseFloat(m.volume24hr || 0),
+      liquidity:     parseFloat(m.liquidity || 0),
+      endDate:       m.endDate || null,
+      active:        m.active !== false,
+      featured:      m.featured || false,
+      imageOptimized: m.imageOptimized || null,
+    }));
+    return res.json({ ok: true, markets, count: markets.length });
+  } catch (err) {
+    console.error("[API/polymarket] markets error:", err.message);
+    return res.json({ ok: false, markets: [], error: err.message });
+  }
+}
+
+async function handleEvents(req, res) {
+  res.setHeader("Cache-Control", "public, max-age=60");
+  const limit    = Math.min(20, Math.max(1, parseInt(req.query.limit) || 10));
+  const category = String(req.query.category || "").toLowerCase();
+
+  const params = new URLSearchParams({ active: "true", closed: "false", limit: String(limit) });
+  if (category && CATEGORY_TAG_MAP[category]) params.set("tag", CATEGORY_TAG_MAP[category]);
+
+  try {
+    const data = await fetchJson(`${GAMMA_BASE}/events?${params}`);
+    const events = (Array.isArray(data) ? data : data.events || []).map(e => ({
+      id:        e.id,
+      title:     e.title,
+      slug:      e.slug,
+      category:  e.category || category,
+      volume:    parseFloat(e.volume || 0),
+      liquidity: parseFloat(e.liquidity || 0),
+      endDate:   e.endDate || null,
+      markets:   (e.markets || []).slice(0, 5).map(m => ({
+        id:            m.id,
+        question:      m.question,
+        outcomePrices: safeJson(m.outcomePrices, ["0.5", "0.5"]),
+        clobTokenIds:  safeJson(m.clobTokenIds, []),
+      })),
+    }));
+    return res.json({ ok: true, events, count: events.length });
+  } catch (err) {
+    console.error("[API/polymarket] events error:", err.message);
+    return res.json({ ok: false, events: [], error: err.message });
+  }
+}
+
+async function handlePrices(req, res) {
+  res.setHeader("Cache-Control", "public, max-age=5");
+  const tokenId = String(req.query.token_id || "").trim();
+  if (!tokenId) return res.status(400).json({ ok: false, error: "Missing token_id" });
+
+  try {
+    const [buy, sell] = await Promise.all([
+      fetchJson(`${CLOB_BASE}/price?token_id=${encodeURIComponent(tokenId)}&side=buy`),
+      fetchJson(`${CLOB_BASE}/price?token_id=${encodeURIComponent(tokenId)}&side=sell`),
+    ]);
+    const buyPrice  = parseFloat(buy.price  || buy.mid  || 0);
+    const sellPrice = parseFloat(sell.price || sell.mid || 0);
+    return res.json({
+      ok: true,
+      token_id:  tokenId,
+      buy_price:  buyPrice,
+      sell_price: sellPrice,
+      mid_price:  ((buyPrice + sellPrice) / 2),
+      spread:     Math.abs(buyPrice - sellPrice),
+    });
+  } catch (err) {
+    console.error("[API/polymarket] prices error:", err.message);
+    return res.json({ ok: false, token_id: tokenId, error: err.message });
+  }
+}
+
+async function handleOrderBook(req, res) {
+  res.setHeader("Cache-Control", "public, max-age=5");
+  const tokenId = String(req.query.token_id || "").trim();
+  if (!tokenId) return res.status(400).json({ ok: false, error: "Missing token_id" });
+
+  try {
+    const data = await fetchJson(`${CLOB_BASE}/book?token_id=${encodeURIComponent(tokenId)}`);
+    return res.json({
+      ok:     true,
+      token_id: tokenId,
+      bids:   (data.bids   || []).slice(0, 5),
+      asks:   (data.asks   || []).slice(0, 5),
+      spread: data.spread  || null,
+    });
+  } catch (err) {
+    console.error("[API/polymarket] orderbook error:", err.message);
+    return res.json({ ok: false, token_id: tokenId, error: err.message });
+  }
+}
+
+async function handleOrder(req, res) {
+  if (req.method !== "POST") return res.status(405).json({ ok: false, error: "POST required" });
+
+  const apiKey        = String(req.headers["x-poly-key"]         || "").trim();
+  const apiSecret     = String(req.headers["x-poly-secret"]      || "").trim();
+  const apiPassphrase = String(req.headers["x-poly-passphrase"]  || "").trim();
+  const funder        = String(req.headers["x-poly-funder"]      || "").trim();
+
+  if (!apiKey || !apiSecret || !apiPassphrase || !funder) {
+    return res.status(401).json({ ok: false, error: "Polymarket L2 credentials required. Add them in your profile settings." });
+  }
+
+  const { token_id, side, price, size } = req.body || {};
+  if (!token_id || !side || !price || !size) {
+    return res.status(400).json({ ok: false, error: "Missing required fields: token_id, side, price, size" });
+  }
+
+  try {
+    const { ClobClient, Chain, Side } = require("@polymarket/clob-client");
+    const client = new ClobClient(
+      "https://clob.polymarket.com",
+      Chain.POLYGON,
+      null,
+      { key: apiKey, secret: apiSecret, passphrase: apiPassphrase },
+      1 // SignatureType.POLY_PROXY
+    );
+
+    const orderSide = String(side).toUpperCase() === "BUY" ? Side.BUY : Side.SELL;
+    const order = await client.createOrder({
+      tokenID: String(token_id),
+      price:   parseFloat(price),
+      side:    orderSide,
+      size:    parseFloat(size),
+      funder:  funder,
+    });
+    const result = await client.postOrder(order);
+    return res.json({ ok: true, order: result });
+  } catch (err) {
+    console.error("[API/polymarket] order error:", err.message);
+    return res.json({ ok: false, error: err.message || "Order failed" });
+  }
+}
+
+function safeJson(val, fallback) {
+  if (Array.isArray(val)) return val;
+  if (typeof val === "string") {
+    try { return JSON.parse(val); } catch { return fallback; }
+  }
+  return fallback;
+}
+
+module.exports = async function handler(req, res) {
+  const action = String(req.query.action || "markets");
+  switch (action) {
+    case "markets":   return handleMarkets(req, res);
+    case "events":    return handleEvents(req, res);
+    case "prices":    return handlePrices(req, res);
+    case "orderbook": return handleOrderBook(req, res);
+    case "order":     return handleOrder(req, res);
+    default: return res.status(400).json({ ok: false, error: `Unknown action: ${action}` });
+  }
+};
+const { adapt } = require("../vercel-adapter");
+const { handler } = require("../netlify/functions/site-status");
+
+module.exports = (req, res) => adapt(handler, req, res);
+/**
+ * Trading API Handler - /api/trading
+ * Handles order submission, cancellation, and execution
+ */
+
+const AlpacaClient = require('./alpaca-client');
+
+module.exports = async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ ok: false, error: 'Method not allowed' });
+  }
+
+  try {
+    const isLive = req.query.isLive === 'true';
+    const client = new AlpacaClient(isLive, req.headers);
+    const action = req.query.action || 'submit';
+
+    switch (action) {
+      case 'submit':
+        return handleSubmitOrder(client, req, res);
+      
+      case 'cancel':
+        return handleCancelOrder(client, req, res);
+      
+      case 'cancel-all':
+        return handleCancelAllOrders(client, res);
+      
+      default:
+        return res.status(400).json({ 
+          ok: false, 
+          error: `Unknown action: ${action}` 
+        });
+    }
+  } catch (error) {
+    console.error('[API] Trading error:', error.message);
+    return res.status(500).json({ 
+      ok: false, 
+      error: error.message || 'Trading operation failed' 
+    });
+  }
+};
+
+/**
+ * Submit an order with safety checks
+ */
+async function handleSubmitOrder(client, req, res) {
+  try {
+    // Check if order submission is enabled
+    if (process.env.ENABLE_ALPACA_ORDER_SUBMIT !== 'true') {
+      return res.status(403).json({
+        ok: false,
+        error: 'Order submission is disabled. Set ENABLE_ALPACA_ORDER_SUBMIT=true to enable.',
+        warning: 'Paper trading mode: Orders will be simulated'
+      });
+    }
+
+    const { symbol, qty, side, orderType, limitPrice, stopPrice } = req.body;
+
+    // Validate inputs
+    if (!symbol || !qty || !side) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Missing required fields: symbol, qty, side'
+      });
+    }
+
+    if (qty <= 0) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Order quantity must be greater than 0'
+      });
+    }
+
+    // Check market hours
+    const isOpen = await client.isMarketOpen();
+    if (!isOpen) {
+      return res.status(403).json({
+        ok: false,
+        error: 'Market is currently closed. Orders will be queued for next market open.',
+        warning: 'Market opens at 9:30 AM ET'
+      });
+    }
+
+    // Check account balance and PDT compliance
+    const account = await client.getAccount();
+    
+    // Get latest price for risk calculation
+    const bars = await client.getLatestBars(symbol);
+    const latestPrice = bars[symbol.toUpperCase()]?.c || 0;
+    const estimatedCost = latestPrice * qty;
+
+    if (estimatedCost > parseFloat(account.buying_power)) {
+      return res.status(403).json({
+        ok: false,
+        error: `Insufficient buying power. Required: $${estimatedCost.toFixed(2)}, Available: $${account.buying_power}`,
+        buyingPower: parseFloat(account.buying_power),
+        estimatedCost: estimatedCost
+      });
+    }
+
+    // Check PDT rule for day traders
+    if (account.pattern_day_trader && parseFloat(account.portfolio_value) < 25000) {
+      return res.status(403).json({
+        ok: false,
+        error: 'Pattern Day Trader rule: Minimum $25,000 account balance required',
+        portfolioValue: parseFloat(account.portfolio_value)
+      });
+    }
+
+    // Submit the order
+    const order = await client.submitOrder(
+      symbol,
+      parseInt(qty),
+      side,
+      orderType || 'market',
+      limitPrice ? parseFloat(limitPrice) : null,
+      stopPrice ? parseFloat(stopPrice) : null
+    );
+
+    return res.json({
+      ok: true,
+      order: {
+        id: order.id,
+        symbol: order.symbol,
+        qty: parseFloat(order.qty),
+        side: order.side,
+        type: order.order_type,
+        status: order.status,
+        createdAt: new Date(order.created_at).toISOString(),
+        estimatedCost: estimatedCost,
+        message: `${order.order_type.toUpperCase()} order to ${order.side.toUpperCase()} ${order.qty} ${order.symbol}`
+      }
+    });
+  } catch (error) {
+    throw new Error(`Order submission failed: ${error.message}`);
+  }
+}
+
+/**
+ * Cancel a specific order
+ */
+async function handleCancelOrder(client, req, res) {
+  try {
+    const orderId = req.query.orderId || req.body.orderId;
+
+    if (!orderId) {
+      return res.status(400).json({
+        ok: false,
+        error: 'Missing orderId parameter'
+      });
+    }
+
+    await client.cancelOrder(orderId);
+
+    return res.json({
+      ok: true,
+      message: `Order ${orderId} cancelled successfully`
+    });
+  } catch (error) {
+    throw new Error(`Order cancellation failed: ${error.message}`);
+  }
+}
+
+/**
+ * Cancel all open orders
+ */
+async function handleCancelAllOrders(client, res) {
+  try {
+    const orders = await client.getOrders('open');
+    
+    if (orders.length === 0) {
+      return res.json({
+        ok: true,
+        message: 'No open orders to cancel',
+        cancelled: []
+      });
+    }
+
+    const cancelled = [];
+    for (const order of orders) {
+      try {
+        await client.cancelOrder(order.id);
+        cancelled.push(order.id);
+      } catch (err) {
+        console.warn(`Failed to cancel order ${order.id}:`, err.message);
+      }
+    }
+
+    return res.json({
+      ok: true,
+      message: `Cancelled ${cancelled.length} of ${orders.length} open orders`,
+      cancelled: cancelled
+    });
+  } catch (error) {
+    throw new Error(`Cancel all orders failed: ${error.message}`);
+  }
+}
+(function () {
+  document.addEventListener("click", event => {
+    const trigger = event.target.closest("[data-dto-open-auth]");
+    if (trigger) {
+      event.preventDefault();
+      setTimeout(() => window.DTO?.openAuthModal?.(trigger.dataset.dtoOpenAuth || "signup"), 0);
+      return;
+    }
+    const logout = event.target.closest("[data-dto-logout]");
+    if (logout && window.DTO?.activeUser) {
+      event.preventDefault();
+      localStorage.removeItem("dtoActiveUser");
+      window.dispatchEvent(new CustomEvent("dto:user-changed"));
+    }
+  });
+
+  const page = location.pathname.split(/[\\/]/).pop() || "index.html";
+  const SETUP_KEY = "dtoSetupPacket";
+  const LAST_SETUP_KEY = "dtoLastSetup";
+  const SETUPS_KEY = "dtoSetupPackets";
+  const HISTORY_KEY = "dtoTradeHistory";
+  const USERS_KEY = "dtoUsers";
+  const ACTIVE_USER_KEY = "dtoActiveUser";
+
+  function readJson(key, fallback) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : fallback;
+    } catch (error) {
+      return fallback;
+    }
+  }
+
+  function writeJson(key, value) {
+    localStorage.setItem(key, JSON.stringify(value));
+    return value;
+  }
+
+  function simpleHash(value) {
+    const text = String(value || "");
+    let hash = 2166136261;
+    for (let i = 0; i < text.length; i += 1) {
+      hash ^= text.charCodeAt(i);
+      hash = Math.imul(hash, 16777619);
+    }
+    return `demo-${(hash >>> 0).toString(16)}`;
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, ch => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[ch]));
+  }
+
+  function cleanSymbol(value) {
+    return String(value || "AAPL").trim().toUpperCase().replace(/^BINANCE:/, "").replace(/[^A-Z0-9.-]/g, "") || "AAPL";
+  }
+
+  function number(value) {
+    if (value === null || value === undefined || value === "") return null;
+    const n = Number(String(value).replace(/[$,%R]/g, ""));
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function money(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return "--";
+    const sign = n < 0 ? "-" : "";
+    return `${sign}$${Math.abs(n).toFixed(Math.abs(n) >= 100 ? 2 : 4)}`;
+  }
+
+  function pct(value) {
+    const n = Number(value);
+    return Number.isFinite(n) ? `${n.toFixed(0)}%` : "--";
+  }
+
+  function assetTypeFor(symbol) {
+    return /^(BTC|ETH|SOL|DOGE|XRP|BNB|ADA|AVAX|LINK|SUI|PEPE|SHIB|LTC|BCH|[A-Z0-9]{2,12}(USDT|USD))$/i.test(cleanSymbol(symbol))
+      ? "crypto"
+      : "stock";
+  }
+
+  function normalizeExperience(value) {
+    const mode = String(value || "beginner").toLowerCase();
+    if (mode.includes("expert")) return "expert";
+    if (mode.includes("pro") || mode.includes("intermediate")) return "pro";
+    return "beginner";
+  }
+
+  function users() {
+    return readJson(USERS_KEY, []);
+  }
+
+  function activeUser() {
+    const id = localStorage.getItem(ACTIVE_USER_KEY);
+    return users().find(user => user.id === id) || null;
+  }
+
+  function userDisplayName(user = activeUser()) {
+    if (!user) return "";
+    return user.name || user.username || user.email || "Trader";
+  }
+
+  function profileMode(user = activeUser()) {
+    return normalizeExperience(user?.experience);
+  }
+
+  function saveUserProfile(user) {
+    const list = users();
+    const next = [user, ...list.filter(item => item.id !== user.id && item.username !== user.username && item.email !== user.email)].slice(0, 20);
+    writeJson(USERS_KEY, next);
+    localStorage.setItem(ACTIVE_USER_KEY, user.id);
+    window.dispatchEvent(new CustomEvent("dto:user-changed", { detail: user }));
+    return user;
+  }
+
+  function signupUser(formData) {
+    const email = String(formData.get("email") || "").trim().toLowerCase();
+    const phone = String(formData.get("phone") || "").trim();
+    const name = String(formData.get("name") || "").trim();
+    const username = String(formData.get("username") || "").trim();
+    const password = String(formData.get("password") || "");
+    const experience = normalizeExperience(formData.get("experience"));
+    const focus = String(formData.get("focus") || "").trim();
+    if (!email || !phone || !name || !username || password.length < 6) {
+      throw new Error("Fill name, email, phone, username, and a 6+ character password.");
+    }
+    const duplicate = users().find(user => user.email === email || String(user.username || "").toLowerCase() === username.toLowerCase());
+    if (duplicate) throw new Error("That email or username already exists in this browser.");
+    return saveUserProfile({
+      id: `user-${Date.now()}`,
+      email,
+      phone,
+      name,
+      username,
+      passwordHash: simpleHash(password),
+      experience,
+      focus,
+      createdAt: new Date().toISOString(),
+      lastLoginAt: new Date().toISOString()
+    });
+  }
+
+  function loginUser(formData) {
+    const login = String(formData.get("login") || "").trim().toLowerCase();
+    const password = String(formData.get("password") || "");
+    const user = users().find(item => item.email === login || String(item.username || "").toLowerCase() === login);
+    if (!user || user.passwordHash !== simpleHash(password)) {
+      throw new Error("Login did not match a saved account in this browser.");
+    }
+    user.lastLoginAt = new Date().toISOString();
+    return saveUserProfile(user);
+  }
+
+  function logoutUser() {
+    localStorage.removeItem(ACTIVE_USER_KEY);
+    window.dispatchEvent(new CustomEvent("dto:user-changed"));
+  }
+
+  function normalizeSetup(raw) {
+    const setup = raw || {};
+    const symbol = cleanSymbol(setup.symbol || setup.ticker || new URLSearchParams(location.search).get("symbol") || "AAPL");
+    const entry = number(setup.entry ?? setup.price);
+    const stop = number(setup.stop);
+    const target = number(setup.target);
+    const rr = number(setup.rr) ?? (entry && stop && target && entry !== stop ? Math.abs(target - entry) / Math.abs(entry - stop) : null);
+    return {
+      id: setup.id || `setup-${Date.now()}`,
+      symbol,
+      assetType: setup.assetType || assetTypeFor(symbol),
+      side: String(setup.side || setup.dir || "long").toLowerCase().includes("short") ? "short" : "long",
+      rating: String(setup.rating || "CHECK").toUpperCase(),
+      entry,
+      stop,
+      target,
+      support: number(setup.support),
+      resistance: number(setup.resistance),
+      rr,
+      confidence: number(setup.confidence),
+      timeframe: setup.timeframe || "intraday",
+      thesis: setup.thesis || setup.notes || "",
+      catalysts: Array.isArray(setup.catalysts) ? setup.catalysts : String(setup.catalysts || "").split("|").filter(Boolean),
+      riskNotes: Array.isArray(setup.riskNotes) ? setup.riskNotes : String(setup.riskNotes || "").split("|").filter(Boolean),
+      sourcePage: setup.sourcePage || setup.source || page,
+      createdAt: setup.createdAt || setup.updatedAt || new Date().toISOString()
+    };
+  }
+
+  function setupFromQuery() {
+    const params = new URLSearchParams(location.search);
+    if (!params.get("symbol")) return null;
+    return normalizeSetup(Object.fromEntries(params.entries()));
+  }
+
+  function getSetup() {
+    return setupFromQuery() || readJson(SETUP_KEY, null) || readJson(LAST_SETUP_KEY, null);
+  }
+
+  function saveSetup(raw, options = {}) {
+    const setup = normalizeSetup(raw || getSetup() || {});
+    writeJson(SETUP_KEY, setup);
+    writeJson(LAST_SETUP_KEY, setup);
+    if (options.addToHistory !== false) {
+      const list = readJson(SETUPS_KEY, []);
+      const next = [setup, ...list.filter(item => item.id !== setup.id)].slice(0, 30);
+      writeJson(SETUPS_KEY, next);
+    }
+    window.dispatchEvent(new CustomEvent("dto:setup-saved", { detail: setup }));
+    return setup;
+  }
+
+  function workflowParams(setup) {
+    const params = new URLSearchParams();
+    ["symbol", "assetType", "side", "rating", "entry", "stop", "target", "support", "resistance", "rr", "confidence", "timeframe"].forEach(key => {
+      if (setup[key] !== null && setup[key] !== undefined && setup[key] !== "") params.set(key, setup[key]);
+    });
+    if (setup.thesis) params.set("thesis", setup.thesis.slice(0, 700));
+    return params.toString();
+  }
+
+  function workflowUrl(target, rawSetup = getSetup()) {
+    const setup = normalizeSetup(rawSetup || {});
+    return `${target}?${workflowParams(setup)}`;
+  }
+
+  function gradeSetup(raw) {
+    const setup = normalizeSetup(raw || getSetup() || {});
+    let score = 50;
+    const notes = [];
+    const warnings = [];
+    const rr = number(setup.rr);
+    const conf = number(setup.confidence);
+    const entry = number(setup.entry);
+    const stop = number(setup.stop);
+    const target = number(setup.target);
+    const support = number(setup.support);
+    const resistance = number(setup.resistance);
+
+    if (setup.rating.includes("BUY") || setup.rating.includes("SELL")) { score += 10; notes.push("Directional signal is actionable enough to plan, not blindly enter."); }
+    if (setup.rating.includes("HOLD") || setup.rating.includes("CHECK") || setup.rating.includes("WAIT")) { score -= 3; warnings.push("Rating still needs confirmation before execution."); }
+    if (rr !== null && rr >= 2) { score += 18; notes.push(`Reward/risk is ${rr.toFixed(2)}R, which clears the 2R planning bar.`); }
+    if (rr !== null && rr < 2) { score -= 16; warnings.push(`Reward/risk is only ${rr.toFixed(2)}R. Tighten stop, improve target, or skip.`); }
+    if (conf !== null && conf >= 70) score += 8;
+    if (conf !== null && conf < 55) { score -= 8; warnings.push("Confidence is weak; keep this paper-only until the chart improves."); }
+    if (entry && stop && entry !== stop) score += 8; else warnings.push("Entry and stop are missing, so risk cannot be controlled.");
+    if (entry && target && entry !== target) score += 6; else warnings.push("Target is missing, so reward cannot be judged.");
+    if (support && resistance && entry) {
+      score += 6;
+      const nearResistance = Math.abs(resistance - entry) / entry < 0.006;
+      const nearSupport = Math.abs(entry - support) / entry < 0.006;
+      if (setup.side === "long" && nearResistance) warnings.push("Long setup is close to resistance; chasing may be inefficient.");
+      if (setup.side === "short" && nearSupport) warnings.push("Short setup is close to support; downside may be crowded.");
+      if (nearSupport || nearResistance) score -= 5;
+    } else {
+      warnings.push("Support/resistance map is incomplete.");
+    }
+    if (setup.thesis && setup.thesis.length > 80) { score += 5; notes.push("Thesis has enough context to review later."); }
+    if (setup.catalysts.length) score += 4; else warnings.push("No catalyst is attached; check headlines, earnings, macro, and sector/crypto beta.");
+
+    score = Math.max(0, Math.min(100, Math.round(score)));
+    const label = score >= 80 ? "A Setup" : score >= 68 ? "B Setup" : score >= 55 ? "C Setup" : "Paper Only";
+    const modeText = {
+      beginner: score >= 68 ? "This is structured enough to practice. Still confirm the chart and risk before entering." : "This needs more proof. Use it as a learning example or paper trade only.",
+      pro: `${label}: ${warnings[0] || notes[0] || "Review levels, catalyst, and liquidity before sizing."}`,
+      expert: `Score ${score}/100. RR ${rr === null ? "--" : rr.toFixed(2)}R, confidence ${conf === null ? "--" : conf}, asset ${setup.assetType}.`
+    };
+    return { score, label, notes, warnings, setup, modeText };
+  }
+
+  function readPaperAccount() {
+    return readJson("dtoPaperTradingAccount", { cash: 100000, startingCash: 100000, positions: [], log: [], realized: 0, quotes: {} });
+  }
+
+  function journalTrades() {
+    return readJson("trades", []).map(item => ({
+      id: `journal-${item.id}`,
+      source: "journal",
+      symbol: item.ticker,
+      side: item.dir,
+      qty: item.shares,
+      entry: item.entry,
+      exit: item.exit,
+      pnl: number(item.pnl) || 0,
+      setupType: item.setup,
+      mistake: item.emotion,
+      notes: item.notes,
+      closedAt: item.date || new Date().toISOString()
+    }));
+  }
+
+  function paperTrades() {
+    return (readPaperAccount().log || []).map((item, index) => ({
+      id: `paper-${index}-${item.time}`,
+      source: "paper",
+      symbol: item.symbol,
+      side: item.action,
+      qty: item.qty,
+      entry: item.price,
+      pnl: number(item.pnl),
+      closedAt: item.time
+    }));
+  }
+
+  function tradeHistory() {
+    return [...readJson(HISTORY_KEY, []), ...journalTrades(), ...paperTrades()]
+      .sort((a, b) => new Date(b.closedAt || b.time || 0) - new Date(a.closedAt || a.time || 0))
+      .slice(0, 100);
+  }
+
+  function recordTrade(raw) {
+    const trade = { id: raw.id || `trade-${Date.now()}`, closedAt: raw.closedAt || new Date().toISOString(), ...raw };
+    const list = [trade, ...readJson(HISTORY_KEY, []).filter(item => item.id !== trade.id)].slice(0, 100);
+    writeJson(HISTORY_KEY, list);
+    window.dispatchEvent(new CustomEvent("dto:trade-recorded", { detail: trade }));
+    return trade;
+  }
+
+  function missionStats() {
+    const setup = getSetup();
+    const grade = setup ? gradeSetup(setup) : null;
+    const user = activeUser();
+    const paper = readPaperAccount();
+    const history = tradeHistory();
+    const journal = journalTrades();
+    const openPnl = (paper.positions || []).reduce((sum, p) => {
+      const last = paper.quotes?.[p.symbol]?.price || p.entry || 0;
+      return sum + (last - p.entry) * p.qty * (p.side === "short" ? -1 : 1);
+    }, 0);
+    const closed = history.filter(t => Number.isFinite(number(t.pnl)));
+    const net = closed.reduce((sum, t) => sum + (number(t.pnl) || 0), 0);
+    const wins = closed.filter(t => (number(t.pnl) || 0) > 0).length;
+    return {
+      setup,
+      grade,
+      user,
+      profileMode: profileMode(user),
+      paper,
+      history,
+      journalCount: journal.length,
+      openPositions: (paper.positions || []).length,
+      openPnl,
+      net,
+      winRate: closed.length ? wins / closed.length * 100 : null,
+      savedSetups: readJson(SETUPS_KEY, [])
+    };
+  }
+
+  function renderMissionControl(target = document.getElementById("missionControl")) {
+    if (!target) return;
+    const stats = missionStats();
+    const setup = stats.setup;
+    const grade = stats.grade;
+    const saved = stats.savedSetups.slice(0, 5);
+    const recent = stats.history.slice(0, 5);
+    const gradeWarnings = grade?.warnings?.slice(0, 3) || [];
+    const gradeNotes = grade?.notes?.slice(0, 2) || [];
+    const user = stats.user;
+    const mode = stats.profileMode;
+    const modeLabel = mode === "expert" ? "Expert" : mode === "pro" ? "Pro" : "Beginner";
+    const personalizedRead = !user
+      ? "Create a profile so the OS can change explanations, blockers, and next actions around your experience level."
+      : mode === "expert"
+        ? "Expert mode: compact readouts, faster execution checks, and fewer definitions. Focus stays on edge, liquidity, risk, and review stats."
+        : mode === "pro"
+          ? "Pro mode: balanced coaching with faster checklists. You still get blockers when R:R, catalyst, or levels are weak."
+          : "Beginner mode: the OS slows the workflow down, explains weak setups, and keeps questionable ideas paper-first.";
+    const gradeNext = !setup
+      ? "Create or save a setup first."
+      : grade?.score >= 68
+        ? "Next: open Risk, confirm position size, then paper trade before going live."
+        : "Next: improve R:R, confirm catalyst, tighten levels, or keep it paper-only.";
+    const gradeNoteHtml = gradeWarnings.length || gradeNotes.length
+      ? [
+          ...gradeWarnings.map(item => `<div class="dto-grade-note">${escapeHtml(item)}</div>`),
+          ...gradeNotes.map(item => `<div class="dto-grade-note good">${escapeHtml(item)}</div>`)
+        ].slice(0, 4).join("")
+      : `<div class="dto-grade-note">Save a setup to generate specific strengths, blockers, and next actions.</div>`;
+    target.innerHTML = `
+      <div class="dto-mission-grid">
+        <article class="dto-mission-panel dto-active-setup">
+          <div class="dto-panel-kicker">Active Setup Packet</div>
+          <h3>${setup ? escapeHtml(setup.symbol) : "No Active Setup"}</h3>
+          <p>${setup ? escapeHtml(setup.thesis || "Setup saved. Add thesis/catalyst before execution.") : "Search a ticker or open Guided Trade Builder to create the first setup packet."}</p>
+          <div class="dto-chip-row">
+            <span>${setup ? escapeHtml(setup.side.toUpperCase()) : "WAITING"}</span>
+            <span>${setup ? escapeHtml(setup.rating) : "NO RATING"}</span>
+            <span>${setup?.rr ? `${Number(setup.rr).toFixed(2)}R` : "R:R --"}</span>
+          </div>
+          <div class="dto-action-row">
+            <a href="${setup ? workflowUrl("trade_planner.html", setup) : "trade_planner.html"}">Plan</a>
+            <a href="${setup ? workflowUrl("execution_workbench.html", setup) : "execution_workbench.html"}">Risk</a>
+            <a href="${setup ? workflowUrl("practice_workbench.html", setup) : "practice_workbench.html"}">Paper</a>
+          </div>
+        </article>
+        <article class="dto-mission-panel">
+          <div class="dto-panel-kicker">Setup Grader</div>
+          <div class="dto-grade-panel">
+            <div class="dto-score-ring" style="--score:${grade?.score || 0}"><div><strong>${grade?.score ?? "--"}</strong><span>${grade ? "Score" : "No Grade"}</span></div></div>
+            <div class="dto-grade-summary">
+              <strong>${grade ? escapeHtml(grade.label) : "No Grade"}</strong>
+              <small>${grade ? escapeHtml(grade.modeText[mode] || grade.modeText.pro) : "Save a setup to grade trend, levels, reward/risk, and catalyst quality."}</small>
+            </div>
+          </div>
+          <div class="dto-grade-breakdown">
+            <div class="dto-grade-item"><span>Symbol</span><strong>${setup ? escapeHtml(setup.symbol) : "--"}</strong></div>
+            <div class="dto-grade-item"><span>Bias</span><strong>${setup ? escapeHtml(setup.rating || "CHECK") : "--"}</strong></div>
+            <div class="dto-grade-item"><span>R:R</span><strong>${setup?.rr ? Number(setup.rr).toFixed(2) + "R" : "--"}</strong></div>
+            <div class="dto-grade-item"><span>Next Action</span><strong>${escapeHtml(gradeNext)}</strong></div>
+          </div>
+          <div class="dto-grade-notes">${gradeNoteHtml}</div>
+        </article>
+        <article class="dto-mission-panel">
+          <div class="dto-panel-kicker">Paper Account</div>
+          <h3>${money((stats.paper.cash || 0) + stats.openPnl)}</h3>
+          <p>Open P&L ${money(stats.openPnl)} / ${stats.openPositions} open positions.</p>
+          <div class="dto-action-row"><a href="practice_workbench.html">Open Practice</a><a href="broker_execution_plan.html">Locked Broker Plan</a></div>
+        </article>
+        <article class="dto-mission-panel">
+          <div class="dto-panel-kicker">Journal Edge</div>
+          <h3>${pct(stats.winRate)}</h3>
+          <p>${stats.journalCount} journal trades. Aggregated P&L ${money(stats.net)}.</p>
+          <div class="dto-action-row"><a href="review_workbench.html">Review Room</a><a href="trade_review_coach.html">Review Coach</a></div>
+        </article>
+        <article class="dto-mission-panel">
+          <div class="dto-panel-kicker">Personal Feedback</div>
+          <h3>${user ? escapeHtml(modeLabel) : "Profile"}</h3>
+          <p>${escapeHtml(personalizedRead)}</p>
+          <div class="dto-chip-row">
+            <span>${user ? escapeHtml(userDisplayName(user)) : "No Login"}</span>
+            <span>${escapeHtml(modeLabel)}</span>
+          </div>
+          <div class="dto-action-row">
+            ${user ? `<button type="button" data-dto-open-auth="profile">Edit Profile</button><button type="button" data-dto-logout>Log Out</button>` : `<button type="button" data-dto-open-auth="signup">Sign Up</button><button type="button" data-dto-open-auth="login">Log In</button>`}
+          </div>
+        </article>
+      </div>
+      <div class="dto-mission-lists">
+        <article class="dto-mission-panel">
+          <div class="dto-panel-kicker">Saved Setups</div>
+          ${saved.length ? saved.map(item => `<button class="dto-list-row" data-dto-load-setup="${escapeHtml(item.id)}"><strong>${escapeHtml(item.symbol)}</strong><span>${escapeHtml(item.rating || "CHECK")} / ${item.rr ? Number(item.rr).toFixed(2) + "R" : "R:R --"}</span></button>`).join("") : `<p>No saved setups yet.</p>`}
+        </article>
+        <article class="dto-mission-panel">
+          <div class="dto-panel-kicker">Recent Trade History</div>
+          ${recent.length ? recent.map(item => `<div class="dto-list-row"><strong>${escapeHtml(item.symbol || "--")}</strong><span>${escapeHtml(item.source || "trade")} / ${money(item.pnl)}</span></div>`).join("") : `<p>No trade history yet. Start with paper trades, then journal the result.</p>`}
+        </article>
+      </div>`;
+    target.querySelectorAll("[data-dto-load-setup]").forEach(button => {
+      button.addEventListener("click", () => {
+        const match = readJson(SETUPS_KEY, []).find(item => item.id === button.dataset.dtoLoadSetup);
+        if (match) {
+          saveSetup(match, { addToHistory: false });
+          renderMissionControl(target);
+        }
+      });
+    });
+    target.querySelectorAll("[data-dto-open-auth]").forEach(button => {
+      button.addEventListener("click", () => openAuthModal(button.dataset.dtoOpenAuth));
+    });
+    target.querySelectorAll("[data-dto-logout]").forEach(button => {
+      button.addEventListener("click", () => {
+        logoutUser();
+        renderMissionControl(target);
+        renderAuthControls();
+      });
+    });
+  }
+
+  function currentSetupFromPage() {
+    const query = setupFromQuery();
+    if (query) return query;
+    const symbolField = document.getElementById("assetInput") || document.getElementById("symbol") || document.getElementById("ticker");
+    const setup = getSetup() || {};
+    if (symbolField?.value) setup.symbol = symbolField.value;
+    ["entry", "price", "stop", "target", "support", "resistance"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el?.value) setup[id === "price" ? "entry" : id] = el.value;
+    });
+    setup.sourcePage = page;
+    return normalizeSetup(setup);
+  }
+
+  function injectHomeLink() {
+    if (page !== "index.html" && !document.querySelector(".dto-home-link")) {
+      const link = document.createElement("a");
+      link.className = "dto-home-link";
+      link.href = "index.html";
+      link.innerHTML = '<span class="dto-home-mark" aria-hidden="true">&larr;</span><span>Return Home</span>';
+      document.body.appendChild(link);
+    }
+    document.querySelectorAll(".dto-home-link").forEach(link => {
+      link.href = "index.html";
+      link.setAttribute("aria-label", "Return to Day Trader OS home");
+      link.innerHTML = '<span class="dto-home-mark" aria-hidden="true">&larr;</span><span>Return Home</span>';
+    });
+  }
+
+  function injectGlobalActions() {
+    if (document.querySelector(".dto-global-actions")) return;
+    const bar = document.createElement("nav");
+    bar.className = "dto-global-actions";
+    bar.setAttribute("aria-label", "Day Trader OS workflow actions");
+    bar.innerHTML = `
+      <button type="button" data-dto-action="save">Save Setup</button>
+      <button type="button" data-dto-action="theme">Toggle Theme</button>
+      ${page !== "execution_workbench.html" ? `<a data-dto-link="risk" href="execution_workbench.html">Open in Risk</a>` : ''}
+      ${page !== "practice_workbench.html" ? `<a data-dto-link="paper" href="practice_workbench.html">Paper Trade</a>` : ''}
+      ${page !== "review_workbench.html" ? `<a data-dto-link="journal" href="review_workbench.html">Journal Result</a>` : ''}
+      <a data-dto-home-action href="${page === "index.html" ? "#home" : "index.html"}">${page === "index.html" ? "Back to Top" : "Back to Home"}</a>`;
+    document.body.appendChild(bar);
+    bar.querySelector('[data-dto-action="save"]').addEventListener("click", () => {
+      const setup = saveSetup(currentSetupFromPage());
+      renderMissionControl();
+      bar.querySelector('[data-dto-action="save"]').textContent = `${setup.symbol} Saved`;
+      setTimeout(() => { bar.querySelector('[data-dto-action="save"]').textContent = "Save Setup"; }, 1400);
+      updateGlobalLinks();
+    });
+    bar.querySelector('[data-dto-action="theme"]').addEventListener("click", () => {
+      const current = document.documentElement.getAttribute("data-theme") || "dark";
+      const next = current === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      localStorage.setItem("dtoTheme", next);
+    });
+    const homeAction = bar.querySelector("[data-dto-home-action]");
+    if (page === "index.html" && homeAction) {
+      homeAction.addEventListener("click", event => {
+        event.preventDefault();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    }
+    updateGlobalLinks();
+  }
+
+  function updateGlobalLinks() {
+    const setup = getSetup();
+    document.querySelectorAll('[data-dto-link="risk"]').forEach(a => { a.href = setup ? workflowUrl("execution_workbench.html", setup) : "execution_workbench.html"; });
+    document.querySelectorAll('[data-dto-link="paper"]').forEach(a => { a.href = setup ? workflowUrl("practice_workbench.html", setup) : "practice_workbench.html"; });
+    document.querySelectorAll('[data-dto-link="journal"]').forEach(a => { a.href = setup ? workflowUrl("review_workbench.html", setup) : "review_workbench.html"; });
+  }
+
+  function authStatusText(user = activeUser()) {
+    if (!user) return "Profile saves locally until a production database is connected.";
+    const mode = profileMode(user);
+    const modeLabel = mode === "expert" ? "Expert" : mode === "pro" ? "Pro" : "Beginner";
+    return `${userDisplayName(user)} / ${modeLabel} feedback mode`;
+  }
+
+  function renderAuthControls() {
+    const bars = document.querySelectorAll(".dto-auth-bar, .dto-auth-inline");
+    if (!bars.length) return;
+    const user = activeUser();
+    const html = user
+      ? `<span>${escapeHtml(userDisplayName(user))}</span><button type="button" data-dto-open-auth="profile">Profile</button><button type="button" data-dto-logout>Log Out</button>`
+      : `<button type="button" data-dto-open-auth="signup">Sign Up</button><button type="button" data-dto-open-auth="login">Log In</button>`;
+    bars.forEach(bar => {
+      bar.innerHTML = html;
+      bar.querySelectorAll("[data-dto-open-auth]").forEach(button => {
+        button.addEventListener("click", () => openAuthModal(button.dataset.dtoOpenAuth));
+      });
+      bar.querySelectorAll("[data-dto-logout]").forEach(button => {
+        button.addEventListener("click", () => {
+          logoutUser();
+          renderAuthControls();
+          renderMissionControl();
+        });
+      });
+    });
+  }
+
+  function injectAuthControls() {
+    const headerTarget = document.querySelector(".top-right") || document.querySelector(".topbar");
+    if (headerTarget && !document.querySelector(".dto-auth-inline")) {
+      const inline = document.createElement("div");
+      inline.className = "dto-auth-inline";
+      inline.setAttribute("aria-label", "Account controls");
+      const session = headerTarget.querySelector(".session");
+      if (session) headerTarget.insertBefore(inline, session);
+      else headerTarget.appendChild(inline);
+    }
+    if (!headerTarget && !document.querySelector(".dto-auth-bar")) {
+      const bar = document.createElement("div");
+      bar.className = "dto-auth-bar";
+      bar.setAttribute("aria-label", "Account controls");
+      document.body.appendChild(bar);
+    }
+    if (!document.getElementById("dtoAuthModal")) {
+      const modal = document.createElement("div");
+      modal.id = "dtoAuthModal";
+      modal.className = "dto-auth-modal";
+      modal.setAttribute("hidden", "");
+      modal.innerHTML = `
+        <div class="dto-auth-scrim" data-dto-close-auth></div>
+        <section class="dto-auth-panel" role="dialog" aria-modal="true" aria-labelledby="dtoAuthTitle">
+          <button class="dto-auth-close" type="button" data-dto-close-auth>Close</button>
+          <div id="dtoAuthContent"></div>
+        </section>`;
+      document.body.appendChild(modal);
+      modal.querySelectorAll("[data-dto-close-auth]").forEach(button => {
+        button.addEventListener("click", closeAuthModal);
+      });
+    }
+    renderAuthControls();
+  }
+
+  function experienceOptions(selected) {
+    const value = normalizeExperience(selected);
+    return [
+      ["beginner", "Beginner"],
+      ["pro", "Pro / Intermediate"],
+      ["expert", "Expert"]
+    ].map(([key, label]) => `<option value="${key}"${value === key ? " selected" : ""}>${label}</option>`).join("");
+  }
+
+  function authFormHtml(mode) {
+    const user = activeUser();
+    if (mode === "login") {
+      return `
+        <div class="dto-auth-head">
+          <div class="dto-panel-kicker">Account Access</div>
+          <h2 id="dtoAuthTitle">Log In</h2>
+          <p>${escapeHtml(authStatusText(null))}</p>
+        </div>
+        <form class="dto-auth-form" data-dto-auth-form="login">
+          <label>Email or Username<input name="login" autocomplete="username" required></label>
+          <label>Password<input name="password" type="password" autocomplete="current-password" required></label>
+          <button type="submit" class="dto-auth-submit">Log In</button>
+          <button type="button" class="dto-auth-switch" data-dto-open-auth="signup">Need an account? Sign Up</button>
+          <div class="dto-auth-message" data-dto-auth-message></div>
+        </form>`;
+    }
+    if (mode === "profile" && user) {
+      return `
+        <div class="dto-auth-head">
+          <div class="dto-panel-kicker">Personal Feedback</div>
+          <h2 id="dtoAuthTitle">Edit Profile</h2>
+          <p>${escapeHtml(authStatusText(user))}</p>
+        </div>
+        <form class="dto-auth-form" data-dto-auth-form="profile">
+          <div class="dto-auth-grid">
+            <label>Name<input name="name" value="${escapeHtml(user.name)}" required></label>
+            <label>Username<input name="username" value="${escapeHtml(user.username)}" required></label>
+            <label>Email<input name="email" type="email" value="${escapeHtml(user.email)}" required></label>
+            <label>Phone<input name="phone" type="tel" value="${escapeHtml(user.phone)}" required></label>
+            <label>Experience<select name="experience">${experienceOptions(user.experience)}</select></label>
+            <label>New Password<input name="password" type="password" autocomplete="new-password" placeholder="Leave blank to keep current"></label>
+            <label class="dto-auth-wide">Feedback Focus<textarea name="focus" rows="3" placeholder="Examples: options hedging, scalping, beginner basics, risk control">${escapeHtml(user.focus || "")}</textarea></label>
+          </div>
+          <div class="dto-auth-grid" style="margin-top:16px; border-top:1px solid rgba(0,217,255,0.1); padding-top:16px;">
+            <label>Alpaca API Key ID<input name="alpacaApiKey" value="${escapeHtml(user.alpacaApiKey || "")}" placeholder="PK..."></label>
+            <label>Alpaca API Secret<input name="alpacaApiSecret" type="password" value="${escapeHtml(user.alpacaApiSecret || "")}" placeholder="Leave blank to keep current secret if saved"></label>
+            <label>Trading Mode<select name="alpacaMode">
+              <option value="paper"${user.alpacaMode !== "live" ? " selected" : ""}>Paper Trading</option>
+              <option value="live"${user.alpacaMode === "live" ? " selected" : ""}>Live Trading (Real Money)</option>
+            </select></label>
+          </div>
+          <div class="dto-auth-grid" style="margin-top:16px; border-top:1px solid rgba(0,217,255,0.1); padding-top:16px;">
+            <div style="grid-column:1/-1; font-size:0.7em; color:var(--dto-cyan); letter-spacing:2px; margin-bottom:8px;">POLYMARKET L2 API</div>
+            <label>API Key<input name="polyApiKey" value="${escapeHtml(user.polyApiKey || "")}" placeholder="Polymarket L2 key"></label>
+            <label>API Secret<input name="polyApiSecret" type="password" placeholder="Leave blank to keep current"></label>
+            <label>Passphrase<input name="polyPassphrase" type="password" placeholder="Leave blank to keep current"></label>
+            <label style="grid-column:1/-1">Funder Address<input name="polyFunderAddress" value="${escapeHtml(user.polyFunderAddress || "")}" placeholder="0x... (Polygon wallet address)"></label>
+          </div>
+          <button type="submit" class="dto-auth-submit">Save Profile</button>
+          <div class="dto-auth-message" data-dto-auth-message></div>
+        </form>`;
+    }
+    return `
+      <div class="dto-auth-head">
+        <div class="dto-panel-kicker">Create Trader Profile</div>
+        <h2 id="dtoAuthTitle">Sign Up</h2>
+        <p>Choose your experience level so setup grades, warnings, and coaching feedback match how you trade.</p>
+      </div>
+      <form class="dto-auth-form" data-dto-auth-form="signup">
+        <div class="dto-auth-grid">
+          <label>Name<input name="name" autocomplete="name" required></label>
+          <label>Username<input name="username" autocomplete="username" required></label>
+          <label>Email<input name="email" type="email" autocomplete="email" required></label>
+          <label>Phone<input name="phone" type="tel" autocomplete="tel" required></label>
+          <label>Password<input name="password" type="password" autocomplete="new-password" minlength="6" required></label>
+          <label>Experience<select name="experience">${experienceOptions("beginner")}</select></label>
+          <label class="dto-auth-wide">Feedback Focus<textarea name="focus" rows="3" placeholder="What should the OS coach you on? Risk, psychology, options, chart reading, crypto, etc."></textarea></label>
+        </div>
+        <button type="submit" class="dto-auth-submit">Create Profile</button>
+        <button type="button" class="dto-auth-switch" data-dto-open-auth="login">Already have one? Log In</button>
+        <div class="dto-auth-message" data-dto-auth-message></div>
+      </form>`;
+  }
+
+  function openAuthModal(mode = "signup") {
+    injectAuthControls();
+    const modal = document.getElementById("dtoAuthModal");
+    const content = document.getElementById("dtoAuthContent");
+    if (!modal || !content) return;
+    content.innerHTML = authFormHtml(mode);
+    modal.removeAttribute("hidden");
+    modal.querySelectorAll("[data-dto-open-auth]").forEach(button => {
+      button.addEventListener("click", () => openAuthModal(button.dataset.dtoOpenAuth));
+    });
+    const form = content.querySelector("[data-dto-auth-form]");
+    form?.addEventListener("submit", event => {
+      event.preventDefault();
+      const message = form.querySelector("[data-dto-auth-message]");
+      try {
+        const formData = new FormData(form);
+        const kind = form.dataset.dtoAuthForm;
+        let user;
+        if (kind === "login") {
+          user = loginUser(formData);
+        } else if (kind === "profile") {
+          const current = activeUser();
+          if (!current) throw new Error("Log in before editing a profile.");
+          const email = String(formData.get("email") || "").trim().toLowerCase();
+          const username = String(formData.get("username") || "").trim();
+          const duplicate = users().find(item => item.id !== current.id && (item.email === email || String(item.username || "").toLowerCase() === username.toLowerCase()));
+          if (duplicate) throw new Error("That email or username is already used in this browser.");
+          user = {
+            ...current,
+            email,
+            username,
+            phone: String(formData.get("phone") || "").trim(),
+            name: String(formData.get("name") || "").trim(),
+            experience: normalizeExperience(formData.get("experience")),
+            focus: String(formData.get("focus") || "").trim(),
+            alpacaApiKey: String(formData.get("alpacaApiKey") || "").trim(),
+            alpacaMode: String(formData.get("alpacaMode") || "paper"),
+            updatedAt: new Date().toISOString()
+          };
+          const alpacaSecret = String(formData.get("alpacaApiSecret") || "").trim();
+          if (alpacaSecret) user.alpacaApiSecret = alpacaSecret;
+          user.polyApiKey = String(formData.get("polyApiKey") || "").trim();
+          user.polyFunderAddress = String(formData.get("polyFunderAddress") || "").trim();
+          const polySecret = String(formData.get("polyApiSecret") || "").trim();
+          if (polySecret) user.polyApiSecret = polySecret;
+          const polyPassphrase = String(formData.get("polyPassphrase") || "").trim();
+          if (polyPassphrase) user.polyPassphrase = polyPassphrase;
+          const password = String(formData.get("password") || "");
+          if (password) {
+            if (password.length < 6) throw new Error("New password must be at least 6 characters.");
+            user.passwordHash = simpleHash(password);
+          }
+          user = saveUserProfile(user);
+        } else {
+          user = signupUser(formData);
+        }
+        if (message) {
+          message.className = "dto-auth-message good";
+          message.textContent = `${userDisplayName(user)} is active. Feedback is now ${profileMode(user)} mode.`;
+        }
+        renderAuthControls();
+        renderMissionControl();
+        setTimeout(closeAuthModal, 650);
+      } catch (error) {
+        if (message) {
+          message.className = "dto-auth-message bad";
+          message.textContent = error.message || "Account action failed.";
+        }
+      }
+    });
+    content.querySelector("input, select, textarea")?.focus();
+  }
+
+  function closeAuthModal() {
+    const modal = document.getElementById("dtoAuthModal");
+    modal?.setAttribute("hidden", "");
+  }
+
+  function injectSignalNote() {
+    if (page === "signal_dashboard.html" && !document.querySelector(".dto-signal-note")) {
+      const main = document.querySelector(".main");
+      if (main) {
+        const note = document.createElement("div");
+        note.className = "dto-signal-note";
+        note.textContent = "Live signal cards use browser-accessible candle feeds and technical levels. Verify with your broker before trading.";
+        main.insertAdjacentElement("afterbegin", note);
+      }
+    }
+  }
+
+  function injectUnifiedTheme() {
+    document.documentElement.classList.add("dto-unified");
+    if (document.getElementById("dto-unified-theme")) return;
+    const style = document.createElement("style");
+    style.id = "dto-unified-theme";
+    style.textContent = `
+html.dto-unified {
+  color-scheme: dark;
+  --bg: var(--dto-bg);
+  --panel: var(--dto-panel);
+  --panel2: var(--dto-panel-2);
+  --line: var(--dto-border);
+  --text: var(--dto-text);
+  --muted: var(--dto-muted);
+  --cyan: var(--dto-cyan);
+  --green: var(--dto-green);
+  --gold: var(--dto-gold);
+  --red: var(--dto-red);
+}
+
+html.dto-unified[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f0f4f8;
+  --panel: #ffffff;
+  --panel2: #f4f8fc;
+  --line: #cbd5e1;
+  --text: #0a0e17;
+  --muted: #374151;
+  --cyan: #0369a1;
+  --green: #15803d;
+  --gold: #b45309;
+  --red: #b91c1c;
+  --dto-bg: #f0f4f8;
+  --dto-panel: #ffffff;
+  --dto-panel-2: #f4f8fc;
+  --dto-border: #cbd5e1;
+  --dto-text: #0a0e17;
+  --dto-muted: #374151;
+  --dto-cyan: #0369a1;
+  --dto-green: #15803d;
+  --dto-gold: #b45309;
+  --dto-red: #b91c1c;
+}
+
+html.dto-unified *,
+html.dto-unified *::before,
+html.dto-unified *::after {
+  box-sizing: border-box;
+}
+
+html.dto-unified body {
+  min-height: 100vh;
+  background:
+    linear-gradient(rgba(0, 215, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 215, 255, 0.035) 1px, transparent 1px),
+    radial-gradient(circle at 84% 12%, rgba(0, 224, 138, 0.12), transparent 34%),
+    var(--bg, #05070c) !important;
+  background-size: 72px 72px, 72px 72px, auto, auto !important;
+  color: var(--text, var(--dto-text)) !important;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+  letter-spacing: 0 !important;
+}
+
+html.dto-unified[data-theme="light"] body {
+  background: var(--bg) !important;
+}
+
+html.dto-unified main,
+html.dto-unified .main,
+html.dto-unified .wrap,
+html.dto-unified .shell,
+html.dto-unified .container,
+html.dto-unified .page {
+  color: var(--text, var(--dto-text));
+}
+
+html.dto-unified h1,
+html.dto-unified .title,
+html.dto-unified .symbol,
+html.dto-unified .hero-title {
+  color: var(--text, #fff) !important;
+  font-family: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.04em !important;
+  line-height: 0.9 !important;
+  text-transform: uppercase !important;
+}
+
+html.dto-unified h2,
+html.dto-unified h3,
+html.dto-unified h4,
+html.dto-unified .section-title,
+html.dto-unified .panel-title {
+  color: var(--text, #fff);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+html.dto-unified .kicker,
+html.dto-unified .eyebrow,
+html.dto-unified .label,
+html.dto-unified label,
+html.dto-unified .tool-kicker,
+html.dto-unified .panel-kicker,
+html.dto-unified .dto-panel-kicker {
+  color: var(--cyan, var(--dto-cyan)) !important;
+  font-weight: 800;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase;
+}
+
+html.dto-unified p,
+html.dto-unified li,
+html.dto-unified small,
+html.dto-unified .note,
+html.dto-unified .sub,
+html.dto-unified .hint,
+html.dto-unified .muted {
+  color: var(--muted, #a9b8cc);
+}
+
+html.dto-unified[data-theme="light"] input,
+html.dto-unified[data-theme="light"] select,
+html.dto-unified[data-theme="light"] textarea {
+  background: var(--panel2) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--line) !important;
+}
+
+html.dto-unified .panel,
+html.dto-unified .card,
+html.dto-unified .hero-card,
+html.dto-unified .tool,
+html.dto-unified .resource,
+html.dto-unified .op,
+html.dto-unified .metric,
+html.dto-unified .widget-box,
+html.dto-unified .company-card,
+html.dto-unified .status-card,
+html.dto-unified .check,
+html.dto-unified .path-step,
+html.dto-unified .scanner-card,
+html.dto-unified .module,
+html.dto-unified section.panel,
+html.dto-unified article {
+  border-color: rgba(127, 141, 163, 0.22) !important;
+  border-radius: 8px !important;
+  background: linear-gradient(145deg, rgba(17, 24, 36, 0.96), rgba(7, 11, 18, 0.96)) !important;
+  color: var(--dto-text) !important;
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.18);
+}
+
+html.dto-unified[data-theme="light"] .panel,
+html.dto-unified[data-theme="light"] .card,
+html.dto-unified[data-theme="light"] .hero-card,
+html.dto-unified[data-theme="light"] .tool,
+html.dto-unified[data-theme="light"] .resource,
+html.dto-unified[data-theme="light"] .op,
+html.dto-unified[data-theme="light"] .metric,
+html.dto-unified[data-theme="light"] .widget-box,
+html.dto-unified[data-theme="light"] .company-card,
+html.dto-unified[data-theme="light"] .status-card,
+html.dto-unified[data-theme="light"] .check,
+html.dto-unified[data-theme="light"] .path-step,
+html.dto-unified[data-theme="light"] .scanner-card,
+html.dto-unified[data-theme="light"] .module,
+html.dto-unified[data-theme="light"] section.panel,
+html.dto-unified[data-theme="light"] article {
+  background: var(--panel) !important;
+  color: var(--text) !important;
+  border-color: var(--line) !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+html.dto-unified .tool.featured,
+html.dto-unified .primary-card,
+html.dto-unified .active,
+html.dto-unified .result-card {
+  border-color: rgba(0, 224, 138, 0.42) !important;
+  background: linear-gradient(135deg, rgba(0, 224, 138, 0.11), rgba(0, 215, 255, 0.055)), rgba(12, 17, 26, 0.98) !important;
+}
+
+html.dto-unified input,
+html.dto-unified select,
+html.dto-unified textarea {
+  border: 1px solid rgba(127, 141, 163, 0.3) !important;
+  border-radius: 7px !important;
+  background: #070c14 !important;
+  color: #f4f8ff !important;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+  font-weight: 700;
+  outline: none;
+}
+
+html.dto-unified input:focus,
+html.dto-unified select:focus,
+html.dto-unified textarea:focus {
+  border-color: var(--dto-cyan) !important;
+  box-shadow: 0 0 0 3px rgba(0, 215, 255, 0.12) !important;
+}
+
+html.dto-unified button,
+html.dto-unified .btn,
+html.dto-unified .flow-btn,
+html.dto-unified .ground-link,
+html.dto-unified .tool-link,
+html.dto-unified .action,
+html.dto-unified a.button {
+  border: 1px solid rgba(0, 215, 255, 0.36) !important;
+  border-radius: 7px !important;
+  background: rgba(0, 215, 255, 0.075) !important;
+  color: #e8fbff !important;
+  cursor: pointer;
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.08em !important;
+  text-decoration: none !important;
+  text-transform: uppercase !important;
+}
+
+html.dto-unified[data-theme="light"] button,
+html.dto-unified[data-theme="light"] .btn,
+html.dto-unified[data-theme="light"] .flow-btn,
+html.dto-unified[data-theme="light"] .action {
+  border-color: var(--line) !important;
+  background: var(--panel2) !important;
+  color: var(--text) !important;
+}
+
+html.dto-unified button:hover,
+html.dto-unified .btn:hover,
+html.dto-unified .flow-btn:hover,
+html.dto-unified .ground-link:hover,
+html.dto-unified .tool-link:hover,
+html.dto-unified .action:hover {
+  background: var(--dto-cyan) !important;
+  color: #061017 !important;
+}
+
+html.dto-unified button.primary,
+html.dto-unified .btn.primary,
+html.dto-unified .flow-btn.primary,
+html.dto-unified .primary,
+html.dto-unified [class*="buy"] {
+  border-color: rgba(0, 224, 138, 0.44) !important;
+}
+
+html.dto-unified .btn.primary,
+html.dto-unified .flow-btn.primary,
+html.dto-unified button.primary {
+  background: var(--dto-green) !important;
+  color: #04130d !important;
+}
+
+html.dto-unified .gold,
+html.dto-unified .warning,
+html.dto-unified .status-note,
+html.dto-unified .dto-warning,
+html.dto-unified .blocker {
+  border-color: rgba(242, 184, 75, 0.36) !important;
+  background: rgba(242, 184, 75, 0.08) !important;
+  color: #f2d79c !important;
+}
+
+html.dto-unified .sell,
+html.dto-unified .danger,
+html.dto-unified .loss,
+html.dto-unified .red {
+  color: var(--dto-red) !important;
+}
+
+html.dto-unified .buy,
+html.dto-unified .gain,
+html.dto-unified .green {
+  color: var(--dto-green) !important;
+}
+
+html.dto-unified table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border: 1px solid rgba(127, 141, 163, 0.2);
+  border-radius: 8px;
+}
+
+html.dto-unified th,
+html.dto-unified td {
+  border-bottom: 1px solid rgba(127, 141, 163, 0.14);
+  color: #cdd9ea;
+  padding: 11px 12px;
+}
+
+html.dto-unified th {
+  color: var(--dto-cyan);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+html.dto-unified ::selection {
+  background: rgba(0, 215, 255, 0.35);
+  color: #fff;
+}
+
+@media (max-width: 800px) {
+  html.dto-unified .dto-mission-grid {
+    grid-template-columns: 1fr !important;
+  }
+  html.dto-unified .dto-mission-lists {
+    grid-template-columns: 1fr !important;
+  }
+  html.dto-unified .dto-action-row {
+    flex-wrap: wrap;
+  }
+  html.dto-unified .dto-global-actions {
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 6px !important;
+    gap: 4px !important;
+  }
+  html.dto-unified .dto-global-actions button, html.dto-unified .dto-global-actions a {
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+  }
+  html.dto-unified .dto-auth-inline span {
+    display: none;
+  }
+  html.dto-unified .top-right, html.dto-unified .topbar {
+    gap: 8px !important;
+  }
+  html.dto-unified main, html.dto-unified .shell, html.dto-unified .wrap {
+    padding: 10px !important;
+    padding-bottom: 80px !important;
+  }
+  html.dto-unified table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  html.dto-unified .hero-title {
+    font-size: 2.5rem !important;
+  }
+}
+`;
+    document.head.appendChild(style);
+  }
+
+  function syncQuerySetup() {
+    const setup = setupFromQuery();
+    if (setup) saveSetup(setup, { addToHistory: false });
+  }
+
+  window.DTO = {
+    readJson,
+    writeJson,
+    normalizeSetup,
+    getSetup,
+    saveSetup,
+    workflowUrl,
+    gradeSetup,
+    renderMissionControl,
+    activeUser,
+    profileMode,
+    openAuthModal,
+    tradeHistory,
+    recordTrade,
+    missionStats,
+    money,
+    escapeHtml
+  };
+
+  const savedTheme = localStorage.getItem("dtoTheme");
+  if (savedTheme) document.documentElement.setAttribute("data-theme", savedTheme);
+
+  syncQuerySetup();
+  injectUnifiedTheme();
+  injectGlobalActions();
+  injectHomeLink();
+  injectSignalNote();
+  injectAuthControls();
+
+  // â”€â”€ Alert System (real-time, WebSocket-powered) â”€â”€
+  let _alertStreamCleanup = [];
+
+  function startAlertSystem() {
+    _alertStreamCleanup.forEach(fn => fn());
+    _alertStreamCleanup = [];
+
+    const alerts = readJson("dtoAlerts", []);
+    if (!alerts.length) return;
+
+    const bySymbol = {};
+    alerts.forEach(a => {
+      if (!a.symbol || !a.price) return;
+      (bySymbol[a.symbol] = bySymbol[a.symbol] || []).push(a);
+    });
+
+    for (const [sym, symAlerts] of Object.entries(bySymbol)) {
+      const onPrice = (price) => {
+        symAlerts.forEach(a => {
+          const hit = (a.direction === 'above' && price >= a.price) ||
+                      (a.direction === 'below' && price <= a.price);
+          if (hit) triggerBrowserNotification(sym, price, a);
+        });
+      };
+
+      let streamed = false;
+      if (window.streamCryptoPrice) {
+        const ws = window.streamCryptoPrice(sym, onPrice);
+        if (ws) {
+          streamed = true;
+          _alertStreamCleanup.push(() => { if (window.stopStream) window.stopStream(sym); });
+        }
+      }
+      if (!streamed && window.streamStockPrice) {
+        window.streamStockPrice(sym, onPrice);
+        _alertStreamCleanup.push(() => { if (window.stopStream) window.stopStream(sym); });
+      }
+    }
+  }
+
+  function triggerBrowserNotification(symbol, price, alert) {
+    const title = `${symbol} Alert: $${price}`;
+    const body = `${alert.trigger} ${alert.level ? 'near ' + alert.level : ''}. ${alert.note || ''}`;
+    
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+      gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      oscillator.start();
+      gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
+      oscillator.stop(audioCtx.currentTime + 0.5);
+    } catch (e) {}
+
+    if (Notification.permission === 'granted') {
+      new Notification(title, { body });
+    }
+  }
+
+  window.addEventListener('storage', event => {
+    if (event.key === 'dtoAlerts') startAlertSystem();
+  });
+
+  document.addEventListener('click', () => {
+    if (Notification.permission === 'default') Notification.requestPermission();
+  }, { once: true });
+
+  startAlertSystem();
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
+      renderMissionControl();
+      updateGlobalLinks();
+      renderAuthControls();
+    });
+  } else {
+    renderMissionControl();
+    updateGlobalLinks();
+    renderAuthControls();
+  }
+
+  // Check if this deployed site is specifically configured as a Live Site via .env
+  fetch('/api/health').then(r => r.json()).then(data => {
+    const mainTitle = document.querySelector('.hero-copy h1');
+    if (data && data.siteMode === 'live') {
+      document.body.classList.add('dto-live-site-mode');
+      if (window.alpacaAPI) window.alpacaAPI.liveMode = true;
+      if (mainTitle) mainTitle.textContent = 'Live Command Center';
+      
+      const banner = document.createElement('div');
+      banner.className = 'dto-live-banner';
+      banner.innerHTML = 'âš ï¸ DEDICATED LIVE TRADING DOMAIN âš ï¸ Real money execution active.';
+      document.body.insertBefore(banner, document.body.firstChild);
+    } else {
+      if (mainTitle) mainTitle.textContent = 'Paper Command Center';
+    }
+  }).catch(() => {
+    const mainTitle = document.querySelector('.hero-copy h1');
+    if (mainTitle) mainTitle.textContent = 'Paper Command Center';
+  });
+})();
+  function readJson(key, fallback) {
+    try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
+    catch (error) { return fallback; }
+  }
+
+  function formatMoney(value) {
+    const sign = value < 0 ? "-" : "";
+    return `${sign}$${Math.abs(value).toFixed(2)}`;
+  }
+
+  function compactNumber(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return "--";
+    return Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(n);
+  }
+
+  function fmtPrice(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return "--";
+    const decimals = n >= 100 ? 2 : n >= 1 ? 3 : 5;
+    return `$${n.toFixed(decimals).replace(/\.?0+$/, "")}`;
+  }
+
+  function avg(values) {
+    return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
+  }
+
+  function rsi(closes, period = 14) {
+    if (closes.length <= period) return null;
+    let gains = 0;
+    let losses = 0;
+    for (let i = closes.length - period; i < closes.length; i++) {
+      const diff = closes[i] - closes[i - 1];
+      if (diff >= 0) gains += diff;
+      else losses -= diff;
+    }
+    if (losses === 0) return 100;
+    const rs = gains / losses;
+    return 100 - (100 / (1 + rs));
+  }
+
+  const cryptoMap = {
+    BTC: "BINANCE:BTCUSDT",
+    BITCOIN: "BINANCE:BTCUSDT",
+    ETH: "BINANCE:ETHUSDT",
+    ETHEREUM: "BINANCE:ETHUSDT",
+    SOL: "BINANCE:SOLUSDT",
+    SOLANA: "BINANCE:SOLUSDT",
+    DOGE: "BINANCE:DOGEUSDT",
+    DOGECOIN: "BINANCE:DOGEUSDT",
+    XRP: "BINANCE:XRPUSDT",
+    ADA: "BINANCE:ADAUSDT",
+    CARDANO: "BINANCE:ADAUSDT",
+    BNB: "BINANCE:BNBUSDT",
+    AVAX: "BINANCE:AVAXUSDT",
+    LINK: "BINANCE:LINKUSDT",
+    SUI: "BINANCE:SUIUSDT",
+    PEPE: "BINANCE:PEPEUSDT",
+    SHIB: "BINANCE:SHIBUSDT",
+    LTC: "BINANCE:LTCUSDT",
+    BCH: "BINANCE:BCHUSDT",
+    DOT: "BINANCE:DOTUSDT",
+    MATIC: "BINANCE:MATICUSDT",
+    POL: "BINANCE:POLUSDT"
+  };
+
+  const cryptoDataMap = {
+    BTC: "BTCUSDT",
+    BITCOIN: "BTCUSDT",
+    ETH: "ETHUSDT",
+    ETHEREUM: "ETHUSDT",
+    SOL: "SOLUSDT",
+    SOLANA: "SOLUSDT",
+    DOGE: "DOGEUSDT",
+    DOGECOIN: "DOGEUSDT",
+    XRP: "XRPUSDT",
+    ADA: "ADAUSDT",
+    CARDANO: "ADAUSDT",
+    BNB: "BNBUSDT",
+    AVAX: "AVAXUSDT",
+    LINK: "LINKUSDT",
+    SUI: "SUIUSDT",
+    PEPE: "PEPEUSDT",
+    SHIB: "SHIBUSDT",
+    LTC: "LTCUSDT",
+    BCH: "BCHUSDT",
+    DOT: "DOTUSDT",
+    MATIC: "MATICUSDT",
+    POL: "POLUSDT"
+  };
+
+  function isCryptoSymbol(rawSymbol) {
+    const clean = cleanSymbol(rawSymbol);
+    return Boolean(cryptoDataMap[clean] || /(?:USDT|USD)$/.test(clean) && clean.length > 4);
+  }
+
+  function tradingViewSymbol(rawSymbol) {
+    const clean = String(rawSymbol || "AAPL").trim().toUpperCase().replace(/[^A-Z0-9.-]/g, "");
+    if (!clean) return "NASDAQ:AAPL";
+    if (clean.includes(":")) return clean;
+    if (cryptoMap[clean]) return cryptoMap[clean];
+    const exchangeMap = {
+      AAPL: "NASDAQ:AAPL",
+      MSFT: "NASDAQ:MSFT",
+      NVDA: "NASDAQ:NVDA",
+      TSLA: "NASDAQ:TSLA",
+      META: "NASDAQ:META",
+      AMZN: "NASDAQ:AMZN",
+      GOOGL: "NASDAQ:GOOGL",
+      GOOG: "NASDAQ:GOOG",
+      AMD: "NASDAQ:AMD",
+      INTC: "NASDAQ:INTC",
+      AVGO: "NASDAQ:AVGO",
+      MU: "NASDAQ:MU",
+      QCOM: "NASDAQ:QCOM",
+      ARM: "NASDAQ:ARM",
+      SMCI: "NASDAQ:SMCI",
+      COIN: "NASDAQ:COIN",
+      MSTR: "NASDAQ:MSTR",
+      PLTR: "NASDAQ:PLTR",
+      SOFI: "NASDAQ:SOFI",
+      RIVN: "NASDAQ:RIVN",
+      LCID: "NASDAQ:LCID",
+      MARA: "NASDAQ:MARA",
+      RIOT: "NASDAQ:RIOT",
+      NFLX: "NASDAQ:NFLX",
+      SPY: "AMEX:SPY",
+      QQQ: "NASDAQ:QQQ",
+      DIA: "AMEX:DIA",
+      IWM: "AMEX:IWM",
+      GLD: "AMEX:GLD",
+      SLV: "AMEX:SLV",
+      IBM: "NYSE:IBM",
+      DIS: "NYSE:DIS",
+      JPM: "NYSE:JPM",
+      BAC: "NYSE:BAC",
+      WMT: "NYSE:WMT",
+      XOM: "NYSE:XOM",
+      CVX: "NYSE:CVX",
+      BA: "NYSE:BA",
+      F: "NYSE:F",
+      GM: "NYSE:GM",
+      NKE: "NYSE:NKE",
+      KO: "NYSE:KO",
+      PFE: "NYSE:PFE"
+    };
+    return exchangeMap[clean] || clean;
+  }
+
+  function tradingViewUrl(rawSymbol) {
+    return `https://www.tradingview.com/chart/?symbol=${encodeURIComponent(tradingViewSymbol(rawSymbol))}`;
+  }
+
+  function tradingViewEmbedUrl(rawSymbol) {
+    const symbol = encodeURIComponent(tradingViewSymbol(rawSymbol));
+    return `https://s.tradingview.com/widgetembed/?symbol=${symbol}&interval=60&hidesidetoolbar=1&symboledit=1&saveimage=0&toolbarbg=050a12&theme=dark&style=1&timezone=America%2FNew_York&withdateranges=1&hideideas=1&locale=en`;
+  }
+
+  function sourceUrls(rawSymbol) {
+    const symbol = cleanSymbol(rawSymbol);
+    const isCrypto = Boolean(cryptoDataMap[symbol]);
+    const cryptoBase = isCrypto ? String(cryptoDataMap[symbol]).replace(/USDT$/, "") : symbol;
+    const yahooSymbol = isCrypto ? `${cryptoBase}-USD` : symbol;
+    const searchQuery = encodeURIComponent(`${symbol} stock crypto market news`);
+    return {
+      tradingView: tradingViewUrl(symbol),
+      yahoo: `https://finance.yahoo.com/quote/${encodeURIComponent(yahooSymbol)}`,
+      cnbc: `https://www.cnbc.com/search/?query=${encodeURIComponent(symbol)}`,
+      marketWatch: isCrypto
+        ? `https://www.marketwatch.com/search?q=${encodeURIComponent(symbol)}`
+        : `https://www.marketwatch.com/investing/stock/${encodeURIComponent(symbol.toLowerCase())}`,
+      nasdaq: isCrypto
+        ? `https://www.nasdaq.com/search?q=${encodeURIComponent(symbol)}`
+        : `https://www.nasdaq.com/market-activity/stocks/${encodeURIComponent(symbol.toLowerCase())}`,
+      ground: `https://ground.news/search?q=${searchQuery}`,
+      finviz: isCrypto
+        ? `https://finviz.com/crypto.ashx`
+        : `https://finviz.com/quote.ashx?t=${encodeURIComponent(symbol)}`
+    };
+  }
+
+  function sourceDeckHtml(rawSymbol) {
+    const urls = sourceUrls(rawSymbol);
+    return `<div class="source-deck" aria-label="Reliable market source links">
+      <a href="${escapeHtml(urls.tradingView)}" target="_blank" rel="noopener">TradingView</a>
+      <a href="${escapeHtml(urls.yahoo)}" target="_blank" rel="noopener">Yahoo Finance</a>
+      <a href="${escapeHtml(urls.cnbc)}" target="_blank" rel="noopener">CNBC</a>
+      <a href="${escapeHtml(urls.marketWatch)}" target="_blank" rel="noopener">MarketWatch</a>
+      <a href="${escapeHtml(urls.nasdaq)}" target="_blank" rel="noopener">Nasdaq</a>
+      <a href="${escapeHtml(urls.ground)}" target="_blank" rel="noopener">Ground News</a>
+    </div>`;
+  }
+
+  function cleanSymbol(rawSymbol) {
+    return String(rawSymbol || "AAPL").trim().toUpperCase().replace(/[^A-Z0-9.-]/g, "") || "AAPL";
+  }
+
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[char]));
+  }
+
+  function isStaticOnlyHost() {
+    const host = location.hostname || "";
+    // Static-only hosting platforms where /api/* won't exist
+    return /\.github\.io$/i.test(host)
+      || /\.pages\.dev$/i.test(host)
+      || host === ""
+      || location.protocol === "file:";
+  }
+
+  function marketProxySources(url, label = "feed") {
+    return [
+      { url, label: `${label} direct` },
+      { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`, label: `${label} AllOrigins` },
+      { url: `https://corsproxy.io/?${encodeURIComponent(url)}`, label: `${label} CORS proxy` },
+      { url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`, label: `${label} CodeTabs` }
+    ];
+  }
+
+  async function fetchJson(url, label = "feed") {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      if (!response.ok) throw new Error(`${label} returned ${response.status}`);
+      const text = await response.text();
+      return JSON.parse(text);
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  async function fetchPublicApiJson(path, label = "public API") {
+    const cleanPath = String(path || "").replace(/^\/+/, "");
+    const urls = [`/api/${cleanPath}`, `/.netlify/functions/${cleanPath}`];
+    let lastError = null;
+    for (const url of urls) {
+      try {
+        return await fetchJson(url, label);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError || new Error(`${label} unavailable`);
+  }
+
+  async function fetchText(url, label = "feed") {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      if (!response.ok) throw new Error(`${label} returned ${response.status}`);
+      return response.text();
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  async function fetchJsonWithFallback(url, label = "feed") {
+    let lastError = null;
+    for (const source of marketProxySources(url, label)) {
+      try {
+        return await fetchJson(source.url, source.label);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError || new Error(`${label} unavailable`);
+  }
+
+  async function fetchTextWithFallback(url, label = "feed") {
+    let lastError = null;
+    for (const source of marketProxySources(url, label)) {
+      try {
+        return await fetchText(source.url, source.label);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError || new Error(`${label} unavailable`);
+  }
+
+  async function fetchBackendCandles(rawSymbol) {
+    if (!/^https?:$/.test(location.protocol)) {
+      throw new Error("Backend candle proxy is only available when the app is hosted, not from file://.");
+    }
+    const symbol = cleanSymbol(rawSymbol);
+    const data = await fetchPublicApiJson(`candles?symbol=${encodeURIComponent(symbol)}&limit=160`, "Public candle proxy");
+    const candles = (data?.candles || []).map(candle => ({
+      time: candle.time,
+      open: Number(candle.open),
+      high: Number(candle.high),
+      low: Number(candle.low),
+      close: Number(candle.close),
+      volume: Number(candle.volume)
+    })).filter(candle => Number.isFinite(candle.close) && Number.isFinite(candle.high) && Number.isFinite(candle.low));
+    if (!candles.length) throw new Error(data?.error || "No backend candles returned");
+    candles.source = data?.source || "Public candle proxy";
+    candles.delayed = Boolean(data?.delayed);
+    return candles;
+  }
+
+  function parseYahooCandles(data) {
+    const result = data.chart?.result?.[0];
+    const quote = result?.indicators?.quote?.[0];
+    if (!quote?.close?.length) throw new Error("No candles returned");
+    return quote.close.map((close, index) => ({
+      time: result.timestamp?.[index],
+      open: Number(quote.open?.[index]),
+      high: Number(quote.high?.[index]),
+      low: Number(quote.low?.[index]),
+      close: Number(close),
+      volume: Number(quote.volume?.[index])
+    })).filter(candle => Number.isFinite(candle.close) && Number.isFinite(candle.high) && Number.isFinite(candle.low));
+  }
+
+  function parseStooqCandles(csv) {
+    const lines = String(csv || "").trim().split(/\r?\n/).filter(Boolean);
+    if (lines.length < 20 || !/^date,/i.test(lines[0])) throw new Error("No Stooq candles returned");
+    return lines.slice(1).map(line => {
+      const [date, open, high, low, close, volume] = line.split(",");
+      const time = Math.floor(new Date(`${date}T16:00:00-05:00`).getTime() / 1000);
+      return {
+        time,
+        open: Number(open),
+        high: Number(high),
+        low: Number(low),
+        close: Number(close),
+        volume: Number(volume)
+      };
+    }).filter(candle => Number.isFinite(candle.close) && Number.isFinite(candle.high) && Number.isFinite(candle.low));
+  }
+
+  async function fetchStooqDailyCandles(symbol) {
+    const stooqSymbol = `${cleanSymbol(symbol).toLowerCase()}.us`;
+    const url = `https://stooq.com/q/d/l/?s=${encodeURIComponent(stooqSymbol)}&i=d`;
+    const candles = parseStooqCandles(await fetchTextWithFallback(url, "Stooq daily candles")).slice(-180);
+    if (!candles.length) throw new Error("Stooq delayed daily feed unavailable");
+    candles.source = "Stooq delayed daily candles";
+    candles.delayed = true;
+    return candles;
+  }
+
+  async function fetchStockCandles(symbol) {
+    const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=1mo&interval=1h&includePrePost=true`;
+    let lastError = null;
+    for (const source of marketProxySources(yahooUrl, "Yahoo candles")) {
+      try {
+        const candles = parseYahooCandles(await fetchJson(source.url, source.label));
+        if (candles.length) {
+          candles.source = source.label;
+          return candles;
+        }
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    try {
+      return await fetchStooqDailyCandles(symbol);
+    } catch (error) {
+      lastError = error;
+    }
+    throw lastError || new Error("Stock candle feed unavailable");
+  }
+
+  async function fetchCryptoCandles(symbol) {
+    const pair = cryptoDataMap[symbol];
+    const urls = [
+      `https://data-api.binance.vision/api/v3/klines?symbol=${pair}&interval=1h&limit=160`,
+      `https://api.binance.us/api/v3/klines?symbol=${pair}&interval=1h&limit=160`,
+      `https://api.binance.com/api/v3/klines?symbol=${pair}&interval=1h&limit=160`
+    ];
+    let lastError = null;
+    for (const url of urls) {
+      try {
+        const rows = await fetchJson(url);
+        const candles = rows.map(row => ({
+          time: row[0],
+          open: Number(row[1]),
+          high: Number(row[2]),
+          low: Number(row[3]),
+          close: Number(row[4]),
+          volume: Number(row[5])
+        })).filter(candle => Number.isFinite(candle.close) && Number.isFinite(candle.high) && Number.isFinite(candle.low));
+        if (candles.length) {
+          candles.source = "Binance/Coinbase crypto candles";
+          return candles;
+        }
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError || new Error("Crypto candle feed unavailable");
+  }
+
+  async function fetchCandles(rawSymbol) {
+    const symbol = cleanSymbol(rawSymbol);
+    let backendError = null;
+    const shouldPreferBackendError = /^https?:$/.test(location.protocol) && !isStaticOnlyHost();
+    try {
+      return await fetchBackendCandles(symbol);
+    } catch (error) {
+      backendError = error;
+    }
+    try {
+      if (cryptoDataMap[symbol]) return await fetchCryptoCandles(symbol);
+      return await fetchStockCandles(symbol);
+    } catch (error) {
+      throw backendError && shouldPreferBackendError ? backendError : error;
+    }
+  }
+
+  function nearestLevel(values, price, direction) {
+    const filtered = values.filter(value => direction === "above" ? value > price : value < price);
+    if (!filtered.length) return null;
+    return filtered.reduce((best, value) => Math.abs(value - price) < Math.abs(best - price) ? value : best, filtered[0]);
+  }
+
+  function pctDistance(from, to) {
+    if (!Number.isFinite(from) || !Number.isFinite(to) || !from) return "--";
+    return `${(((to - from) / from) * 100).toFixed(2)}%`;
+  }
+
+  function marketContextForSymbol(symbol, news = []) {
+    const clean = cleanSymbol(symbol);
+    const isCrypto = isCryptoSymbol(clean);
+    const groundQuery = `${clean} ${isCrypto ? "crypto" : "stock"} market news`;
+    const headlineItems = (news || []).map(item => {
+      if (typeof item === "string") return { title: item, publisher: "Market feed", url: "" };
+      return item;
+    }).filter(item => item && item.title);
+    return {
+      summary: [
+        headlineItems.length
+          ? `${headlineItems.length} headline/context item${headlineItems.length === 1 ? "" : "s"} loaded for ${clean}.`
+          : `No source headlines loaded yet for ${clean}; use the source checks below before acting.`,
+        isCrypto
+          ? "Crypto context should include BTC/ETH direction, exchange liquidity, token unlocks, regulation, and macro risk appetite."
+          : "Equity context should include same-day headlines, earnings, filings, sector beta, macro calendar, and peer strength.",
+        "Treat this as context for planning; the chart and risk map still decide the trade."
+      ],
+      feeds: {
+        headlines: headlineItems,
+        yahoo: {
+          label: "Yahoo Finance quote/news",
+          query: `${clean} finance news`,
+          url: `https://finance.yahoo.com/quote/${encodeURIComponent(clean)}`
+        },
+        cnbc: {
+          label: "CNBC ticker/news search",
+          query: `${clean} market news`,
+          url: `https://www.cnbc.com/search/?query=${encodeURIComponent(clean + " market news")}`
+        },
+        earnings: {
+          label: isCrypto ? "Token/events calendar" : "Earnings calendar",
+          query: isCrypto ? `${clean} crypto events token unlock news` : `${clean} earnings calendar`,
+          url: isCrypto ? `https://www.coindesk.com/search?s=${encodeURIComponent(clean)}` : `https://finance.yahoo.com/calendar/earnings?symbol=${encodeURIComponent(clean)}`
+        },
+        sec: {
+          label: isCrypto ? "Regulatory / exchange news" : "SEC/company releases",
+          query: isCrypto ? `${clean} regulation exchange listing news` : `${clean} filings`,
+          url: isCrypto ? `https://www.coindesk.com/search?s=${encodeURIComponent(clean + " regulation")}` : `https://www.sec.gov/edgar/search/#/q=${encodeURIComponent(clean)}`
+        },
+        macro: {
+          label: "Macro calendar",
+          query: `${clean} rates dollar yields macro market impact`,
+          url: "https://www.marketwatch.com/economy-politics/calendar"
+        },
+        sector: {
+          label: isCrypto ? "Crypto beta / BTC ETH" : "Sector / beta check",
+          query: isCrypto ? `${clean} BTC ETH relative strength liquidity` : `${clean} sector ETF peers relative strength`,
+          url: isCrypto ? "https://www.coinglass.com/" : `https://finance.yahoo.com/quote/${encodeURIComponent(clean)}/comparison/`
+        },
+        groundNews: {
+          label: "Ground News source balance",
+          query: groundQuery,
+          url: `https://ground.news/search?q=${encodeURIComponent(groundQuery)}`
+        }
+      }
+    };
+  }
+  function avgRange(candles) {
+    const ranges = candles.map(candle => Math.abs(candle.high - candle.low)).filter(Number.isFinite);
+    return avg(ranges.slice(-14)) || 0;
+  }
+
+  function tradeLevels({ rating, price, support, resistance, candles }) {
+    const atr = avgRange(candles);
+    const buffer = Math.max(price * 0.0025, atr * 0.35);
+    const bullish = rating === "BUY";
+    const bearish = rating === "SELL";
+    let entry = price;
+    let stop = bullish ? support - buffer : bearish ? resistance + buffer : support - buffer;
+    let target = bullish ? resistance : bearish ? support : resistance;
+    if (bullish && target <= price) target = price + Math.max(buffer * 2, Math.abs(price - stop) * 2);
+    if (bearish && target >= price) target = price - Math.max(buffer * 2, Math.abs(stop - price) * 2);
+    if (!bullish && !bearish) {
+      entry = price;
+      stop = support - buffer;
+      target = resistance;
+    }
+    const risk = Math.abs(entry - stop);
+    const reward = Math.abs(target - entry);
+    return {
+      entry,
+      stop,
+      target,
+      riskReward: risk ? reward / risk : null,
+      buffer,
+      atr
+    };
+  }
+
+  function analyzeCandles(rawSymbol, candles) {
+    const symbol = cleanSymbol(rawSymbol);
+    const recent = candles.slice(-80);
+    const closes = recent.map(c => c.close);
+    const highs = recent.map(c => c.high);
+    const lows = recent.map(c => c.low);
+    const volumes = recent.map(c => c.volume).filter(Number.isFinite);
+    const price = closes[closes.length - 1];
+    const previous = closes[closes.length - 2] || price;
+    const top = Math.max(...highs);
+    const bottom = Math.min(...lows);
+    const sma20 = avg(closes.slice(-20));
+    const sma50 = avg(closes.slice(-50));
+    const rsiValue = rsi(closes);
+    const avgVol = avg(volumes.slice(-50));
+    const lastVol = volumes[volumes.length - 1] || 0;
+    const volRatio = avgVol ? lastVol / avgVol : null;
+    const pivotHighs = recent.slice(2, -2).filter((c, i) => c.high > recent[i + 1].high && c.high > recent[i + 3].high).map(c => c.high);
+    const pivotLows = recent.slice(2, -2).filter((c, i) => c.low < recent[i + 1].low && c.low < recent[i + 3].low).map(c => c.low);
+    const resistance = nearestLevel(pivotHighs.length ? pivotHighs : highs, price, "above") || top;
+    const support = nearestLevel(pivotLows.length ? pivotLows : lows, price, "below") || bottom;
+    const change = ((price - previous) / previous) * 100;
+    const rangePosition = ((price - bottom) / (top - bottom || 1)) * 100;
+
+    let score = 50;
+    const rationale = [];
+    if (sma20 && price > sma20) { score += 10; rationale.push(`Price is above the 20-period average (${fmtPrice(sma20)}), which supports bullish momentum.`); }
+    if (sma20 && price < sma20) { score -= 10; rationale.push(`Price is below the 20-period average (${fmtPrice(sma20)}), which weakens the setup.`); }
+    if (sma50 && price > sma50) { score += 8; rationale.push(`Price is above the 50-period average (${fmtPrice(sma50)}), keeping the broader short-term trend constructive.`); }
+    if (sma50 && price < sma50) { score -= 8; rationale.push(`Price is below the 50-period average (${fmtPrice(sma50)}), so trend confirmation is weaker.`); }
+    if (change > 0.5) { score += 6; rationale.push(`Recent candle change is positive (${change.toFixed(2)}%), showing near-term buying pressure.`); }
+    if (change < -0.5) { score -= 6; rationale.push(`Recent candle change is negative (${change.toFixed(2)}%), showing near-term selling pressure.`); }
+    if (rsiValue !== null && rsiValue >= 55 && rsiValue <= 68) { score += 7; rationale.push(`RSI near ${rsiValue.toFixed(0)} shows momentum without being extremely stretched.`); }
+    if (rsiValue !== null && rsiValue > 72) { score -= 7; rationale.push(`RSI near ${rsiValue.toFixed(0)} is stretched, so chasing is higher risk.`); }
+    if (rsiValue !== null && rsiValue < 35) { score -= 5; rationale.push(`RSI near ${rsiValue.toFixed(0)} shows weakness unless a reversal forms.`); }
+    if (price > (support || bottom) && resistance > price) rationale.push(`Nearest support is ${fmtPrice(support)} and nearest resistance is ${fmtPrice(resistance)}.`);
+    if (volRatio) rationale.push(`Current candle volume is about ${volRatio.toFixed(1)}x the recent average, which ${volRatio >= 1.2 ? "adds conviction to the move" : "means confirmation is lighter than ideal"}.`);
+    rationale.push(`Price sits around ${Math.max(0, Math.min(100, rangePosition)).toFixed(0)}% of the recent candle range from ${fmtPrice(bottom)} to ${fmtPrice(top)}.`);
+
+    const clamped = Math.max(5, Math.min(95, Math.round(score)));
+    const rating = clamped >= 64 ? "BUY" : clamped <= 40 ? "SELL" : "HOLD";
+    const bullish = rating === "BUY";
+    const bearish = rating === "SELL";
+    const levels = tradeLevels({ rating, price, support, resistance, candles: recent });
+    const entryText = bullish
+      ? `Bullish entry idea: look for price to hold above ${fmtPrice(support)} and reclaim/continue through intraday strength before targeting ${fmtPrice(levels.target)}.`
+      : bearish
+        ? `Bearish entry idea: look for rejection below ${fmtPrice(resistance)} and weakness back toward ${fmtPrice(levels.target)} before pressing short.`
+        : `Neutral entry idea: wait for a decisive break above ${fmtPrice(resistance)} or a clean reclaim from ${fmtPrice(support)} instead of forcing a middle-of-range trade.`;
+    const invalidationText = bullish
+      ? `Invalidation: a clean loss of the buffered stop area near ${fmtPrice(levels.stop)} weakens the long setup and should force a reassessment.`
+      : bearish
+        ? `Invalidation: a clean reclaim above the buffered stop area near ${fmtPrice(levels.stop)} weakens the short setup and can trigger a squeeze.`
+        : `Invalidation: chop between ${fmtPrice(support)} and ${fmtPrice(resistance)} means the edge is not clear enough yet.`;
+    const rewardText = `Reward/risk map: entry ${fmtPrice(levels.entry)}, stop ${fmtPrice(levels.stop)}, target ${fmtPrice(levels.target)}, estimated R:R ${levels.riskReward ? levels.riskReward.toFixed(2) + "R" : "--"}. Price is ${pctDistance(price, support)} from support and ${pctDistance(price, resistance)} from resistance.`;
+    const context = marketContextForSymbol(symbol);
+    const catalystList = context.summary;
+
+    return {
+      symbol,
+      name: `Explained rating from recent candle trend, momentum, and levels.`,
+      rating,
+      confidence: clamped,
+      metrics: {
+        price: fmtPrice(price),
+        support: fmtPrice(support),
+        resistance: fmtPrice(resistance),
+        stop: fmtPrice(levels.stop),
+        target: fmtPrice(levels.target),
+        rr: levels.riskReward ? `${levels.riskReward.toFixed(2)}R` : "--",
+        rsi: rsiValue === null ? "--" : rsiValue.toFixed(0),
+        volume: volRatio ? `${volRatio.toFixed(1)}x avg` : "--"
+      },
+      raw: {
+        price,
+        support,
+        resistance,
+        stop: levels.stop,
+        target: levels.target,
+        rr: levels.riskReward,
+        rsi: rsiValue,
+        volume: lastVol
+      },
+      rationale: [
+        ...rationale,
+        entryText,
+        invalidationText,
+        rewardText
+      ],
+      news: catalystList,
+      groundNews: {
+        query: `${symbol} market news`,
+        url: context.feeds.groundNews.url
+      },
+      marketContext: context,
+    };
+  }
+
+  // --- 5A: WebSocket Streaming ---
+  const activeStreams = new Map();
+
+  function streamCryptoPrice(rawSymbol, onUpdate) {
+    const symbol = cleanSymbol(rawSymbol);
+    const pair = cryptoDataMap[symbol];
+    if (!pair) return null;
+    if (activeStreams.has(pair)) { try { activeStreams.get(pair).close(); } catch(e){} }
+    const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${pair.toLowerCase()}@trade`);
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        const price = Number(data.p);
+        if (onUpdate && !isNaN(price)) onUpdate(price);
+      } catch(e) {}
+    };
+    ws.onerror = () => {};
+    activeStreams.set(pair, ws);
+    return ws;
+  }
+
+  let _stockWs = null;
+  const _stockCallbacks = new Map();
+
+  function _ensureStockWs() {
+    if (_stockWs && (_stockWs.readyState === WebSocket.OPEN || _stockWs.readyState === WebSocket.CONNECTING)) return;
+    const proto = location.protocol === "https:" ? "wss:" : "ws:";
+    _stockWs = new WebSocket(`${proto}//${location.host}`);
+    _stockWs.onopen = () => {
+      const syms = [..._stockCallbacks.keys()];
+      if (syms.length) _stockWs.send(JSON.stringify({ action: "subscribe", symbols: syms }));
+    };
+    _stockWs.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        if (msg.type === "stock" && msg.symbol && msg.price != null) {
+          const cb = _stockCallbacks.get(msg.symbol);
+          if (cb) cb(Number(msg.price));
+        }
+      } catch(e) {}
+    };
+    _stockWs.onerror = () => {};
+    _stockWs.onclose = () => {
+      _stockWs = null;
+      if (_stockCallbacks.size > 0) setTimeout(_ensureStockWs, 3000);
+    };
+  }
+
+  function streamStockPrice(rawSymbol, onUpdate) {
+    const symbol = cleanSymbol(rawSymbol);
+    _stockCallbacks.set(symbol, onUpdate);
+    _ensureStockWs();
+    if (_stockWs && _stockWs.readyState === WebSocket.OPEN)
+      _stockWs.send(JSON.stringify({ action: "subscribe", symbols: [symbol] }));
+  }
+
+  function stopStream(rawSymbol) {
+    const symbol = cleanSymbol(rawSymbol);
+    const pair = cryptoDataMap[symbol];
+    if (pair && activeStreams.has(pair)) {
+      try { activeStreams.get(pair).close(); } catch(e) {}
+      activeStreams.delete(pair);
+    }
+    if (_stockCallbacks.has(symbol)) {
+      _stockCallbacks.delete(symbol);
+      if (_stockWs && _stockWs.readyState === WebSocket.OPEN)
+        _stockWs.send(JSON.stringify({ action: "unsubscribe", symbols: [symbol] }));
+      if (_stockCallbacks.size === 0 && _stockWs) {
+        try { _stockWs.close(); } catch(e) {}
+        _stockWs = null;
+      }
+    }
+  }
+
+  window.streamCryptoPrice = streamCryptoPrice;
+  window.streamStockPrice = streamStockPrice;
+  window.stopStream = stopStream;
+const headers = {
+  "access-control-allow-origin": "*",
+  "content-type": "application/json",
+  "cache-control": "no-store"
+};
+
+const IS_LIVE = process.env.ALPACA_IS_LIVE === "true";
+const ALPACA_KEY = IS_LIVE
+  ? (process.env.ALPACA_LIVE_API_KEY_ID || process.env.ALPACA_API_KEY_ID || process.env.APCA_API_KEY_ID || "")
+  : (process.env.ALPACA_API_KEY_ID || process.env.APCA_API_KEY_ID || "");
+const ALPACA_SECRET = IS_LIVE
+  ? (process.env.ALPACA_LIVE_API_SECRET_KEY || process.env.ALPACA_API_SECRET_KEY || process.env.APCA_API_SECRET_KEY || "")
+  : (process.env.ALPACA_API_SECRET_KEY || process.env.APCA_API_SECRET_KEY || "");
+const TRADING_BASE_URL = (process.env.ALPACA_TRADING_BASE_URL || "https://paper-api.alpaca.markets").replace(/\/+$/, "");
+const ALLOWED_TRADING_BASES = new Set([
+  "https://paper-api.alpaca.markets",
+  "https://api.alpaca.markets"
+]);
+
+function json(statusCode, body, extraHeaders = {}) {
+  return {
+    statusCode,
+    headers: { ...headers, ...extraHeaders },
+    body: JSON.stringify(body)
+  };
+}
+
+async function alpacaFetch(path, options = {}) {
+  if (!ALLOWED_TRADING_BASES.has(TRADING_BASE_URL)) {
+    const error = new Error("ALPACA_TRADING_BASE_URL must be https://paper-api.alpaca.markets or https://api.alpaca.markets");
+    error.statusCode = 500;
+    throw error;
+  }
+  if (!ALPACA_KEY || !ALPACA_SECRET) {
+    const error = new Error("Alpaca trading keys are not configured");
+    error.statusCode = 501;
+    throw error;
+  }
+  const response = await fetch(`${TRADING_BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      "accept": "application/json",
+      "content-type": "application/json",
+      "APCA-API-KEY-ID": ALPACA_KEY,
+      "APCA-API-SECRET-KEY": ALPACA_SECRET,
+      ...(options.headers || {})
+    }
+  });
+  const requestId = response.headers.get("x-request-id") || null;
+  const text = await response.text();
+  const body = text ? JSON.parse(text) : {};
+  if (!response.ok) {
+    const error = new Error(body.message || body.error || `Alpaca returned ${response.status}`);
+    error.statusCode = response.status;
+    error.requestId = requestId;
+    error.body = body;
+    throw error;
+  }
+  return { body, requestId };
+}
+
+exports.handler = async event => {
+  if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers };
+  if (event.httpMethod !== "GET") return json(405, { error: "Use GET" });
+
+  try {
+    const { body, requestId } = await alpacaFetch("/v2/account");
+    return json(200, {
+      ok: true,
+      requestId,
+      mode: TRADING_BASE_URL.includes("paper") ? "paper" : "live",
+      endpoint: TRADING_BASE_URL,
+      account: {
+        id: body.id,
+        accountNumber: body.account_number,
+        status: body.status,
+        currency: body.currency,
+        cash: body.cash,
+        buyingPower: body.buying_power,
+        portfolioValue: body.portfolio_value,
+        equity: body.equity,
+        patternDayTrader: body.pattern_day_trader,
+        tradingBlocked: body.trading_blocked,
+        accountBlocked: body.account_blocked,
+        transfersBlocked: body.transfers_blocked
+      }
+    }, requestId ? { "x-alpaca-request-id": requestId } : {});
+  } catch (error) {
+    return json(error.statusCode || 502, {
+      ok: false,
+      error: error.message,
+      requestId: error.requestId || null,
+      detail: error.body || null
+    }, error.requestId ? { "x-alpaca-request-id": error.requestId } : {});
+  }
+};
+const headers = {
+  "access-control-allow-origin": "*",
+  "content-type": "application/json",
+  "cache-control": "no-store"
+};
+
+function json(statusCode, body) {
+  return { statusCode, headers, body: JSON.stringify(body) };
+}
+
+function cleanSymbol(value) {
+  return String(value || "").trim().toUpperCase().replace(/[^A-Z0-9./-]/g, "");
+}
+
+function number(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
+function orderPayload(input) {
+  const symbol = cleanSymbol(input.symbol);
+  const qty = number(input.qty);
+  const notional = number(input.notional);
+  const side = String(input.side || "buy").toLowerCase() === "sell" ? "sell" : "buy";
+  const type = ["market", "limit", "stop", "stop_limit"].includes(String(input.type || "").toLowerCase())
+    ? String(input.type).toLowerCase()
+    : "market";
+  const timeInForce = String(input.time_in_force || input.timeInForce || "day").toLowerCase();
+  const limitPrice = number(input.limit_price ?? input.limitPrice);
+  const stopPrice = number(input.stop_price ?? input.stopPrice);
+  const extendedHours = Boolean(input.extended_hours || input.extendedHours);
+
+  const payload = {
+    symbol,
+    side,
+    type,
+    time_in_force: timeInForce,
+    extended_hours: extendedHours
+  };
+  if (qty) payload.qty = String(qty);
+  if (!qty && notional) payload.notional = String(notional);
+  if (limitPrice) payload.limit_price = String(limitPrice);
+  if (stopPrice) payload.stop_price = String(stopPrice);
+  return payload;
+}
+
+exports.handler = async event => {
+  if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers };
+  if (event.httpMethod !== "POST") return json(405, { error: "Use POST" });
+
+  try {
+    const input = JSON.parse(event.body || "{}");
+    const payload = orderPayload(input);
+    const warnings = [];
+    if (!payload.symbol) warnings.push("Missing symbol.");
+    if (!payload.qty && !payload.notional) warnings.push("Provide quantity or notional.");
+    if (payload.qty && payload.notional) warnings.push("Use quantity or notional, not both.");
+    if (payload.type === "limit" && !payload.limit_price) warnings.push("Limit order needs limit_price.");
+    if ((payload.type === "stop" || payload.type === "stop_limit") && !payload.stop_price) warnings.push("Stop order needs stop_price.");
+    if (payload.extended_hours && payload.type !== "limit") warnings.push("Extended-hours orders usually require limit orders.");
+
+    const previewId = `preview-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    return json(warnings.length ? 422 : 200, {
+      ok: warnings.length === 0,
+      previewId,
+      liveSubmitLocked: true,
+      order: payload,
+      warnings,
+      requiredConfirmation: "I UNDERSTAND THIS PLACES A REAL ORDER",
+      note: "Preview only. Submit endpoint stays locked unless ENABLE_ALPACA_ORDER_SUBMIT=true is configured server-side."
+    });
+  } catch (error) {
+    return json(400, { ok: false, error: error.message || "Invalid preview request" });
+  }
+};
+const headers = {
+  "access-control-allow-origin": "*",
+  "content-type": "application/json",
+  "cache-control": "no-store"
+};
+
+const ALPACA_KEY = process.env.ALPACA_API_KEY_ID || process.env.APCA_API_KEY_ID || "";
+const ALPACA_SECRET = process.env.ALPACA_API_SECRET_KEY || process.env.APCA_API_SECRET_KEY || "";
+const TRADING_BASE_URL = (process.env.ALPACA_TRADING_BASE_URL || "https://paper-api.alpaca.markets").replace(/\/+$/, "");
+const SUBMIT_ENABLED = String(process.env.ENABLE_ALPACA_ORDER_SUBMIT || "false").toLowerCase() === "true";
+const REQUIRED_CONFIRMATION = "I UNDERSTAND THIS PLACES A REAL ORDER";
+const ALLOWED_TRADING_BASES = new Set([
+  "https://paper-api.alpaca.markets",
+  "https://api.alpaca.markets"
+]);
+
+function json(statusCode, body, extraHeaders = {}) {
+  return {
+    statusCode,
+    headers: { ...headers, ...extraHeaders },
+    body: JSON.stringify(body)
+  };
+}
+
+async function submitOrder(order) {
+  if (!ALLOWED_TRADING_BASES.has(TRADING_BASE_URL)) {
+    const error = new Error("ALPACA_TRADING_BASE_URL must be https://paper-api.alpaca.markets or https://api.alpaca.markets");
+    error.statusCode = 500;
+    throw error;
+  }
+  if (!ALPACA_KEY || !ALPACA_SECRET) {
+    const error = new Error("Alpaca trading keys are not configured");
+    error.statusCode = 501;
+    throw error;
+  }
+  const response = await fetch(`${TRADING_BASE_URL}/v2/orders`, {
+    method: "POST",
+    headers: {
+      "accept": "application/json",
+      "content-type": "application/json",
+      "APCA-API-KEY-ID": ALPACA_KEY,
+      "APCA-API-SECRET-KEY": ALPACA_SECRET
+    },
+    body: JSON.stringify(order)
+  });
+  const requestId = response.headers.get("x-request-id") || null;
+  const text = await response.text();
+  const body = text ? JSON.parse(text) : {};
+  if (!response.ok) {
+    const error = new Error(body.message || body.error || `Alpaca returned ${response.status}`);
+    error.statusCode = response.status;
+    error.requestId = requestId;
+    error.body = body;
+    throw error;
+  }
+  return { body, requestId };
+}
+
+exports.handler = async event => {
+  if (event.httpMethod === "OPTIONS") return { statusCode: 204, headers };
+  if (event.httpMethod !== "POST") return json(405, { error: "Use POST" });
+
+  try {
+    const input = JSON.parse(event.body || "{}");
+    if (!SUBMIT_ENABLED) {
+      return json(423, {
+        ok: false,
+        locked: true,
+        error: "Order submit is disabled. Set ENABLE_ALPACA_ORDER_SUBMIT=true only after auth, preview, audit logging, and final confirmation are ready."
+      });
+    }
+    if (input.confirmation !== REQUIRED_CONFIRMATION) {
+      return json(400, {
+        ok: false,
+        error: `Final confirmation must exactly equal: ${REQUIRED_CONFIRMATION}`
+      });
+    }
+    if (!input.previewId) {
+      return json(400, { ok: false, error: "Missing previewId from a fresh order preview." });
+    }
+    const { body, requestId } = await submitOrder(input.order || {});
+    return json(200, {
+      ok: true,
+      requestId,
+      endpoint: TRADING_BASE_URL,
+      mode: TRADING_BASE_URL.includes("paper") ? "paper" : "live",
+      order: body
+    }, requestId ? { "x-alpaca-request-id": requestId } : {});
+  } catch (error) {
+    return json(error.statusCode || 502, {
+      ok: false,
+      error: error.message,
+      requestId: error.requestId || null,
+      detail: error.body || null
+    }, error.requestId ? { "x-alpaca-request-id": error.requestId } : {});
+  }
+};
+const CRYPTO_ALIASES = {
+  BTC: "BTC-USD",
+  BITCOIN: "BTC-USD",
+  ETH: "ETH-USD",
+  ETHEREUM: "ETH-USD",
+  SOL: "SOL-USD",
+  SOLANA: "SOL-USD",
+  XRP: "XRP-USD",
+  DOGE: "DOGE-USD",
+  DOGECOIN: "DOGE-USD",
+  ADA: "ADA-USD",
+  CARDANO: "ADA-USD",
+  BNB: "BNB-USD",
+  AVAX: "AVAX-USD",
+  LINK: "LINK-USD",
+  SUI: "SUI-USD",
+  PEPE: "PEPE-USD",
+  SHIB: "SHIB-USD",
+  LTC: "LTC-USD",
+  BCH: "BCH-USD",
+  DOT: "DOT-USD",
+  MATIC: "MATIC-USD",
+  POL: "POL-USD"
+};
+
+const headers = {
+  "access-control-allow-origin": "*",
+  "content-type": "application/json",
+  "cache-control": "public, max-age=30"
+};
+
+const ALPACA_KEY = process.env.ALPACA_API_KEY_ID || process.env.APCA_API_KEY_ID || "";
+const ALPACA_SECRET = process.env.ALPACA_API_SECRET_KEY || process.env.APCA_API_SECRET_KEY || "";
+const ALPACA_DATA_BASE_URL = (process.env.ALPACA_DATA_BASE_URL || "https://data.alpaca.markets").replace(/\/+$/, "");
+const ALPACA_STOCK_FEED = process.env.ALPACA_STOCK_FEED || process.env.ALPACA_DATA_FEED || "iex";
+const ALPACA_CRYPTO_LOC = process.env.ALPACA_CRYPTO_LOC || "us";
+
+function normalizeSymbol(input) {
+  const clean = String(input || "").trim().toUpperCase().replace(/[^A-Z0-9.-]/g, "");
+  return CRYPTO_ALIASES[clean] || clean;
+}
+
+async function getJson(url) {
+  const response = await fetch(url, {
+    headers: {
+      "accept": "application/json,text/plain,*/*",
+      "user-agent": "Mozilla/5.0 DayTraderOS/1.0"
+    }
+  });
+  if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+  return response.json();
+}
+
+async function getText(url) {
+  const response = await fetch(url, {
+    headers: {
+      "accept": "text/plain,*/*",
+      "user-agent": "Mozilla/5.0 DayTraderOS/1.0"
+    }
+  });
+  if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+  return response.text();
+}
+
+async function getAlpacaJson(url) {
+  if (!ALPACA_KEY || !ALPACA_SECRET) throw new Error("Alpaca keys are not configured");
+  const response = await fetch(url, {
+    headers: {
+      "accept": "application/json",
+      "APCA-API-KEY-ID": ALPACA_KEY,
+      "APCA-API-SECRET-KEY": ALPACA_SECRET
+    }
+  });
+  if (!response.ok) {
+    const detail = await response.text().catch(() => "");
+    throw new Error(`Alpaca request failed: ${response.status}${detail ? ` ${detail.slice(0, 160)}` : ""}`);
+  }
+  return response.json();
+}
+
+async function resolveSymbol(query) {
+  const normalized = normalizeSymbol(query);
+  if (!normalized) return "";
+  if (normalized.includes("-USD") || normalized.length <= 5) return normalized;
+
+  const searchUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=6&newsCount=0`;
+  const data = await getJson(searchUrl);
+  const quote = (data.quotes || []).find(item => item.symbol && item.quoteType);
+  return quote ? quote.symbol : normalized;
+}
+
+function isCryptoSymbol(symbol) {
+  const clean = String(symbol || "").toUpperCase();
+  return Boolean(CRYPTO_ALIASES[clean] || clean.endsWith("-USD") || clean.endsWith("/USD"));
+}
+
+function toAlpacaCryptoSymbol(symbol) {
+  const normalized = normalizeSymbol(symbol).replace("-USD", "/USD");
+  if (normalized.includes("/")) return normalized;
+  return `${normalized}/USD`;
+}
+
+function fromAlpacaBars(rows = []) {
+  return rows.map(row => ({
+    time: row.t || null,
+    open: Number(row.o),
+    high: Number(row.h),
+    low: Number(row.l),
+    close: Number(row.c),
+    volume: Number(row.v)
+  })).filter(candle =>
+    Number.isFinite(candle.close) &&
+    Number.isFinite(candle.high) &&
+    Number.isFinite(candle.low)
+  );
+}
+
+async function fetchAlpacaCandles(symbol) {
+  if (!ALPACA_KEY || !ALPACA_SECRET) return null;
+  const start = new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString();
+  if (isCryptoSymbol(symbol)) {
+    const alpacaSymbol = toAlpacaCryptoSymbol(symbol);
+    const url = `${ALPACA_DATA_BASE_URL}/v1beta3/crypto/${encodeURIComponent(ALPACA_CRYPTO_LOC)}/bars?symbols=${encodeURIComponent(alpacaSymbol)}&timeframe=1Hour&start=${encodeURIComponent(start)}&limit=180&sort=asc`;
+    const data = await getAlpacaJson(url);
+    const candles = fromAlpacaBars(data?.bars?.[alpacaSymbol] || []);
+    return candles.length ? { candles, source: `Alpaca crypto bars (${ALPACA_CRYPTO_LOC})`, endpoint: ALPACA_DATA_BASE_URL } : null;
+  }
+  const stockSymbol = String(symbol || "").toUpperCase().replace(/[^A-Z0-9.-]/g, "");
+  const url = `${ALPACA_DATA_BASE_URL}/v2/stocks/bars?symbols=${encodeURIComponent(stockSymbol)}&timeframe=1Hour&start=${encodeURIComponent(start)}&limit=180&adjustment=raw&feed=${encodeURIComponent(ALPACA_STOCK_FEED)}`;
+  const data = await getAlpacaJson(url);
+  const candles = fromAlpacaBars(data?.bars?.[stockSymbol] || []);
+  return candles.length ? { candles, source: `Alpaca stock bars (${ALPACA_STOCK_FEED})`, endpoint: ALPACA_DATA_BASE_URL } : null;
+}
+
+function addScore(parts, points, text) {
+  parts.score += points;
+  parts.rationale.push(text);
+}
+
+function compactProvider(url = "") {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, "");
+    const provider = host.split(".")[0] || "news";
+    return provider.charAt(0).toUpperCase() + provider.slice(1);
+  } catch (error) {
+    return "News";
+  }
+}
+
+function newsItems(news = []) {
+  return news.slice(0, 5).map(item => {
+    const url = item.link || item.url || "";
+    return {
+      title: item.title || "",
+      publisher: item.publisher || compactProvider(url),
+      url,
+      publishedAt: item.providerPublishTime ? new Date(item.providerPublishTime * 1000).toISOString() : null,
+      type: item.type || "news"
+    };
+  }).filter(item => item.title);
+}
+
+function buildMarketContext(quote, news = []) {
+  const symbol = quote.symbol || "";
+  const name = quote.longName || quote.shortName || quote.displayName || symbol;
+  const headlines = newsItems(news);
+  const groundQuery = `${name} ${symbol} market news`;
+  const companyQuery = `${name} ${symbol}`;
+  const earningsQuery = `${symbol} earnings calendar`;
+  const secQuery = `${symbol} filings`;
+  const sectorQuery = `${symbol} sector ETF peers relative strength`;
+  const macroQuery = `${symbol} macro rates dollar yields market impact`;
+
+  return {
+    summary: [
+      headlines.length
+        ? `Fresh headline stack found ${headlines.length} Yahoo Finance-linked item${headlines.length === 1 ? "" : "s"} for ${symbol}.`
+        : `No fresh Yahoo Finance headlines returned for ${symbol}; use the linked checks before treating the setup as confirmed.`,
+      `Market state: ${quote.marketState || "unknown"}; exchange/source: ${quote.fullExchangeName || quote.exchange || "market feed"}.`,
+      "Confirm whether today's move is company-specific, sector-driven, macro-driven, or crypto-liquidity driven before sizing risk."
+    ],
+    feeds: {
+      headlines,
+      earnings: {
+        label: "Earnings calendar",
+        query: earningsQuery,
+        url: `https://finance.yahoo.com/calendar/earnings?symbol=${encodeURIComponent(symbol)}`
+      },
+      sec: {
+        label: "SEC/company releases",
+        query: secQuery,
+        url: `https://www.sec.gov/edgar/search/#/q=${encodeURIComponent(symbol)}`
+      },
+      macro: {
+        label: "Macro calendar",
+        query: macroQuery,
+        url: "https://www.marketwatch.com/economy-politics/calendar"
+      },
+      sector: {
+        label: "Sector / beta check",
+        query: sectorQuery,
+        url: `https://finance.yahoo.com/quote/${encodeURIComponent(symbol)}/comparison/`
+      },
+      groundNews: {
+        label: "Ground News source balance",
+        query: groundQuery,
+        url: `https://ground.news/search?q=${encodeURIComponent(groundQuery)}`
+      },
+      cnbc: {
+        label: "CNBC ticker/news search",
+        query: companyQuery,
+        url: `https://www.cnbc.com/search/?query=${encodeURIComponent(companyQuery)}`
+      },
+      yahoo: {
+        label: "Yahoo Finance quote/news",
+        query: companyQuery,
+        url: `https://finance.yahoo.com/quote/${encodeURIComponent(symbol)}`
+      }
+    }
+  };
+}
+
+function parseChartCandles(chart) {
+  const result = chart?.chart?.result?.[0];
+  const quote = result?.indicators?.quote?.[0];
+  if (!quote?.close?.length) return [];
+  return quote.close.map((close, index) => ({
+    time: result.timestamp?.[index] || null,
+    open: Number(quote.open?.[index]),
+    high: Number(quote.high?.[index]),
+    low: Number(quote.low?.[index]),
+    close: Number(close),
+    volume: Number(quote.volume?.[index])
+  })).filter(candle =>
+    Number.isFinite(candle.close) &&
+    Number.isFinite(candle.high) &&
+    Number.isFinite(candle.low)
+  );
+}
+
+function parseStooqCandles(csv) {
+  const lines = String(csv || "").trim().split(/\r?\n/).filter(Boolean);
+  if (lines.length < 5 || !/^date,/i.test(lines[0])) return [];
+  return lines.slice(1).map(line => {
+    const [date, open, high, low, close, volume] = line.split(",");
+    return {
+      time: Math.floor(new Date(`${date}T16:00:00-05:00`).getTime() / 1000),
+      open: Number(open),
+      high: Number(high),
+      low: Number(low),
+      close: Number(close),
+      volume: Number(volume)
+    };
+  }).filter(candle =>
+    Number.isFinite(candle.close) &&
+    Number.isFinite(candle.high) &&
+    Number.isFinite(candle.low)
+  );
+}
+
+async function fetchStooqCandles(symbol) {
+  if (isCryptoSymbol(symbol)) return null;
+  const clean = String(symbol || "").toLowerCase().replace(/[^a-z0-9.-]/g, "");
+  if (!clean) return null;
+  const url = `https://stooq.com/q/d/l/?s=${encodeURIComponent(clean)}.us&i=d`;
+  const candles = parseStooqCandles(await getText(url)).slice(-180);
+  return candles.length ? {
+    candles,
+    source: "Stooq delayed daily candles",
+    delayed: true
+  } : null;
+}
+
+function quoteFromCandles(symbol, candleData) {
+  const candles = candleData?.candles || [];
+  const last = candles[candles.length - 1];
+  const previous = candles[candles.length - 2];
+  const price = Number(last?.close);
+  const prior = Number(previous?.close);
+  const changePercent = Number.isFinite(price) && Number.isFinite(prior) && prior
+    ? ((price - prior) / prior) * 100
+    : 0;
+  const highs = candles.map(candle => Number(candle.high)).filter(Number.isFinite);
+  const lows = candles.map(candle => Number(candle.low)).filter(Number.isFinite);
+  return {
+    symbol,
+    shortName: symbol,
+    longName: `${symbol} market data`,
+    regularMarketPrice: price,
+    regularMarketChangePercent: changePercent,
+    regularMarketVolume: Number(last?.volume || 0),
+    averageDailyVolume3Month: candles.length
+      ? candles.reduce((sum, candle) => sum + Number(candle.volume || 0), 0) / candles.length
+      : 0,
+    regularMarketDayHigh: Number(last?.high),
+    regularMarketDayLow: Number(last?.low),
+    regularMarketPreviousClose: prior,
+    fiftyTwoWeekHigh: highs.length ? Math.max(...highs) : 0,
+    fiftyTwoWeekLow: lows.length ? Math.min(...lows) : 0,
+    marketState: candleData?.delayed ? "DELAYED" : "LIVE",
+    fullExchangeName: isCryptoSymbol(symbol) ? "Crypto" : "US Equity"
+  };
+}
+
+function buildSignal(quote, chart, news) {
+  const price = Number(quote.regularMarketPrice || quote.postMarketPrice || quote.preMarketPrice || quote.bid);
+  const changePercent = Number(quote.regularMarketChangePercent || quote.postMarketChangePercent || quote.preMarketChangePercent || 0);
+  const volume = Number(quote.regularMarketVolume || 0);
+  const avgVolume = Number(quote.averageDailyVolume3Month || quote.averageDailyVolume10Day || 0);
+  const high52 = Number(quote.fiftyTwoWeekHigh || 0);
+  const low52 = Number(quote.fiftyTwoWeekLow || 0);
+  const dayHigh = Number(quote.regularMarketDayHigh || 0);
+  const dayLow = Number(quote.regularMarketDayLow || 0);
+  const previousClose = Number(quote.regularMarketPreviousClose || 0);
+  const parts = { score: 50, rationale: [] };
+
+  if (changePercent >= 2) addScore(parts, 13, "Strong positive intraday momentum.");
+  else if (changePercent >= 0.5) addScore(parts, 7, "Price is holding positive momentum.");
+  else if (changePercent <= -2) addScore(parts, -13, "Sharp negative intraday momentum.");
+  else if (changePercent <= -0.5) addScore(parts, -7, "Price is trading with negative momentum.");
+  else parts.rationale.push("Price change is muted, so the signal leans more on context than momentum.");
+
+  if (avgVolume && volume) {
+    const relVolume = volume / avgVolume;
+    if (relVolume >= 1.5) addScore(parts, 8, "Volume is meaningfully above its recent average.");
+    else if (relVolume <= 0.45) addScore(parts, -5, "Volume is light compared with its recent average.");
+    else parts.rationale.push("Volume is near normal range.");
+  }
+
+  if (high52 && low52 && price) {
+    const rangePos = (price - low52) / Math.max(high52 - low52, 1);
+    if (rangePos >= 0.82) addScore(parts, 6, "Price is near the upper end of its 52-week range.");
+    else if (rangePos <= 0.18) addScore(parts, -6, "Price is near the lower end of its 52-week range.");
+  }
+
+  if (dayHigh && dayLow && price) {
+    const intradayPos = (price - dayLow) / Math.max(dayHigh - dayLow, 0.01);
+    if (intradayPos >= 0.72) addScore(parts, 5, "Current price is near the high of the session.");
+    else if (intradayPos <= 0.28) addScore(parts, -5, "Current price is near the low of the session.");
+  }
+
+  const closes = chart?.chart?.result?.[0]?.indicators?.quote?.[0]?.close?.filter(Number.isFinite) || [];
+  if (closes.length >= 8) {
+    const recent = closes.slice(-1)[0];
+    const prior = closes.slice(-8)[0];
+    const move = ((recent - prior) / prior) * 100;
+    if (move >= 1.5) addScore(parts, 6, "Recent chart slope is positive.");
+    else if (move <= -1.5) addScore(parts, -6, "Recent chart slope is negative.");
+  }
+
+  if (previousClose && price && price > previousClose) {
+    parts.rationale.push("Price is above the previous close.");
+  } else if (previousClose && price && price < previousClose) {
+    parts.rationale.push("Price is below the previous close.");
+  }
+
+  const confidence = Math.max(5, Math.min(95, Math.round(parts.score)));
+  const rating = confidence >= 63 ? "BUY" : confidence <= 38 ? "SELL" : "HOLD";
+  const context = buildMarketContext(quote, news);
+  const headlines = context.feeds.headlines.map(item => `${item.publisher}: ${item.title}`);
+  const groundQuery = `${quote.longName || quote.shortName || quote.symbol} ${quote.symbol} market news`;
+  const candles = parseChartCandles(chart);
+
+  return {
+    symbol: quote.symbol,
+    name: quote.longName || quote.shortName || quote.displayName || quote.symbol,
+    rating,
+    confidence,
+    price: Number.isFinite(price) ? price.toFixed(price > 1000 ? 2 : 4).replace(/\.?0+$/, "") : null,
+    changePercent: Number.isFinite(changePercent) ? changePercent : null,
+    volume: Number.isFinite(volume) ? volume : null,
+    marketState: quote.marketState || null,
+    exchange: quote.fullExchangeName || quote.exchange || null,
+    rationale: parts.rationale.slice(0, 5),
+    news: headlines.length ? headlines : context.summary,
+    marketContext: context,
+    groundNews: {
+      provider: "Ground News",
+      query: groundQuery,
+      url: context.feeds.groundNews.url,
+      note: "Use Ground News search for center-weighted coverage and bias comparison. Ground News does not provide a public API for embedding center-only results directly."
+    },
+    candles,
+    candleSource: candles.length ? "Vercel Yahoo candle proxy" : null,
+    feedDelayed: false,
+    source: "Yahoo Finance public quote/news feeds",
+    asOf: new Date().toISOString()
+  };
+}
+
+exports.handler = async event => {
+  if (event.httpMethod === "OPTIONS") {
+    return { statusCode: 204, headers };
+  }
+
+  try {
+    const requested = event.queryStringParameters?.symbol;
+    const symbol = await resolveSymbol(requested);
+    if (!symbol) {
+      return {
+        statusCode: 400,
+        headers,
+        body: JSON.stringify({ error: "Missing symbol" })
+      };
+    }
+
+    const quoteUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${encodeURIComponent(symbol)}`;
+    const chartUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=5d&interval=30m`;
+    const newsUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(symbol)}&quotesCount=0&newsCount=5`;
+
+    const [quoteData, chartData, newsData, alpacaData, stooqData] = await Promise.all([
+      getJson(quoteUrl).catch(() => null),
+      getJson(chartUrl).catch(() => null),
+      getJson(newsUrl).catch(() => ({ news: [] })),
+      fetchAlpacaCandles(symbol).catch(() => null),
+      fetchStooqCandles(symbol).catch(() => null)
+    ]);
+
+    const yahooCandles = parseChartCandles(chartData);
+    const candleData = alpacaData?.candles?.length
+      ? alpacaData
+      : yahooCandles.length
+        ? { candles: yahooCandles, source: "Vercel Yahoo candle proxy", delayed: false }
+        : stooqData?.candles?.length
+          ? stooqData
+          : null;
+
+    const quote = quoteData?.quoteResponse?.result?.[0] || (candleData ? quoteFromCandles(symbol, candleData) : null);
+    if (!quote) {
+      return {
+        statusCode: 404,
+        headers,
+        body: JSON.stringify({ error: "Symbol not found", symbol })
+      };
+    }
+
+    const signal = buildSignal(quote, chartData, newsData.news || []);
+    if (candleData?.candles?.length) {
+      signal.candles = candleData.candles;
+      signal.candleSource = candleData.source;
+      signal.feedDelayed = Boolean(candleData.delayed);
+      signal.source = `${signal.source} + ${candleData.source}`;
+      if (candleData.endpoint) signal.alpacaEndpoint = candleData.endpoint;
+    }
+
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify(signal)
+    };
+  } catch (error) {
+    return {
+      statusCode: 502,
+      headers,
+      body: JSON.stringify({
+        error: "Live analysis temporarily unavailable",
+        detail: error.message
+      })
+    };
+  }
+};
+exports.handler = async () => ({
+  statusCode: 200,
+  headers: {
+    "content-type": "application/json",
+    "cache-control": "no-store"
+  },
+  body: JSON.stringify({
+    ok: true,
+    service: "Day Trader OS live functions",
+    siteMode: process.env.DTO_SITE_MODE || "paper",
+    now: new Date().toISOString()
+  })
+});
+const headers = {
+  "access-control-allow-origin": "*",
+  "content-type": "application/json",
+  "cache-control": "no-store"
+};
+
+function hasValue(value) {
+  return Boolean(String(value || "").trim());
+}
+
+exports.handler = async () => {
+  const hasAlpacaKeys =
+    hasValue(process.env.ALPACA_API_KEY_ID || process.env.APCA_API_KEY_ID) &&
+    hasValue(process.env.ALPACA_API_SECRET_KEY || process.env.APCA_API_SECRET_KEY);
+  const tradingBaseUrl = (process.env.ALPACA_TRADING_BASE_URL || "https://paper-api.alpaca.markets").replace(/\/+$/, "");
+  const marketDataBaseUrl = (process.env.ALPACA_DATA_BASE_URL || "https://data.alpaca.markets").replace(/\/+$/, "");
+  const orderSubmitEnabled = String(process.env.ENABLE_ALPACA_ORDER_SUBMIT || "false").toLowerCase() === "true";
+
+  return {
+    statusCode: 200,
+    headers,
+    body: JSON.stringify({
+      ok: true,
+      publicServer: true,
+      generatedAt: new Date().toISOString(),
+      routes: {
+        home: "/",
+        health: "/api/health",
+        siteStatus: "/api/site-status",
+        analyze: "/api/analyze?symbol=AAPL",
+        orderPreview: "/api/alpaca-order-preview",
+        brokerPlan: "/broker_execution_plan"
+      },
+      alpaca: {
+        marketDataConfigured: hasAlpacaKeys,
+        marketDataBaseUrl,
+        tradingBaseUrl,
+        mode: tradingBaseUrl.includes("paper") ? "paper" : "live",
+        orderSubmitEnabled,
+        expectedEndpoints: {
+          liveTrading: "https://api.alpaca.markets",
+          paperTrading: "https://paper-api.alpaca.markets",
+          marketData: "https://data.alpaca.markets"
+        }
+      },
+      notes: [
+        "Market data can be served through /api/analyze so keys stay private on Vercel.",
+        "Live order submit should stay disabled until auth, preview, buying-power checks, request-id logging, and final confirmation are complete.",
+        "If /api/analyze returns data, public visitors can use the hosted feed without their browser calling Yahoo or Alpaca directly."
+      ]
+    }, null, 2)
+  };
+};

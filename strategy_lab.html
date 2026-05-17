@@ -1,7 +1,35 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Strategy Lab - Day Trader OS</title><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="assets/daytrader-os.css?v=20260504-vercel1"><style>*{box-sizing:border-box}body{margin:0;background:#05070c;color:#d8e2ef;font-family:JetBrains Mono,monospace;padding:86px 28px 110px}main{max-width:1120px;margin:auto}.kicker{color:#00d7ff;font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}h1{font-family:Barlow Condensed,sans-serif;font-size:clamp(52px,9vw,112px);line-height:.85;margin:10px 0 24px;color:#fff;text-transform:uppercase}.panel{border:1px solid #223047;border-radius:10px;background:#0c111a;padding:22px;margin-top:18px}.lab-form{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.field{display:flex;flex-direction:column;gap:8px}.field.wide{grid-column:span 2}.field label{color:#8190a8;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.field input,.field select,.field textarea{width:100%;min-height:48px;border:1px solid rgba(127,141,163,.3);border-radius:7px;background:#070c14;color:#f4f8ff;font:600 14px/1.4 JetBrains Mono,monospace;padding:12px;outline:none}.field textarea{min-height:132px;resize:vertical}.field input:focus,.field select:focus,.field textarea:focus{border-color:#00d7ff;box-shadow:0 0 0 3px rgba(0,215,255,.09)}.primary{grid-column:1/-1;min-height:48px;border:0;border-radius:7px;background:#00e08a;color:#03110a;cursor:pointer;font:900 12px/1 JetBrains Mono,monospace;letter-spacing:.08em;padding:12px;text-transform:uppercase}@media(max-width:850px){.lab-form{grid-template-columns:1fr}.field.wide{grid-column:auto}body{padding-inline:16px}}</style></head><body><a class="dto-home-link" href="index.html"><span class="dto-home-mark" aria-hidden="true">&larr;</span><span>Return Home</span></a><main><div class="kicker">Rules / Checklist / Replay</div><h1>Strategy Lab</h1><section class="panel"><form class="lab-form" id="labForm"><div class="field"><label for="name">Name</label><input id="name" placeholder="Opening range breakout"></div><div class="field"><label for="side">Allowed Direction</label><select id="side"><option>Both</option><option>Long only</option><option>Short only</option></select></div><div class="field"><label for="minRr">Minimum R:R</label><input id="minRr" type="number" step="0.1" value="2"></div><div class="field"><label for="timeframe">Timeframe</label><input id="timeframe" value="5m / 15m"></div><div class="field wide"><label for="entryRules">Entry Rules</label><textarea id="entryRules" rows="4"></textarea></div><div class="field wide"><label for="exitRules">Invalidation / Exit Rules</label><textarea id="exitRules" rows="4"></textarea></div><button class="primary">Save Strategy Rules</button></form></section><section class="panel" id="strategyList"></section></main><script src="assets/daytrader-os.js?v=20260504-vercel1"></script><script>
-function strategies(){return DTO.readJson("dtoStrategies",[])}
-function render(){const setup=DTO.getSetup();document.getElementById("strategyList").innerHTML=`<div class="dto-panel-kicker">Saved Strategies</div>${strategies().map(s=>`<div class="dto-list-row"><strong>${DTO.escapeHtml(s.name)}</strong><span>${DTO.escapeHtml(s.side)} / min ${s.minRr}R / ${DTO.escapeHtml(s.timeframe)}</span></div>`).join("")||"<p>No strategies saved yet.</p>"}<div class="dto-action-row"><a href="${setup?DTO.workflowUrl("backtest_simulator.html",setup):"backtest_simulator.html"}">Replay In Backtest</a><a href="pattern_library.html">Open Pattern Library</a></div>`;}
-document.getElementById("labForm").addEventListener("submit",e=>{e.preventDefault();const s={name:name.value,side:side.value,minRr:minRr.value,timeframe:timeframe.value,entryRules:entryRules.value,exitRules:exitRules.value,createdAt:new Date().toISOString()};DTO.writeJson("dtoStrategies",[s,...strategies()].slice(0,30));render();});render();
-</script></body></html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Strategy Lab | Redirect</title>
+  <meta name="description" content="Patterns, notes, and planning references now live in the Plan hub.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/app.css?v=20260516">
+</head>
+<body class="app-shell page-redirect" data-dto-shell="modern" data-page-id="redirect">
+  
+  <main class="page-shell">
+    <section class="legacy-redirect">
+  <article class="surface redirect-card stack">
+    <span class="eyebrow">Moved</span>
+    <h1>Strategy Lab moved into Plan.</h1>
+    <p class="lead">Patterns, notes, and planning references now live in the Plan hub.</p>
+    <div class="button-row" style="justify-content:center">
+      <a class="primary-btn" href="trade_planner.html#patterns">Open current page</a>
+      <a class="secondary-btn" href="index.html">Go home</a>
+    </div>
+    <p class="footer-note">Redirecting now. Query parameters will be preserved.</p>
+  </article>
+</section>
 
+    
+  </main>
+  
+  <script>window.__redirectTarget = "trade_planner.html#patterns";</script>
+<script src="assets/scripts/redirect.js" defer></script>
+</body>
+</html>

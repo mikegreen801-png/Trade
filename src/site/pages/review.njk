@@ -1,0 +1,99 @@
+<section class="page-hero">
+  <div class="hero-block">
+    <span class="eyebrow">Review</span>
+    <h1>Make review easy enough to keep doing.</h1>
+    <p class="lead">Log the trade, tag the mistake, and set tomorrow’s rule without opening three separate pages.</p>
+    <div class="button-row">
+      <button class="primary-btn" id="reviewLoadSetup" type="button">Load active setup</button>
+      <a class="secondary-btn" href="trade_planner.html">Back to Plan</a>
+    </div>
+  </div>
+  <aside class="hero-aside stack">
+    <div class="metric-card">
+      <span>Reviewed trades</span>
+      <strong id="reviewTradeCount">0</strong>
+      <small>Stored in this browser.</small>
+    </div>
+    <div class="metric-card">
+      <span>Net P&amp;L</span>
+      <strong id="reviewNetPnl">$0.00</strong>
+      <small>Closed results in Review.</small>
+    </div>
+    <div class="metric-card">
+      <span>Avg discipline</span>
+      <strong id="reviewDiscipline">--</strong>
+      <small>From reviewed trades only.</small>
+    </div>
+  </aside>
+</section>
+
+<section class="review-grid">
+  <article id="journal" class="surface section-anchor stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Journal</span>
+        <h2>Log the trade</h2>
+      </div>
+    </div>
+    <form class="field-grid" id="reviewForm">
+      <div class="field"><label for="reviewSymbol">Symbol</label><input id="reviewSymbol" value="AAPL"></div>
+      <div class="field"><label for="reviewSide">Side</label><select id="reviewSide"><option value="long">Long</option><option value="short">Short</option></select></div>
+      <div class="field"><label for="reviewQty">Qty</label><input id="reviewQty" type="number" step="0.000001" value="1"></div>
+      <div class="field"><label for="reviewSetup">Setup</label><select id="reviewSetup"><option>Breakout</option><option>Pullback</option><option>VWAP</option><option>Reversal</option><option>Other</option></select></div>
+      <div class="field"><label for="reviewEntry">Entry</label><input id="reviewEntry" type="number" step="0.0001"></div>
+      <div class="field"><label for="reviewExit">Exit</label><input id="reviewExit" type="number" step="0.0001"></div>
+      <div class="field"><label for="reviewDisciplineInput">Discipline</label><input id="reviewDisciplineInput" type="number" min="1" max="10" value="7"></div>
+      <div class="field"><label for="reviewMistake">Mistake</label><select id="reviewMistake"><option>None</option><option>Chased</option><option>Oversized</option><option>No stop</option><option>Ignored plan</option><option>Exited early</option><option>Revenge trade</option></select></div>
+      <div class="field full"><label for="reviewNotes">What happened?</label><textarea id="reviewNotes"></textarea></div>
+      <div class="field full button-row">
+        <button class="primary-btn" type="submit">Save review</button>
+      </div>
+    </form>
+  </article>
+
+  <article id="performance" class="surface section-anchor stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Performance</span>
+        <h2>What the recent sample says</h2>
+      </div>
+    </div>
+    <div class="metric-grid">
+      <div class="metric-card"><span>Win rate</span><strong id="reviewWinRate">--</strong><small>Recent review sample</small></div>
+      <div class="metric-card"><span>Top mistake</span><strong id="reviewTopMistake">--</strong><small>Most repeated tag</small></div>
+      <div class="metric-card"><span>Last symbol</span><strong id="reviewLastSymbol">--</strong><small>Most recent logged trade</small></div>
+      <div class="metric-card"><span>Next focus</span><strong id="reviewNextFocus">--</strong><small>Simple coaching note</small></div>
+    </div>
+    <div id="reviewCoachNote" class="analysis-note">Log a few trades to surface patterns.</div>
+  </article>
+</section>
+
+<section class="module-grid two-col">
+  <article id="lessons" class="surface section-anchor stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Lessons</span>
+        <h2>Recent trade memory</h2>
+      </div>
+    </div>
+    <div id="reviewList" class="lesson-grid empty-state">No reviewed trades yet.</div>
+  </article>
+
+  <article id="rules" class="surface section-anchor stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Rules</span>
+        <h2>Tomorrow’s guardrail</h2>
+      </div>
+    </div>
+    <form class="field-grid" id="ruleForm">
+      <div class="field"><label for="ruleMaxLoss">Max loss</label><input id="ruleMaxLoss" type="number" value="300"></div>
+      <div class="field"><label for="ruleEmotion">State</label><select id="ruleEmotion"><option>Calm</option><option>Focused</option><option>Tired</option><option>FOMO</option><option>Revenge-risk</option></select></div>
+      <div class="field two"><label for="ruleText">Rule</label><input id="ruleText" type="text" placeholder="Example: no trades under 2R."></div>
+      <div class="field full button-row">
+        <button class="primary-btn" type="submit">Save rule</button>
+      </div>
+    </form>
+    <div id="ruleList" class="simple-list empty-state">No daily rule saved yet.</div>
+  </article>
+</section>

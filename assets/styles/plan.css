@@ -1,0 +1,28 @@
+.preset-grid,
+.pattern-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.preset-card,
+.pattern-card {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--surface-soft);
+}
+
+.preset-card p,
+.pattern-card p {
+  margin: 10px 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+@media (max-width: 980px) {
+  .preset-grid,
+  .pattern-grid {
+    grid-template-columns: 1fr;
+  }
+}

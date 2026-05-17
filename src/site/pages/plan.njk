@@ -1,0 +1,116 @@
+<section class="page-hero">
+  <div class="hero-block">
+    <span class="eyebrow">Plan</span>
+    <h1>Build the trade before you touch the ticket.</h1>
+    <p class="lead">Save the setup, grade the idea, and keep the risk logic visible before anything becomes an order.</p>
+    <div class="button-row">
+      <button class="primary-btn" id="planLoadSetup" type="button">Load active setup</button>
+      <a class="secondary-btn" href="execution_workbench.html#paper">Jump to Execute</a>
+    </div>
+  </div>
+  <aside class="hero-aside stack">
+    <div class="metric-card">
+      <span>Saved setups</span>
+      <strong id="planSavedCount">0</strong>
+      <small>Stored locally in this browser.</small>
+    </div>
+    <div class="metric-card">
+      <span>Current grade</span>
+      <strong id="planGradeBadge">--</strong>
+      <small id="planGradeSummary">Save or load a setup to grade it.</small>
+    </div>
+  </aside>
+</section>
+
+<section id="builder" class="surface section-anchor stack">
+  <div class="section-header">
+    <div>
+      <span class="eyebrow">Builder</span>
+      <h2>Setup packet</h2>
+    </div>
+  </div>
+  <form class="field-grid" id="planSetupForm">
+    <div class="field"><label for="symbol">Symbol</label><input id="symbol" value="AAPL"></div>
+    <div class="field"><label for="assetType">Asset</label><select id="assetType"><option value="stock">Stock</option><option value="crypto">Crypto</option></select></div>
+    <div class="field"><label for="side">Side</label><select id="side"><option value="long">Long</option><option value="short">Short</option></select></div>
+    <div class="field"><label for="timeframe">Timeframe</label><select id="timeframe"><option value="intraday">Intraday</option><option value="swing">Swing</option><option value="scalp">Scalp</option></select></div>
+    <div class="field"><label for="entry">Entry</label><input id="entry" type="number" step="0.0001"></div>
+    <div class="field"><label for="stop">Stop</label><input id="stop" type="number" step="0.0001"></div>
+    <div class="field"><label for="target">Target</label><input id="target" type="number" step="0.0001"></div>
+    <div class="field"><label for="rating">Bias</label><select id="rating"><option value="CHECK">Check</option><option value="BUY">Buy</option><option value="HOLD">Hold</option><option value="SELL">Sell</option><option value="STRONG BUY">Strong buy</option><option value="STRONG SELL">Strong sell</option></select></div>
+    <div class="field"><label for="support">Support</label><input id="support" type="number" step="0.0001"></div>
+    <div class="field"><label for="resistance">Resistance</label><input id="resistance" type="number" step="0.0001"></div>
+    <div class="field"><label for="confidence">Confidence</label><input id="confidence" type="number" min="0" max="100" value="50"></div>
+    <div class="field"><label for="setupType">Setup</label><select id="setupType"><option>Breakout</option><option>Pullback</option><option>VWAP reclaim</option><option>Reversal</option><option>Range trade</option><option>News catalyst</option></select></div>
+    <div class="field two"><label for="thesis">Thesis</label><textarea id="thesis" placeholder="What is the trade? Why now? What would invalidate it?"></textarea></div>
+    <div class="field two"><label for="catalysts">Catalysts</label><textarea id="catalysts" placeholder="One catalyst or condition per line."></textarea></div>
+    <div class="field full button-row">
+      <button class="primary-btn" type="submit">Save setup</button>
+      <button class="secondary-btn" id="planResetForm" type="button">Reset</button>
+    </div>
+  </form>
+</section>
+
+<section class="module-grid two-col">
+  <article id="risk-inputs" class="surface section-anchor stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Risk</span>
+        <h2>Position planning</h2>
+      </div>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label for="accountSize">Account size</label><input id="accountSize" type="number" value="10000"></div>
+      <div class="field"><label for="riskPercent">Risk %</label><input id="riskPercent" type="number" min="0.1" step="0.1" value="1"></div>
+    </div>
+    <div class="metric-grid">
+      <div class="metric-card"><span>Size</span><strong id="planQty">--</strong><small>Shares or units</small></div>
+      <div class="metric-card"><span>Actual risk</span><strong id="planRisk">$--</strong><small>Based on entry and stop</small></div>
+      <div class="metric-card"><span>Notional</span><strong id="planNotional">$--</strong><small>Position value</small></div>
+      <div class="metric-card"><span>R:R</span><strong id="planRr">--</strong><small>Reward relative to risk</small></div>
+    </div>
+    <div id="planChecklist" class="analysis-note">Set entry, stop, and target to calculate risk cleanly.</div>
+  </article>
+
+  <article class="surface stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Grade</span>
+        <h2>What still needs work</h2>
+      </div>
+    </div>
+    <div id="planGradeNotes" class="simple-list empty-state">Grade notes appear after you fill in the setup.</div>
+  </article>
+</section>
+
+<section id="presets" class="surface section-anchor stack">
+  <div class="section-header">
+    <div>
+      <span class="eyebrow">Presets</span>
+      <h2>Common setups</h2>
+    </div>
+  </div>
+  <div id="presetGrid" class="preset-grid"></div>
+</section>
+
+<section class="module-grid two-col">
+  <article id="saved" class="surface section-anchor stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Saved</span>
+        <h2>Recent setup packets</h2>
+      </div>
+    </div>
+    <div id="savedSetupsList" class="simple-list empty-state">No setup packets saved yet.</div>
+  </article>
+
+  <article id="patterns" class="surface section-anchor stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Patterns</span>
+        <h2>Planning references</h2>
+      </div>
+    </div>
+    <div id="patternGrid" class="pattern-grid"></div>
+  </article>
+</section>

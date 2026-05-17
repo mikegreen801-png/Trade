@@ -1,183 +1,180 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Execution Desk - Day Trader OS</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=JetBrains+Mono:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/daytrader-os.css?v=20260504-vercel1">
-<link rel="stylesheet" href="assets/ultra-tools.css?v=20260504-vercel1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day Trader OS | Execute</title>
+  <meta name="description" content="Open and manage paper trades, track portfolio exposure, and check broker readiness.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/app.css?v=20260516">
 </head>
-<body>
-<a class="dto-home-link" href="index.html"><span class="dto-home-mark" aria-hidden="true">&larr;</span><span>Return Home</span></a>
-<main class="ultra-shell">
-  <header class="ultra-top">
-    <div>
-      <div class="kicker">Risk / Options / Broker Preview</div>
-      <h1>Execution Desk</h1>
-      <p class="sub">Risk calculator, options hedge builder, and Alpaca execution plan combined. This is the decision desk before anything becomes a paper order or future live order.</p>
+<body class="app-shell page-execute" data-dto-shell="modern" data-page-id="execute">
+  <header class="top-app-bar">
+  <div class="brand-lockup">
+    <a class="brand-mark" href="index.html">Day Trader <span>OS</span></a>
+    <p class="brand-subtitle">A calmer trading workspace</p>
+  </div>
+  <nav class="top-nav" aria-label="Primary navigation">
+    <a class="top-nav-link" href="index.html">Home</a><a class="top-nav-link" href="market_intel.html">Market</a><a class="top-nav-link" href="trade_planner.html">Plan</a><a class="top-nav-link is-active" href="execution_workbench.html">Execute</a><a class="top-nav-link" href="review_workbench.html">Review</a>
+  </nav>
+  <div class="top-app-actions">
+    <details class="more-menu">
+      <summary>More</summary>
+      <div class="more-panel">
+        
+    <a class="more-link" href="bot_dashboard.html">
+      <strong>Automation</strong>
+      <span>Bot Engine and automation tools.</span>
+    </a>
+    <a class="more-link" href="polymarket.html">
+      <strong>Prediction Markets</strong>
+      <span>Secondary market context and sentiment tools.</span>
+    </a>
+    <a class="more-link" href="backtest_simulator.html">
+      <strong>Backtesting</strong>
+      <span>Archived advanced replay and simulation.</span>
+    </a>
+    <a class="more-link" href="tradingview_course.html">
+      <strong>Learning</strong>
+      <span>Archived education and course material.</span>
+    </a>
+      </div>
+    </details>
+    <div class="session-pill">
+      <span data-session-label>Loading</span>
+      <strong data-et-clock>--:-- ET</strong>
     </div>
-    <nav class="ultra-flow">
-      <a href="index.html">Home</a>
-      <a href="portfolio.html">Portfolio</a>
-      <a href="trade_planner.html">Plan</a>
-      <a href="practice_workbench.html">Paper</a>
-      <a href="broker_execution_plan.html">Broker Detail</a>
-    </nav>
-  </header>
+  </div>
+</header>
 
-  <section class="ultra-grid">
-    <article class="panel span-8">
-      <div class="panel-head"><div><div class="kicker">Auto multi-asset sizing</div><h2>Position Sizer</h2></div><span class="tag" id="assetMode">Auto</span></div>
-      <form class="form-grid" id="riskForm">
-        <div class="field"><label for="symbol">Symbol</label><input id="symbol" value="AAPL"></div>
-        <div class="field"><label for="side">Side</label><select id="side"><option>long</option><option>short</option></select></div>
-        <div class="field"><label for="account">Account</label><input id="account" type="number" value="10000"></div>
-        <div class="field"><label for="riskPct">Risk %</label><input id="riskPct" type="number" min="0.1" max="5" step="0.1" value="1"></div>
-        <div class="field"><label for="entry">Entry</label><input id="entry" type="number" step="0.0001"></div>
-        <div class="field"><label for="stop">Stop</label><input id="stop" type="number" step="0.0001"></div>
-        <div class="field"><label for="target">Target</label><input id="target" type="number" step="0.0001"></div>
-        <button class="primary" type="button" id="loadSetup">Load Setup</button>
-      </form>
-      <div class="metric-grid" style="margin-top:14px">
-        <div class="metric"><span>Units / Shares</span><strong id="qtyOut">--</strong></div>
-        <div class="metric"><span>Actual Risk</span><strong id="riskOut">--</strong></div>
-        <div class="metric"><span>Position Value</span><strong id="notionalOut">--</strong></div>
-        <div class="metric"><span>R:R</span><strong id="rrOut">--</strong></div>
+  <main class="page-shell">
+    <section class="page-hero">
+  <div class="hero-block">
+    <span class="eyebrow">Execute</span>
+    <h1>Keep execution simple and reversible.</h1>
+    <p class="lead">Open paper trades, watch exposure, and check broker readiness without burying the ticket under noise.</p>
+    <div class="button-row">
+      <button class="primary-btn" id="executeLoadSetup" type="button">Load active setup</button>
+      <button class="secondary-btn" id="refreshPortfolio" type="button">Refresh quotes</button>
+    </div>
+  </div>
+  <aside class="hero-aside stack">
+    <div class="metric-card">
+      <span>Cash</span>
+      <strong id="executeCash">$100,000.00</strong>
+      <small>Paper account cash</small>
+    </div>
+    <div class="metric-card">
+      <span>Open P&amp;L</span>
+      <strong id="executeOpenPnl">$0.00</strong>
+      <small>Open positions only</small>
+    </div>
+    <div class="metric-card">
+      <span>Open positions</span>
+      <strong id="executePositionCount">0</strong>
+      <small>Tracked in this browser</small>
+    </div>
+  </aside>
+</section>
+
+<section id="paper" class="surface section-anchor stack">
+  <div class="section-header">
+    <div>
+      <span class="eyebrow">Paper</span>
+      <h2>Order ticket</h2>
+    </div>
+  </div>
+  <form class="field-grid" id="paperTicketForm">
+    <div class="field"><label for="paperSymbol">Symbol</label><input id="paperSymbol" value="AAPL"></div>
+    <div class="field"><label for="paperSide">Side</label><select id="paperSide"><option value="long">Long</option><option value="short">Short</option></select></div>
+    <div class="field"><label for="paperQty">Qty</label><input id="paperQty" type="number" step="0.000001" value="1"></div>
+    <div class="field"><label for="paperEntry">Entry</label><input id="paperEntry" type="number" step="0.0001"></div>
+    <div class="field"><label for="paperStop">Stop</label><input id="paperStop" type="number" step="0.0001"></div>
+    <div class="field"><label for="paperTarget">Target</label><input id="paperTarget" type="number" step="0.0001"></div>
+    <div class="field full"><label for="paperThesis">Why this trade?</label><textarea id="paperThesis" placeholder="Keep the thesis short and specific."></textarea></div>
+    <div class="field full button-row">
+      <button class="primary-btn" type="submit">Open paper trade</button>
+      <button class="secondary-btn" id="paperClearForm" type="button">Clear</button>
+    </div>
+  </form>
+  <div id="paperTicketNote" class="analysis-note">Load the active setup or type the paper ticket manually.</div>
+</section>
+
+<section id="portfolio" class="portfolio-grid section-anchor">
+  <article class="surface stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Portfolio</span>
+        <h2>Open positions</h2>
       </div>
-      <div class="note" id="riskTip" style="margin-top:14px">Add entry, stop, target, account size, and risk percent.</div>
-      <div class="action-row">
-        <a class="btn" id="openRisk" href="risk_calculator.html">Full Risk Calculator</a>
-        <a class="btn primary" id="openPaper" href="paper_trading_simulator.html">Paper Trade</a>
+    </div>
+    <div id="positionList" class="position-list simple-list empty-state">No open paper positions yet.</div>
+  </article>
+
+  <article class="surface stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Summary</span>
+        <h2>Exposure snapshot</h2>
       </div>
-    </article>
+    </div>
+    <div class="metric-grid">
+      <div class="metric-card"><span>Equity</span><strong id="executeEquity">$100,000.00</strong><small>Cash plus open P&amp;L</small></div>
+      <div class="metric-card"><span>Realized</span><strong id="executeRealized">$0.00</strong><small>Closed paper results</small></div>
+      <div class="metric-card"><span>Watchlist</span><strong id="executeWatchCount">0</strong><small>Saved symbols</small></div>
+      <div class="metric-card"><span>Last action</span><strong id="executeLastAction">--</strong><small>Most recent paper trade event</small></div>
+    </div>
+  </article>
+</section>
 
-    <aside class="panel span-4">
-      <div class="panel-head"><div><div class="kicker">Alpaca connection</div><h2>Broker Mode</h2></div><span class="tag">Paper first</span></div>
-      <div class="list">
-        <div class="row"><div><strong>Market data</strong><span>https://data.alpaca.markets</span></div><span>Public feed</span></div>
-        <div class="row"><div><strong>Paper trading</strong><span>https://paper-api.alpaca.markets</span></div><span>Default</span></div>
-        <div class="row"><div><strong>Live trading</strong><span>https://api.alpaca.markets</span></div><span>Locked</span></div>
+<section class="module-grid two-col">
+  <article id="broker" class="surface section-anchor stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Broker</span>
+        <h2>Readiness checks</h2>
       </div>
-      <div class="action-row">
-        <button type="button" id="testStatus">Test Status</button>
-        <a class="btn" href="broker_execution_plan.html">Broker Console</a>
+      <button class="secondary-btn" id="checkBrokerStatus" type="button">Check status</button>
+    </div>
+    <div id="brokerStatusBox" class="status-box">Broker status will be checked against the local API when you ask for it.</div>
+  </article>
+
+  <article id="hedging" class="surface section-anchor stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Hedging</span>
+        <h2>Simple hedge preview</h2>
       </div>
-      <div class="note" id="brokerNote" style="margin-top:14px">Live submit remains locked until auth, buying power checks, preview, logging, and confirmation exist.</div>
-    </aside>
+    </div>
+    <div class="field-grid">
+      <div class="field"><label for="hedgeStrike">Strike</label><input id="hedgeStrike" type="number" step="0.01"></div>
+      <div class="field"><label for="hedgePremium">Premium</label><input id="hedgePremium" type="number" step="0.01" value="1.25"></div>
+      <div class="field"><label for="hedgeContracts">Contracts</label><input id="hedgeContracts" type="number" step="1" value="1"></div>
+      <div class="field"><label for="hedgeType">Type</label><select id="hedgeType"><option value="put">Protective put</option><option value="call">Covered call</option></select></div>
+    </div>
+    <div class="metric-grid">
+      <div class="metric-card"><span>Premium cost</span><strong id="hedgeCost">$--</strong><small>Estimated option spend</small></div>
+      <div class="metric-card"><span>Coverage</span><strong id="hedgeCoverage">--</strong><small>Equivalent share coverage</small></div>
+      <div class="metric-card"><span>Breakeven</span><strong id="hedgeBreakeven">$--</strong><small>Simple estimate</small></div>
+      <div class="metric-card"><span>Note</span><strong id="hedgeDirection">--</strong><small>Planning only, not order routing</small></div>
+    </div>
+  </article>
+</section>
 
-    <article class="panel span-6">
-      <div class="panel-head"><div><div class="kicker">Options hedge merged</div><h2>Spread Preview</h2></div></div>
-      <form class="form-grid" id="spreadForm">
-        <div class="field"><label for="strategy">Strategy</label><select id="strategy"><option value="debit_call">Call Debit</option><option value="debit_put">Put Debit</option><option value="credit_call">Call Credit</option><option value="credit_put">Put Credit</option><option value="protective_put">Protective Put</option></select></div>
-        <div class="field"><label for="longStrike">Long Strike</label><input id="longStrike" type="number" step="0.01"></div>
-        <div class="field"><label for="shortStrike">Short Strike</label><input id="shortStrike" type="number" step="0.01"></div>
-        <div class="field"><label for="contracts">Contracts</label><input id="contracts" type="number" value="1"></div>
-        <div class="field"><label for="longAsk">Long Ask</label><input id="longAsk" type="number" step="0.01" value="3.2"></div>
-        <div class="field"><label for="shortBid">Short Bid</label><input id="shortBid" type="number" step="0.01" value="1.8"></div>
-        <button class="primary" type="button" id="savePreview">Save Preview</button>
-      </form>
-      <div class="metric-grid" style="margin-top:14px">
-        <div class="metric"><span>Net</span><strong id="netOut">--</strong></div>
-        <div class="metric"><span>Max Loss</span><strong id="lossOut">--</strong></div>
-        <div class="metric"><span>Max Profit</span><strong id="profitOut">--</strong></div>
-        <div class="metric"><span>Breakeven</span><strong id="beOut">--</strong></div>
-      </div>
-      <div class="note" id="spreadTip" style="margin-top:14px">Preview only. Use limit orders and check liquidity before using any real broker later.</div>
-    </article>
+    <footer class="site-footer">
+  <p>Designed for active retail traders who need a cleaner workflow, not more dashboard noise.</p>
+  <p class="footer-note">Educational tools only. Verify prices, news, and risk with your broker before trading.</p>
+</footer>
 
-    <article class="panel span-6">
-      <div class="panel-head"><div><div class="kicker">Specialist modules</div><h2>Deep Dives</h2></div></div>
-      <div class="list">
-        <a class="row" href="risk_calculator.html"><div><strong>Risk Calculator</strong><span>Full slider, crypto fractional units, and scenario table.</span></div><span>Open</span></a>
-        <a class="row" href="options_hedge_builder.html"><div><strong>Options Hedge Builder</strong><span>Standalone hedge preview surface.</span></div><span>Open</span></a>
-        <a class="row" href="broker_execution_plan.html"><div><strong>Broker Execution Plan</strong><span>Connection console, endpoints, and locked Alpaca path.</span></div><span>Open</span></a>
-      </div>
-    </article>
-  </section>
-</main>
-<script src="assets/daytrader-os.js?v=20260504-vercel1"></script>
-<script>
-const $ = id => document.getElementById(id);
-const n = id => Number($(id).value);
-const money = value => Number.isFinite(Number(value)) ? "$" + Number(value).toFixed(2) : "--";
-const clean = value => String(value || "").trim().toUpperCase().replace(/[^A-Z0-9.-]/g, "");
-const isCrypto = sym => /^(BTC|ETH|SOL|DOGE|XRP|BNB|ADA|AVAX|LINK|SUI|PEPE|SHIB|[A-Z0-9]{2,12}(USDT|USD))$/.test(clean(sym));
+  </main>
+  <nav class="bottom-nav" aria-label="Mobile navigation">
+  <a class="bottom-nav-link" href="index.html">Home</a><a class="bottom-nav-link" href="market_intel.html">Market</a><a class="bottom-nav-link" href="trade_planner.html">Plan</a><a class="bottom-nav-link is-active" href="execution_workbench.html">Execute</a><a class="bottom-nav-link" href="review_workbench.html">Review</a>
+</nav>
 
-function riskCalc() {
-  const symbol = clean($("symbol").value);
-  const crypto = isCrypto(symbol);
-  $("assetMode").textContent = crypto ? "Crypto fractional" : "Stock whole shares";
-  const account = n("account"), riskPct = n("riskPct") / 100, entry = n("entry"), stop = n("stop"), target = n("target");
-  const perUnitRisk = Math.abs(entry - stop);
-  const intendedRisk = account * riskPct;
-  if (!account || !riskPct || !entry || !stop || !target || perUnitRisk <= 0) {
-    $("qtyOut").textContent = "--"; $("riskOut").textContent = "--"; $("notionalOut").textContent = "--"; $("rrOut").textContent = "--";
-    $("riskTip").textContent = "Fix setup: entry, stop, target, and account risk must be valid.";
-    return;
-  }
-  const rawQty = intendedRisk / perUnitRisk;
-  const qty = crypto ? Number(rawQty.toFixed(8)) : Math.floor(rawQty);
-  const actualRisk = qty * perUnitRisk;
-  const notional = qty * entry;
-  const rr = Math.abs(target - entry) / perUnitRisk;
-  $("qtyOut").textContent = crypto ? qty.toLocaleString(undefined, { maximumFractionDigits: 8 }) : qty.toLocaleString();
-  $("riskOut").textContent = money(actualRisk);
-  $("notionalOut").textContent = `${money(notional)} / ${account ? (notional / account * 100).toFixed(1) : "--"}%`;
-  $("rrOut").textContent = `${rr.toFixed(2)}R`;
-  const tips = [];
-  if (rr < 2) tips.push("R:R is under 2R. Tighten stop, improve target, or skip.");
-  if (riskPct > 0.02) tips.push("Risk is above 2%; this is aggressive.");
-  if (notional > account) tips.push("Risk size requires leverage or more buying power.");
-  if (!crypto && actualRisk < intendedRisk * 0.75) tips.push("Whole-share rounding under-risks this trade.");
-  if (crypto) tips.push(`Fractional ${symbol} sizing keeps risk close to intended risk.`);
-  $("riskTip").textContent = tips.join(" ") || "Sizing is clean enough to paper trade after chart confirmation.";
-  const params = new URLSearchParams({ symbol, side: $("side").value, entry, stop, target });
-  $("openRisk").href = `risk_calculator.html?${params}`;
-  $("openPaper").href = `paper_trading_simulator.html?${params}`;
-}
-
-function spreadCalc() {
-  const strategy = $("strategy").value, longStrike = n("longStrike"), shortStrike = n("shortStrike"), contracts = Math.max(1, Math.floor(n("contracts") || 1));
-  const longAsk = n("longAsk"), shortBid = n("shortBid"), width = Math.abs(shortStrike - longStrike), isCredit = strategy.includes("credit"), isProtective = strategy.includes("protective"), side = strategy.includes("put") ? "put" : "call";
-  const netDebit = Math.max(0, longAsk - shortBid), netCredit = Math.max(0, shortBid - longAsk);
-  let net = isCredit ? netCredit : longAsk - shortBid, loss, profit, breakeven;
-  if (isProtective) { net = longAsk; loss = longAsk * 100 * contracts; profit = Infinity; breakeven = side === "put" ? longStrike + longAsk : longStrike - longAsk; }
-  else if (isCredit) { profit = netCredit * 100 * contracts; loss = Math.max(0, (width - netCredit) * 100 * contracts); breakeven = side === "put" ? shortStrike - netCredit : shortStrike + netCredit; }
-  else { loss = netDebit * 100 * contracts; profit = Math.max(0, (width - netDebit) * 100 * contracts); breakeven = side === "put" ? longStrike - netDebit : longStrike + netDebit; }
-  $("netOut").textContent = `${isCredit ? "Credit" : "Debit"} ${money(net * 100 * contracts)}`;
-  $("lossOut").textContent = money(loss);
-  $("profitOut").textContent = Number.isFinite(profit) ? money(profit) : "Open";
-  $("beOut").textContent = money(breakeven);
-  $("spreadTip").textContent = Math.abs(longAsk - shortBid) > 0.35 ? "Bid/ask width is wide. Use limit orders and consider skipping." : "Spread preview is reasonable for planning. Confirm chain liquidity before acting.";
-}
-
-function loadSetup() {
-  const setup = window.DTO?.getSetup?.() || {};
-  ["symbol","side","entry","stop","target"].forEach(key => { if (setup[key] !== undefined && $(key)) $(key).value = setup[key]; });
-  if (setup.entry) { $("longStrike").value = setup.entry; $("shortStrike").value = setup.target || setup.entry; }
-  riskCalc(); spreadCalc();
-}
-
-async function testStatus() {
-  if (!/^https?:$/.test(location.protocol)) { $("brokerNote").textContent = "Deploy to Vercel first, then test /api/site-status."; return; }
-  try {
-    const res = await fetch("/api/site-status");
-    const data = await res.json();
-    $("brokerNote").textContent = `Server OK. Data endpoint: ${data.alpaca?.marketDataBaseUrl || "unknown"}. Trading endpoint: ${data.alpaca?.tradingBaseUrl || "unknown"}.`;
-  } catch (error) {
-    $("brokerNote").textContent = "Server status failed. Check Vercel API functions and environment variables.";
-  }
-}
-
-document.querySelectorAll("input,select").forEach(el => el.addEventListener("input", () => { riskCalc(); spreadCalc(); }));
-$("loadSetup").addEventListener("click", loadSetup);
-$("testStatus").addEventListener("click", testStatus);
-$("savePreview").addEventListener("click", () => {
-  localStorage.setItem("dtoOptionsPreview", JSON.stringify({ strategy: $("strategy").value, longStrike: n("longStrike"), shortStrike: n("shortStrike"), contracts: n("contracts"), savedAt: new Date().toISOString() }));
-  $("spreadTip").textContent = "Options preview saved locally.";
-});
-loadSetup();
-</script>
+  <script src="assets/dto-core.js" defer></script>
+<script src="assets/scripts/site.js" defer></script>
+<script src="assets/scripts/execute.js" defer></script>
 </body>
 </html>

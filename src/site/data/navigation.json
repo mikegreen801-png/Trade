@@ -1,0 +1,31 @@
+{
+  "primary": [
+    { "id": "home", "label": "Home", "shortLabel": "Home", "href": "index.html" },
+    { "id": "market", "label": "Market", "shortLabel": "Market", "href": "market_intel.html" },
+    { "id": "plan", "label": "Plan", "shortLabel": "Plan", "href": "trade_planner.html" },
+    { "id": "execute", "label": "Execute", "shortLabel": "Execute", "href": "execution_workbench.html" },
+    { "id": "review", "label": "Review", "shortLabel": "Review", "href": "review_workbench.html" }
+  ],
+  "more": [
+    {
+      "label": "Automation",
+      "href": "bot_dashboard.html",
+      "description": "Bot Engine and automation tools."
+    },
+    {
+      "label": "Prediction Markets",
+      "href": "polymarket.html",
+      "description": "Secondary market context and sentiment tools."
+    },
+    {
+      "label": "Backtesting",
+      "href": "backtest_simulator.html",
+      "description": "Archived advanced replay and simulation."
+    },
+    {
+      "label": "Learning",
+      "href": "tradingview_course.html",
+      "description": "Archived education and course material."
+    }
+  ]
+}

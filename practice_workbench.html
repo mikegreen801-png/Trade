@@ -1,133 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Practice Arena - Day Trader OS</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=JetBrains+Mono:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/daytrader-os.css?v=20260504-vercel1">
-<link rel="stylesheet" href="assets/ultra-tools.css?v=20260504-vercel1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Practice Arena | Redirect</title>
+  <meta name="description" content="Paper orders and active positions now live in the Execute hub.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/app.css?v=20260516">
 </head>
-<body>
-<a class="dto-home-link" href="index.html"><span class="dto-home-mark" aria-hidden="true">&larr;</span><span>Return Home</span></a>
-<main class="ultra-shell">
-  <header class="ultra-top">
-    <div>
-      <div class="kicker">Paper Trading / Backtest / Replay</div>
-      <h1>Practice Arena</h1>
-      <p class="sub">Paper trading and backtesting now live together. Practice with fake money, run replay challenges, tag mistakes, and push the result into the review room.</p>
+<body class="app-shell page-redirect" data-dto-shell="modern" data-page-id="redirect">
+  
+  <main class="page-shell">
+    <section class="legacy-redirect">
+  <article class="surface redirect-card stack">
+    <span class="eyebrow">Moved</span>
+    <h1>Practice moved into Execute.</h1>
+    <p class="lead">Paper orders and active positions now live in the Execute hub.</p>
+    <div class="button-row" style="justify-content:center">
+      <a class="primary-btn" href="execution_workbench.html#paper">Open current page</a>
+      <a class="secondary-btn" href="index.html">Go home</a>
     </div>
-    <nav class="ultra-flow">
-      <a href="index.html">Home</a>
-      <a href="trade_planner.html">Plan</a>
-      <a href="execution_workbench.html">Size</a>
-      <a href="review_workbench.html">Review</a>
-    </nav>
-  </header>
+    <p class="footer-note">Redirecting now. Query parameters will be preserved.</p>
+  </article>
+</section>
 
-  <section class="ultra-grid">
-    <article class="panel span-5">
-      <div class="panel-head"><div><div class="kicker">Fake-money account</div><h2>Paper Account</h2></div><span class="tag">Game mode</span></div>
-      <div class="metric-grid" style="grid-template-columns:1fr 1fr">
-        <div class="metric"><span>Cash</span><strong id="cashOut">--</strong></div>
-        <div class="metric"><span>Open P&L</span><strong id="pnlOut">--</strong></div>
-        <div class="metric"><span>Positions</span><strong id="posOut">--</strong></div>
-        <div class="metric"><span>Equity</span><strong id="equityOut">--</strong></div>
-      </div>
-      <div class="list" id="positionsList" style="margin-top:14px"></div>
-    </article>
-
-    <article class="panel span-7">
-      <div class="panel-head"><div><div class="kicker">Trade ticket</div><h2>Quick Paper Order</h2></div></div>
-      <form class="form-grid" id="ticketForm">
-        <div class="field"><label for="symbol">Symbol</label><input id="symbol" value="AAPL"></div>
-        <div class="field"><label for="side">Side</label><select id="side"><option>long</option><option>short</option></select></div>
-        <div class="field"><label for="qty">Qty</label><input id="qty" type="number" step="0.000001" value="1"></div>
-        <div class="field"><label for="price">Price</label><input id="price" type="number" step="0.0001"></div>
-        <div class="field"><label for="stop">Stop</label><input id="stop" type="number" step="0.0001"></div>
-        <div class="field"><label for="target">Target</label><input id="target" type="number" step="0.0001"></div>
-        <button type="button" id="loadSetup">Load Setup</button>
-        <button class="primary" type="submit">Open Paper Trade</button>
-      </form>
-      <div class="note" id="ticketNote" style="margin-top:14px">Paper only. This page does not submit live broker orders.</div>
-    </article>
-
-    <article class="panel span-6">
-      <div class="panel-head"><div><div class="kicker">Backtest merged</div><h2>Replay Challenge</h2></div></div>
-      <form class="form-grid" id="challengeForm">
-        <div class="field"><label for="challengeSymbol">Symbol</label><input id="challengeSymbol" value="SPY"></div>
-        <div class="field"><label for="challengeType">Challenge</label><select id="challengeType"><option>Only trade breakouts</option><option>Only pullbacks</option><option>Only VWAP reclaims</option><option>Only 2R+ setups</option><option>No revenge trades</option></select></div>
-        <div class="field"><label for="duration">Duration</label><select id="duration"><option>15 minutes</option><option>30 minutes</option><option>1 hour</option><option>Full session</option></select></div>
-        <button class="primary" type="submit">Start Replay Plan</button>
-      </form>
-      <div class="list" id="challengeList" style="margin-top:14px"></div>
-      <div class="action-row"><a class="btn" id="openBacktest" href="backtest_simulator.html">Open Full Backtest</a></div>
-    </article>
-
-    <article class="panel span-6">
-      <div class="panel-head"><div><div class="kicker">Specialist modules</div><h2>Deep Dives</h2></div></div>
-      <div class="list">
-        <a class="row" href="paper_trading_simulator.html"><div><strong>Full Paper Simulator</strong><span>Live mark-to-market cards, open positions, cash, equity, and trade controls.</span></div><span>Open</span></a>
-        <a class="row" href="backtest_simulator.html"><div><strong>Full Backtest Simulator</strong><span>Replay chart, pan/zoom, trade markers, challenge drills, and scorecards.</span></div><span>Open</span></a>
-        <a class="row" href="trade_review_coach.html"><div><strong>Review Coach</strong><span>Turn the session into mistake tags and next steps.</span></div><span>Open</span></a>
-      </div>
-    </article>
-  </section>
-</main>
-<script src="assets/daytrader-os.js?v=20260504-vercel1"></script>
-<script>
-const $ = id => document.getElementById(id);
-const read = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch { return fallback; } };
-const write = (key, value) => { localStorage.setItem(key, JSON.stringify(value)); return value; };
-const clean = value => String(value || "").trim().toUpperCase().replace(/[^A-Z0-9.-]/g, "");
-const money = value => "$" + Number(value || 0).toFixed(2);
-function account() { return read("dtoPaperTradingAccount", { cash: 100000, startingCash: 100000, positions: [], log: [], realized: 0, quotes: {} }); }
-function saveAccount(next) { write("dtoPaperTradingAccount", next); renderAccount(); }
-function renderAccount() {
-  const acc = account();
-  const openPnl = (acc.positions || []).reduce((sum, p) => sum + ((acc.quotes?.[p.symbol]?.price || p.entry || 0) - p.entry) * p.qty * (p.side === "short" ? -1 : 1), 0);
-  $("cashOut").textContent = money(acc.cash || 0);
-  $("pnlOut").textContent = money(openPnl);
-  $("posOut").textContent = (acc.positions || []).length;
-  $("equityOut").textContent = money((acc.cash || 0) + openPnl);
-  $("positionsList").innerHTML = (acc.positions || []).length ? acc.positions.map(p => `<div class="row"><div><strong>${p.symbol}</strong><span>${p.side} / ${p.qty} @ ${money(p.entry)}</span></div><span>${money(((acc.quotes?.[p.symbol]?.price || p.entry) - p.entry) * p.qty * (p.side === "short" ? -1 : 1))}</span></div>`).join("") : `<div class="note">No open paper positions yet.</div>`;
-}
-function loadSetup() {
-  const setup = window.DTO?.getSetup?.() || {};
-  ["symbol","side","entry","stop","target"].forEach(key => {
-    const id = key === "entry" ? "price" : key;
-    if ($(id) && setup[key] !== undefined && setup[key] !== null) $(id).value = setup[key];
-  });
-}
-$("ticketForm").addEventListener("submit", event => {
-  event.preventDefault();
-  const acc = account();
-  const symbol = clean($("symbol").value), side = $("side").value, qty = Number($("qty").value), price = Number($("price").value);
-  if (!symbol || !qty || !price) { $("ticketNote").textContent = "Add symbol, quantity, and price first."; return; }
-  const cost = qty * price;
-  const position = { symbol, side, qty, entry: price, stop: Number($("stop").value) || null, target: Number($("target").value) || null, openedAt: new Date().toISOString() };
-  acc.positions = [position, ...(acc.positions || [])];
-  acc.cash = side === "long" ? (acc.cash || 0) - cost : (acc.cash || 0);
-  acc.log = [{ action: "open", symbol, side, qty, price, time: new Date().toISOString() }, ...(acc.log || [])].slice(0, 100);
-  acc.quotes = { ...(acc.quotes || {}), [symbol]: { price, prev: price, time: new Date().toISOString() } };
-  saveAccount(acc);
-  $("ticketNote").textContent = `${symbol} paper trade opened. Review it after the session.`;
-});
-$("loadSetup").addEventListener("click", loadSetup);
-$("challengeForm").addEventListener("submit", event => {
-  event.preventDefault();
-  const item = { symbol: clean($("challengeSymbol").value), type: $("challengeType").value, duration: $("duration").value, createdAt: new Date().toISOString() };
-  write("dtoReplayChallenges", [item, ...read("dtoReplayChallenges", [])].slice(0, 20));
-  renderChallenges();
-  $("openBacktest").href = `backtest_simulator.html?symbol=${encodeURIComponent(item.symbol)}`;
-});
-function renderChallenges() {
-  const list = read("dtoReplayChallenges", []);
-  $("challengeList").innerHTML = list.length ? list.slice(0, 5).map(item => `<div class="row"><div><strong>${item.symbol}</strong><span>${item.type} / ${item.duration}</span></div><a class="btn" href="backtest_simulator.html?symbol=${encodeURIComponent(item.symbol)}">Replay</a></div>`).join("") : `<div class="note">No replay challenges saved yet.</div>`;
-}
-loadSetup();
-renderAccount();
-renderChallenges();
-</script>
+    
+  </main>
+  
+  <script>window.__redirectTarget = "execution_workbench.html#paper";</script>
+<script src="assets/scripts/redirect.js" defer></script>
 </body>
 </html>

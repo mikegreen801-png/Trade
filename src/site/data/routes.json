@@ -1,0 +1,193 @@
+{
+  "canonical": [
+    {
+      "id": "home",
+      "file": "index.html",
+      "template": "home.njk",
+      "title": "Day Trader OS | Home",
+      "description": "A calmer trading workspace for scanning, planning, execution, and review.",
+      "scripts": ["assets/scripts/home.js"]
+    },
+    {
+      "id": "market",
+      "file": "market_intel.html",
+      "template": "market.njk",
+      "title": "Day Trader OS | Market",
+      "description": "Analyze symbols, manage your watchlist, and review market context in one place.",
+      "scripts": ["assets/scripts/market.js"]
+    },
+    {
+      "id": "plan",
+      "file": "trade_planner.html",
+      "template": "plan.njk",
+      "title": "Day Trader OS | Plan",
+      "description": "Build a setup, grade it, size the risk, and keep saved trade plans organized.",
+      "scripts": ["assets/scripts/plan.js"]
+    },
+    {
+      "id": "execute",
+      "file": "execution_workbench.html",
+      "template": "execute.njk",
+      "title": "Day Trader OS | Execute",
+      "description": "Open and manage paper trades, track portfolio exposure, and check broker readiness.",
+      "scripts": ["assets/scripts/execute.js"]
+    },
+    {
+      "id": "review",
+      "file": "review_workbench.html",
+      "template": "review.njk",
+      "title": "Day Trader OS | Review",
+      "description": "Journal trades, study performance, and set better rules for the next session.",
+      "scripts": ["assets/scripts/review.js"]
+    }
+  ],
+  "redirects": [
+    {
+      "file": "market_workbench.html",
+      "target": "market_intel.html#scanner",
+      "title": "Market Desk | Redirect",
+      "headline": "Market Desk moved into Market.",
+      "copy": "Scanning, watchlists, and context now live together in the Market hub."
+    },
+    {
+      "file": "market_context.html",
+      "target": "market_intel.html#context",
+      "title": "Market Context | Redirect",
+      "headline": "Market Context moved into Market.",
+      "copy": "Use the context section in the Market hub for sources, headlines, and session notes."
+    },
+    {
+      "file": "scanner_hub.html",
+      "target": "market_intel.html#scanner",
+      "title": "Scanner Hub | Redirect",
+      "headline": "Scanner Hub moved into Market.",
+      "copy": "The scanner now sits inside the main Market workflow."
+    },
+    {
+      "file": "premarket_prep.html",
+      "target": "market_intel.html#overview",
+      "title": "Pre-Market Prep | Redirect",
+      "headline": "Pre-market prep moved into Market.",
+      "copy": "The Market hub now owns the daily overview, prep, and session read."
+    },
+    {
+      "file": "signal_dashboard.html",
+      "target": "market_intel.html#details",
+      "title": "Signal Dashboard | Redirect",
+      "headline": "Signal detail moved into Market.",
+      "copy": "Open the Market hub for the current symbol read, levels, and context."
+    },
+    {
+      "file": "chart_analyzer.html",
+      "target": "market_intel.html#details",
+      "title": "Chart Analyzer | Redirect",
+      "headline": "Chart analysis moved into Market.",
+      "copy": "Use the Market hub to review the current symbol, levels, and context."
+    },
+    {
+      "file": "alert_center.html",
+      "target": "market_intel.html#alerts",
+      "title": "Alert Center | Redirect",
+      "headline": "Alerts moved into Market.",
+      "copy": "The Market hub now handles watchlist alerts and planning triggers."
+    },
+    {
+      "file": "guided_trade_builder.html",
+      "target": "trade_planner.html#builder",
+      "title": "Trade Builder | Redirect",
+      "headline": "Trade Builder moved into Plan.",
+      "copy": "Build and save your setup in the Plan hub."
+    },
+    {
+      "file": "strategy_builder.html",
+      "target": "trade_planner.html#presets",
+      "title": "Strategy Builder | Redirect",
+      "headline": "Strategy Builder moved into Plan.",
+      "copy": "Presets and setup frameworks now live together in the Plan hub."
+    },
+    {
+      "file": "strategy_lab.html",
+      "target": "trade_planner.html#patterns",
+      "title": "Strategy Lab | Redirect",
+      "headline": "Strategy Lab moved into Plan.",
+      "copy": "Patterns, notes, and planning references now live in the Plan hub."
+    },
+    {
+      "file": "strategy_playbook.html",
+      "target": "trade_planner.html#presets",
+      "title": "Strategy Playbook | Redirect",
+      "headline": "Strategy Playbook moved into Plan.",
+      "copy": "The Plan hub now holds playbooks, presets, and saved strategies."
+    },
+    {
+      "file": "pattern_library.html",
+      "target": "trade_planner.html#patterns",
+      "title": "Pattern Library | Redirect",
+      "headline": "Pattern Library moved into Plan.",
+      "copy": "Pattern references now live inside the Plan hub."
+    },
+    {
+      "file": "risk_calculator.html",
+      "target": "trade_planner.html#risk-inputs",
+      "title": "Risk Calculator | Redirect",
+      "headline": "Risk planning moved into Plan.",
+      "copy": "Use the Plan hub to calculate risk and save a cleaner setup."
+    },
+    {
+      "file": "broker_execution_plan.html",
+      "target": "execution_workbench.html#broker",
+      "title": "Broker Execution Plan | Redirect",
+      "headline": "Broker checks moved into Execute.",
+      "copy": "Broker status, readiness, and order flow now live in the Execute hub."
+    },
+    {
+      "file": "paper_trading_simulator.html",
+      "target": "execution_workbench.html#paper",
+      "title": "Paper Trading Simulator | Redirect",
+      "headline": "Paper trading moved into Execute.",
+      "copy": "Open the Execute hub for the paper trade ticket and portfolio view."
+    },
+    {
+      "file": "practice_workbench.html",
+      "target": "execution_workbench.html#paper",
+      "title": "Practice Arena | Redirect",
+      "headline": "Practice moved into Execute.",
+      "copy": "Paper orders and active positions now live in the Execute hub."
+    },
+    {
+      "file": "portfolio.html",
+      "target": "execution_workbench.html#portfolio",
+      "title": "Portfolio | Redirect",
+      "headline": "Portfolio moved into Execute.",
+      "copy": "The Execute hub now includes open positions and portfolio summary."
+    },
+    {
+      "file": "options_hedge_builder.html",
+      "target": "execution_workbench.html#hedging",
+      "title": "Options Hedge Builder | Redirect",
+      "headline": "Hedging moved into Execute.",
+      "copy": "The Execute hub now includes the hedge preview tools."
+    },
+    {
+      "file": "trade_journal.html",
+      "target": "review_workbench.html#journal",
+      "title": "Trade Journal | Redirect",
+      "headline": "Trade Journal moved into Review.",
+      "copy": "Log trades and notes in the Review hub."
+    },
+    {
+      "file": "accountability.html",
+      "target": "review_workbench.html#rules",
+      "title": "Accountability | Redirect",
+      "headline": "Accountability moved into Review.",
+      "copy": "Daily rules and session guardrails now live in the Review hub."
+    },
+    {
+      "file": "trade_review_coach.html",
+      "target": "review_workbench.html#lessons",
+      "title": "Trade Review Coach | Redirect",
+      "headline": "Review Coach moved into Review.",
+      "copy": "Mistakes, lessons, and next-session guidance now live in the Review hub."
+    }
+  ]
+}

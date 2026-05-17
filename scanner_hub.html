@@ -1,200 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Scanner Hub - Day Trader OS</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/daytrader-os.css?v=20260504-vercel1">
-<style>
-  * { box-sizing: border-box; }
-  body { margin:0; background:#05070c; color:#d8e2ef; font-family:"JetBrains Mono",monospace; padding:86px 28px 110px; }
-  main { max-width:1180px; margin:auto; }
-  .kicker { color:#00d7ff; font-size:12px; font-weight:800; letter-spacing:.18em; text-transform:uppercase; }
-  h1 { font-family:"Barlow Condensed",sans-serif; font-size:clamp(46px,8vw,92px); line-height:.9; margin:10px 0 24px; color:#fff; text-transform:uppercase; letter-spacing:.015em; }
-  .panel { border:1px solid #223047; border-radius:10px; background:#0c111a; padding:22px; margin-top:18px; }
-  .hub-form { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:14px; align-items:end; }
-  .field { display:flex; flex-direction:column; gap:8px; min-width:0; }
-  .field label { color:#8190a8; font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
-  .field input,.field select { width:100%; min-height:48px; border:1px solid rgba(127,141,163,.3); border-radius:7px; background:#070c14; color:#f4f8ff; font:600 14px/1.4 "JetBrains Mono",monospace; padding:12px; outline:none; }
-  .field input:focus,.field select:focus { border-color:#00d7ff; box-shadow:0 0 0 3px rgba(0,215,255,.09); }
-  .primary { min-height:48px; border:0; border-radius:7px; background:#00e08a; color:#03110a; cursor:pointer; font:900 12px/1 "JetBrains Mono",monospace; letter-spacing:.08em; padding:12px; text-transform:uppercase; }
-  .primary:active { transform: translateY(1px); }
-  .status { margin-top:14px; min-height:24px; color:#00e08a; font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
-  .grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; margin-top:22px; }
-  .symbol-list { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
-  .symbol-list button { border:1px solid #223047; background:#080d15; color:#fff; border-radius:7px; padding:10px 12px; cursor:pointer; font:800 12px/1 "JetBrains Mono",monospace; }
-  .symbol-list button:hover { border-color:#00d7ff; }
-  .saved-card { border-top:1px solid rgba(127,141,163,.14); display:grid; gap:7px; padding:12px 0; }
-  .saved-card:first-child { border-top:0; }
-  .saved-card strong { color:#fff; font-size:16px; overflow-wrap:anywhere; }
-  .saved-card span { color:#8190a8; font-size:12px; line-height:1.5; }
-  .card-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:5px; }
-  .card-actions button,.card-actions a { border:1px solid rgba(0,215,255,.3); border-radius:7px; background:rgba(0,215,255,.07); color:#e9fbff; cursor:pointer; font:800 11px/1 "JetBrains Mono",monospace; letter-spacing:.08em; padding:9px 10px; text-decoration:none; text-transform:uppercase; }
-  .empty { color:#8190a8; font-size:13px; line-height:1.6; }
-  @media(max-width:900px){ body{padding-inline:16px}.grid,.hub-form{grid-template-columns:1fr} }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scanner Hub | Redirect</title>
+  <meta name="description" content="The scanner now sits inside the main Market workflow.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/app.css?v=20260516">
 </head>
-<body><a class="dto-home-link" href="index.html"><span class="dto-home-mark" aria-hidden="true">&larr;</span><span>Return Home</span></a>
-<main>
-  <div class="kicker">Saved Watchlists / Movers / Crypto Board</div>
-  <h1>Scanner Hub</h1>
+<body class="app-shell page-redirect" data-dto-shell="modern" data-page-id="redirect">
+  
+  <main class="page-shell">
+    <section class="legacy-redirect">
+  <article class="surface redirect-card stack">
+    <span class="eyebrow">Moved</span>
+    <h1>Scanner Hub moved into Market.</h1>
+    <p class="lead">The scanner now sits inside the main Market workflow.</p>
+    <div class="button-row" style="justify-content:center">
+      <a class="primary-btn" href="market_intel.html#scanner">Open current page</a>
+      <a class="secondary-btn" href="index.html">Go home</a>
+    </div>
+    <p class="footer-note">Redirecting now. Query parameters will be preserved.</p>
+  </article>
+</section>
 
-  <section class="panel">
-    <form class="hub-form" id="scanForm">
-      <div class="field"><label for="symbol">Quick Symbol</label><input id="symbol" placeholder="NVDA" autocomplete="off"></div>
-      <div class="field"><label for="setupType">Setup Type</label><select id="setupType"><option>Breakout</option><option>Pullback</option><option>Reversal</option><option>Gapper</option><option>Crypto Momentum</option></select></div>
-      <div class="field"><label for="level">Alert Level</label><input id="level" type="number" step="0.0001" placeholder="Optional"></div>
-      <div class="field"><label for="note">Note</label><input id="note" placeholder="Why it is on watch"></div>
-      <button class="primary" id="saveScannerBtn" type="button">Add To Scanner Watchlist</button>
-    </form>
-    <div class="status" id="saveStatus"></div>
-  </section>
-
-  <section class="grid">
-    <article class="panel">
-      <div class="kicker">Saved Watchlist</div>
-      <div id="savedList"></div>
-    </article>
-    <article class="panel">
-      <div class="kicker">High-Interest Stocks</div>
-      <div class="symbol-list" id="stockList"></div>
-    </article>
-    <article class="panel">
-      <div class="kicker">Crypto 24/7 Feed</div>
-      <div class="symbol-list" id="cryptoList"></div>
-    </article>
-  </section>
-
-  <section class="panel" id="missionControl"></section>
-</main>
-
-<script src="assets/daytrader-os.js?v=20260504-vercel1"></script>
-<script>
-const STORAGE_KEY = "dtoScannerWatchlist";
-const STOCKS = ["AAPL","TSLA","NVDA","AMD","META","MSFT","SPY","QQQ"];
-const CRYPTOS = ["BTC","ETH","SOL","DOGE","XRP","BNB","LINK","SUI"];
-
-function readJson(key, fallback) {
-  try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
-  catch (error) { return fallback; }
-}
-
-function writeJson(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
-  return value;
-}
-
-function safeDTO() {
-  return window.DTO || {
-    escapeHtml: value => String(value ?? "").replace(/[&<>"']/g, ch => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[ch])),
-    saveSetup: setup => {
-      localStorage.setItem("dtoSetupPacket", JSON.stringify(setup));
-      localStorage.setItem("dtoLastSetup", JSON.stringify(setup));
-      return setup;
-    },
-    getSetup: () => readJson("dtoSetupPacket", null),
-    workflowUrl: (page, setup) => `${page}?symbol=${encodeURIComponent(setup?.symbol || "")}`,
-    renderMissionControl: () => {}
-  };
-}
-
-function saved() {
-  return readJson(STORAGE_KEY, []);
-}
-
-function cleanSymbol(value) {
-  return String(value || "").trim().toUpperCase().replace(/[^A-Z0-9.-]/g, "");
-}
-
-function saveCandidate() {
-  const dto = safeDTO();
-  const symbol = cleanSymbol(document.getElementById("symbol").value);
-  const setupType = document.getElementById("setupType").value;
-  const level = document.getElementById("level").value;
-  const note = document.getElementById("note").value.trim();
-  const status = document.getElementById("saveStatus");
-
-  if (!symbol) {
-    status.textContent = "Add a symbol first.";
-    status.style.color = "#ff5b6e";
-    return;
-  }
-
-  const item = { symbol, setupType, level, note, createdAt: new Date().toISOString() };
-  const next = [item, ...saved().filter(existing => existing.symbol !== symbol)].slice(0, 50);
-  writeJson(STORAGE_KEY, next);
-  dto.saveSetup({
-    symbol,
-    rating: "CHECK",
-    thesis: note || `${setupType} scanner candidate. Confirm volume, catalyst, support, and resistance before trading.`,
-    catalysts: note ? [note] : [],
-    sourcePage: "scanner_hub.html",
-    createdAt: item.createdAt
-  });
-
-  status.style.color = "#00e08a";
-  status.textContent = `${symbol} saved to scanner watchlist.`;
-  render();
-  dto.renderMissionControl();
-}
-
-function openSymbol(symbol) {
-  const dto = safeDTO();
-  const match = saved().find(item => item.symbol === symbol);
-  const setup = dto.saveSetup({
-    symbol,
-    rating: "CHECK",
-    thesis: match?.note || "Scanner candidate. Confirm volume, catalyst, and levels before trading.",
-    catalysts: match?.note ? [match.note] : [],
-    sourcePage: "scanner_hub.html"
-  });
-  location.href = dto.workflowUrl("index.html", setup);
-}
-
-function renderSymbolButtons(targetId, symbols) {
-  const dto = safeDTO();
-  document.getElementById(targetId).innerHTML = symbols.map(symbol => `<button type="button" data-open-symbol="${dto.escapeHtml(symbol)}">${dto.escapeHtml(symbol)}</button>`).join("");
-}
-
-function renderSavedList() {
-  const dto = safeDTO();
-  const list = saved();
-  document.getElementById("savedList").innerHTML = list.length ? list.map(item => `
-    <div class="saved-card">
-      <strong>${dto.escapeHtml(item.symbol)}</strong>
-      <span>${dto.escapeHtml(item.setupType || "Watch")} ${item.level ? "/ level " + dto.escapeHtml(item.level) : ""}</span>
-      <span>${dto.escapeHtml(item.note || "No note yet.")}</span>
-      <div class="card-actions">
-        <button type="button" data-open-symbol="${dto.escapeHtml(item.symbol)}">Analyze</button>
-        <a href="${dto.workflowUrl("guided_trade_builder.html", item)}">Trade Builder</a>
-      </div>
-    </div>`).join("") : `<p class="empty">No symbols saved yet. Add one above and it will appear here instantly.</p>`;
-}
-
-function render() {
-  renderSavedList();
-  renderSymbolButtons("stockList", STOCKS);
-  renderSymbolButtons("cryptoList", CRYPTOS);
-  document.querySelectorAll("[data-open-symbol]").forEach(button => {
-    button.addEventListener("click", () => openSymbol(button.dataset.openSymbol));
-  });
-}
-
-document.getElementById("saveScannerBtn").addEventListener("click", saveCandidate);
-document.getElementById("scanForm").addEventListener("submit", event => {
-  event.preventDefault();
-  saveCandidate();
-});
-document.getElementById("symbol").addEventListener("keydown", event => {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    saveCandidate();
-  }
-});
-
-render();
-safeDTO().renderMissionControl();
-</script>
+    
+  </main>
+  
+  <script>window.__redirectTarget = "market_intel.html#scanner";</script>
+<script src="assets/scripts/redirect.js" defer></script>
 </body>
 </html>
