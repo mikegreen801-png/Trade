@@ -52,23 +52,23 @@
 
     DTO.fetchCandles(sym).then(function (candles) {
       if (!candles || !candles.length) { card.innerHTML = '<div class="empty-state">No data returned for ' + sym + '.</div>'; return; }
-      var a = DTO.analyzeCandles(candles, sym);
+      var a = DTO.analyzeCandles(sym, candles);
       var urls = DTO.sourceUrls(sym);
 
       card.innerHTML =
         '<div class="analysis-header"><div><h3>' + a.symbol + '</h3><p>Explained rating from recent candle trend, momentum, and levels.</p></div>' +
         '<span class="mini-chip ' + a.rating.toLowerCase().replace(/\s/g, "") + '">' + a.rating + ' ' + a.confidence + '%</span></div>' +
         '<div class="analysis-metrics">' +
-        '<div class="metric-card"><span>Price</span><strong>$' + a.price.toFixed(2) + '</strong></div>' +
-        '<div class="metric-card"><span>Support</span><strong>$' + a.support.toFixed(2) + '</strong></div>' +
-        '<div class="metric-card"><span>Resistance</span><strong>$' + a.resistance.toFixed(2) + '</strong></div>' +
-        '<div class="metric-card"><span>Stop</span><strong>$' + a.stop.toFixed(2) + '</strong></div>' +
-        '<div class="metric-card"><span>Target</span><strong>$' + a.target.toFixed(2) + '</strong></div>' +
-        '<div class="metric-card"><span>R:R</span><strong>' + a.rr.toFixed(2) + 'R</strong></div>' +
-        '<div class="metric-card"><span>RSI</span><strong>' + a.rsi.toFixed(0) + '</strong></div>' +
-        '<div class="metric-card"><span>Volume</span><strong>' + (a.volume ? a.volume.toLocaleString() : "—") + '</strong></div>' +
+        '<div class="metric-card"><span>Price</span><strong>' + a.metrics.price + '</strong></div>' +
+        '<div class="metric-card"><span>Support</span><strong>' + a.metrics.support + '</strong></div>' +
+        '<div class="metric-card"><span>Resistance</span><strong>' + a.metrics.resistance + '</strong></div>' +
+        '<div class="metric-card"><span>Stop</span><strong>' + a.metrics.stop + '</strong></div>' +
+        '<div class="metric-card"><span>Target</span><strong>' + a.metrics.target + '</strong></div>' +
+        '<div class="metric-card"><span>R:R</span><strong>' + a.metrics.rr + '</strong></div>' +
+        '<div class="metric-card"><span>RSI</span><strong>' + a.metrics.rsi + '</strong></div>' +
+        '<div class="metric-card"><span>Volume</span><strong>' + a.metrics.volume + '</strong></div>' +
         '</div>' +
-        '<div class="analysis-note">' + (a.notes || []).join("<br>") + '</div>' +
+        '<div class="analysis-note">' + (a.rationale || []).join("<br>") + '</div>' +
         '<div class="source-links">' + sourceLink("TradingView", urls.tradingView) + sourceLink("Yahoo", urls.yahoo) + sourceLink("CNBC", urls.cnbc) + sourceLink("Finviz", urls.finviz) + "</div>";
 
       // Save as active setup
@@ -76,7 +76,7 @@
       var asEl2 = document.getElementById("homeActiveSetup");
       var anEl2 = document.getElementById("homeActiveSetupNote");
       if (asEl2) asEl2.textContent = a.symbol + " " + a.rating;
-      if (anEl2) anEl2.textContent = (a.notes && a.notes[0]) ? a.notes[0].slice(0, 80) : "Loaded from analysis.";
+      if (anEl2) anEl2.textContent = (a.rationale && a.rationale[0]) ? a.rationale[0].slice(0, 80) : "Loaded from analysis.";
 
       // Show TradingView chart
       if (chartContainer && chartBox) {
