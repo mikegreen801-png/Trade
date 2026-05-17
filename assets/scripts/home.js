@@ -1,79 +1,175 @@
-/* home.js — Home workspace page runtime */
+/* home.js — Home page runtime */
 (function () {
   "use strict";
-  var D = window.DTO, S = window.Site;
-  var currentResult = null;
 
-  function setText(id, t) { var e = document.getElementById(id); if (e) e.textContent = t; }
+  // ── Session info ──
+  var info = Site.sessionInfo();
+  var stateEl = document.getElementById("homeSessionState");
+  var noteEl = document.getElementById("homeSessionNote");
+  if (stateEl) stateEl.textContent = info.phase.label;
+  if (noteEl) noteEl.textContent = info.phase.state === "open" ? "Market is live." : "Session is " + info.phase.label.toLowerCase() + ".";
 
-  function metricMini(label, value) {
-    return '<div class="metric-card"><span>' + D.escapeHtml(label) + "</span><strong>" + D.escapeHtml(value) + "</strong></div>";
+  // ── Active setup pill ──
+  var setup = Site.getSetup();
+  if (setup) {
+    var asEl = document.getElementById("homeActiveSetup");
+    var anEl = document.getElementById("homeActiveSetupNote");
+    if (asEl) asEl.textContent = (setup.symbol || "—") + " " + (setup.rating || "");
+    if (anEl) anEl.textContent = setup.notes ? setup.notes.slice(0, 80) : "Loaded from local storage.";
   }
+
+  // ── Paper P&L ──
+  var portfolio = Site.getPortfolio();
+  var paperPnl = 0;
+  portfolio.positions.forEach(function (p) { paperPnl += (p.currentPrice || p.entry) * p.qty - p.entry * p.qty; });
+  var pnlEl = document.getElementById("homePaperPnl");
+  if (pnlEl) {
+    pnlEl.textContent = "$" + paperPnl.toFixed(2);
+    pnlEl.className = paperPnl >= 0 ? "status-positive" : "status-negative";
+  }
+
+  // ── Journal edge ──
+  var reviews = Site.getReviews();
+  var wins = reviews.filter(function (r) { return r.outcome === "win"; }).length;
+  var edgeEl = document.getElementById("homeJournalEdge");
+  if (edgeEl && reviews.length) edgeEl.textContent = Math.round(wins / reviews.length * 100) + "%";
+
+  // ── Analyze form ──
+  var form = document.getElementById("homeAnalyzeForm");
+  var input = document.getElementById("homeSymbolInput");
+  var card = document.getElementById("homeAnalysisCard");
+  var chartContainer = document.getElementById("homeChartContainer");
+  var chartBox = document.getElementById("homeChart");
+
   function sourceLink(label, url) {
-    return '<a href="' + D.escapeHtml(url) + '" target="_blank" rel="noopener">' + D.escapeHtml(label) + "</a>";
-  }
-
-  function refreshMetrics() {
-    var info = S.sessionInfo();
-    setText("homeSessionState", info.phase.label);
-    setText("homeSessionNote", info.phase.state === "open" ? "US equities are trading now." : "Session is " + info.phase.label.toLowerCase() + ".");
-    var setup = S.getSetup();
-    if (setup) {
-      setText("homeActiveSetup", setup.symbol + " " + (setup.rating || setup.side || "").toUpperCase());
-      setText("homeActiveSetupNote", setup.thesis ? setup.thesis.slice(0, 60) : "Loaded from your last save.");
-    }
-    var port = S.getPortfolio();
-    var openPnl = port.positions.reduce(function (s, p) {
-      return s + ((p.currentPrice || p.entry) - p.entry) * p.qty * (p.side === "short" ? -1 : 1);
-    }, 0);
-    setText("homePaperPnl", D.formatMoney(openPnl));
-    setText("homePaperNote", port.positions.length ? port.positions.length + " open position(s)." : "No open paper positions yet.");
-    var reviews = S.getReviews();
-    if (reviews.length) {
-      var wins = reviews.filter(function (r) { return r.pnl > 0; }).length;
-      setText("homeJournalEdge", Math.round((wins / reviews.length) * 100) + "%");
-      setText("homeJournalNote", reviews.length + " reviewed trade(s).");
-    }
-    renderWatchlist();
+    return '<a href="' + url + '" target="_blank" rel="noopener">' + label + '</a>';
   }
 
   function analyzeSymbol(sym) {
-    var card = document.getElementById("homeAnalysisCard");
-    var symbol = D.cleanSymbol(sym);
-    card.className = "loading-state"; card.textContent = "Analyzing " + symbol + "…";
-    D.fetchCandles(symbol).then(function (candles) {
-      var r = D.analyzeCandles(symbol, candles);
-      currentResult = r;
-      S.saveSetup({ symbol: r.symbol, rating: r.rating, confidence: r.confidence, price: r.raw.price, entry: r.raw.price, stop: r.raw.stop, target: r.raw.target, support: r.raw.support, resistance: r.raw.resistance, rr: r.raw.rr, side: r.rating === "SELL" ? "short" : "long", thesis: r.rationale[0] || "", source: candles.source || "unknown" });
-      var rc = r.rating === "BUY" ? "buy" : r.rating === "SELL" ? "sell" : "hold";
-      var urls = D.sourceUrls(r.symbol);
-      card.className = "analysis-shell";
-      card.innerHTML = '<div class="analysis-header"><div><h3>' + D.escapeHtml(r.symbol) + '</h3><p style="margin:4px 0 0;color:var(--text-muted);font-size:14px">' + D.escapeHtml(r.name) + '</p></div><span class="analysis-rating mini-chip ' + rc + '">' + r.rating + " " + r.confidence + "%</span></div>" +
-        '<div class="analysis-metrics">' + metricMini("Price", r.metrics.price) + metricMini("Support", r.metrics.support) + metricMini("Resistance", r.metrics.resistance) + metricMini("Stop", r.metrics.stop) + metricMini("Target", r.metrics.target) + metricMini("R:R", r.metrics.rr) + "</div>" +
-        '<div class="analysis-note">' + r.rationale.map(function (l) { return "<p style='margin:6px 0'>" + D.escapeHtml(l) + "</p>"; }).join("") + "</div>" +
+    if (!sym || !card) return;
+    card.className = "analysis-shell";
+    card.innerHTML = '<div class="loading-state">Analyzing ' + sym.toUpperCase() + '…</div>';
+
+    DTO.fetchCandles(sym).then(function (candles) {
+      if (!candles || !candles.length) { card.innerHTML = '<div class="empty-state">No data returned for ' + sym + '.</div>'; return; }
+      var a = DTO.analyzeCandles(candles, sym);
+      var urls = DTO.sourceUrls(sym);
+
+      card.innerHTML =
+        '<div class="analysis-header"><div><h3>' + a.symbol + '</h3><p>Explained rating from recent candle trend, momentum, and levels.</p></div>' +
+        '<span class="mini-chip ' + a.rating.toLowerCase().replace(/\s/g, "") + '">' + a.rating + ' ' + a.confidence + '%</span></div>' +
+        '<div class="analysis-metrics">' +
+        '<div class="metric-card"><span>Price</span><strong>$' + a.price.toFixed(2) + '</strong></div>' +
+        '<div class="metric-card"><span>Support</span><strong>$' + a.support.toFixed(2) + '</strong></div>' +
+        '<div class="metric-card"><span>Resistance</span><strong>$' + a.resistance.toFixed(2) + '</strong></div>' +
+        '<div class="metric-card"><span>Stop</span><strong>$' + a.stop.toFixed(2) + '</strong></div>' +
+        '<div class="metric-card"><span>Target</span><strong>$' + a.target.toFixed(2) + '</strong></div>' +
+        '<div class="metric-card"><span>R:R</span><strong>' + a.rr.toFixed(2) + 'R</strong></div>' +
+        '<div class="metric-card"><span>RSI</span><strong>' + a.rsi.toFixed(0) + '</strong></div>' +
+        '<div class="metric-card"><span>Volume</span><strong>' + (a.volume ? a.volume.toLocaleString() : "—") + '</strong></div>' +
+        '</div>' +
+        '<div class="analysis-note">' + (a.notes || []).join("<br>") + '</div>' +
         '<div class="source-links">' + sourceLink("TradingView", urls.tradingView) + sourceLink("Yahoo", urls.yahoo) + sourceLink("CNBC", urls.cnbc) + sourceLink("Finviz", urls.finviz) + "</div>";
-      refreshMetrics();
-    }).catch(function (err) { card.className = "empty-state"; card.textContent = "Could not analyze " + symbol + ": " + err.message; });
+
+      // Save as active setup
+      Site.saveSetup(a);
+      var asEl2 = document.getElementById("homeActiveSetup");
+      var anEl2 = document.getElementById("homeActiveSetupNote");
+      if (asEl2) asEl2.textContent = a.symbol + " " + a.rating;
+      if (anEl2) anEl2.textContent = (a.notes && a.notes[0]) ? a.notes[0].slice(0, 80) : "Loaded from analysis.";
+
+      // Show TradingView chart
+      if (chartContainer && chartBox) {
+        chartContainer.style.display = "";
+        chartBox.className = "chart-container";
+        chartBox.innerHTML = '<iframe src="' + DTO.tradingViewEmbedUrl(sym) + '" allowfullscreen></iframe>';
+      }
+    }).catch(function (err) {
+      card.innerHTML = '<div class="empty-state">Could not analyze ' + sym + ': ' + (err.message || err) + '</div>';
+    });
   }
 
-  var form = document.getElementById("homeAnalyzeForm");
-  var input = document.getElementById("homeSymbolInput");
-  if (form) form.addEventListener("submit", function (e) { e.preventDefault(); var s = (input.value || "").trim(); if (s) analyzeSymbol(s); });
-  document.querySelectorAll("[data-symbol]").forEach(function (b) { b.addEventListener("click", function () { if (input) input.value = b.dataset.symbol; analyzeSymbol(b.dataset.symbol); }); });
+  if (form) {
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      analyzeSymbol((input.value || "").trim());
+    });
+  }
 
-  var addBtn = document.getElementById("homeAddWatchlist");
-  if (addBtn) addBtn.addEventListener("click", function () {
-    if (!currentResult) { S.toast("Analyze a symbol first.", "error"); return; }
-    S.addToWatchlist(currentResult.symbol); S.toast(currentResult.symbol + " added to watchlist.", "success"); renderWatchlist();
+  // ── Quick chips ──
+  document.querySelectorAll("[data-symbol]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      if (input) input.value = btn.dataset.symbol;
+      analyzeSymbol(btn.dataset.symbol);
+    });
   });
 
-  function renderWatchlist() {
-    var c = document.getElementById("homeWatchlist"); if (!c) return;
-    var list = S.getWatchlist();
-    if (!list.length) { c.className = "simple-list empty-state"; c.textContent = "No symbols saved yet."; return; }
-    c.className = "simple-list";
-    c.innerHTML = list.slice(0, 8).map(function (s) { return '<div class="list-row row-split"><strong>' + D.escapeHtml(s) + '</strong><a class="secondary-btn" href="market_intel.html?symbol=' + encodeURIComponent(s) + '#details">Open</a></div>'; }).join("");
+  // ── Add to watchlist ──
+  var wlBtn = document.getElementById("homeAddWatchlist");
+  if (wlBtn) {
+    wlBtn.addEventListener("click", function () {
+      var sym = (input.value || "").trim().toUpperCase();
+      if (!sym) return Site.toast("Enter a symbol first.", "error");
+      Site.addToWatchlist(sym);
+      Site.toast(sym + " added to watchlist.", "success");
+      renderWatchlist();
+    });
   }
 
-  refreshMetrics();
+  // ── Watchlist ──
+  var wlContainer = document.getElementById("homeWatchlist");
+  function renderWatchlist() {
+    var list = Site.getWatchlist();
+    if (!wlContainer) return;
+    if (!list.length) { wlContainer.className = "simple-list empty-state"; wlContainer.textContent = "No symbols saved yet."; return; }
+    wlContainer.className = "simple-list";
+    wlContainer.innerHTML = list.map(function (s) {
+      return '<div class="list-row row-split"><strong>' + s + '</strong><button class="ghost-btn" data-remove-wl="' + s + '">Remove</button></div>';
+    }).join("");
+    wlContainer.querySelectorAll("[data-remove-wl]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        Site.removeFromWatchlist(btn.dataset.removeWl);
+        renderWatchlist();
+        Site.toast(btn.dataset.removeWl + " removed.", "info");
+      });
+    });
+  }
+  renderWatchlist();
+
+  // ── Paper equity curve ──
+  var curveContainer = document.getElementById("homePaperChart");
+  function renderEquityCurve() {
+    var closed = portfolio.closed || [];
+    if (!closed.length || !curveContainer) return;
+    curveContainer.className = "equity-curve";
+    curveContainer.style.borderStyle = "solid";
+
+    // Build cumulative P&L series
+    var cumPnl = [];
+    var running = 0;
+    closed.forEach(function (t) {
+      var pnl = (t.exitPrice - t.entry) * t.qty * (t.side === "short" ? -1 : 1);
+      running += pnl;
+      cumPnl.push(running);
+    });
+
+    if (cumPnl.length < 2) { curveContainer.textContent = "$" + running.toFixed(2) + " from " + closed.length + " trade(s)."; return; }
+
+    var min = Math.min.apply(null, cumPnl), max = Math.max.apply(null, cumPnl);
+    var range = max - min || 1;
+    var w = 400, h = 140, pad = 16;
+    var stepX = (w - pad * 2) / (cumPnl.length - 1);
+
+    var points = cumPnl.map(function (v, i) {
+      var x = pad + i * stepX;
+      var y = h - pad - ((v - min) / range) * (h - pad * 2);
+      return x.toFixed(1) + "," + y.toFixed(1);
+    });
+
+    var color = running >= 0 ? "#188038" : "#d93025";
+    curveContainer.innerHTML = '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none" style="width:100%;height:100%">' +
+      '<polyline fill="none" stroke="' + color + '" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="' + points.join(" ") + '"/>' +
+      '</svg>';
+  }
+  renderEquityCurve();
 })();

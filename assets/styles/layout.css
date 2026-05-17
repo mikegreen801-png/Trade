@@ -4,6 +4,7 @@
   padding: 28px 0 108px;
 }
 
+/* ── Top App Bar ── */
 .top-app-bar {
   position: sticky;
   top: 0;
@@ -76,10 +77,12 @@
   font: 600 12px/1 var(--font-mono);
 }
 
+/* ── Hero ── */
 .page-hero {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
   gap: var(--space-5);
+  align-items: start;
   margin-top: 18px;
   margin-bottom: var(--space-5);
 }
@@ -105,6 +108,7 @@
   padding: var(--space-5);
 }
 
+/* ── Typography ── */
 .eyebrow {
   display: inline-block;
   margin-bottom: 12px;
@@ -123,13 +127,13 @@ h3 {
 }
 
 h1 {
-  font-size: clamp(40px, 6vw, 68px);
-  line-height: 0.98;
+  font-size: clamp(36px, 5.5vw, 62px);
+  line-height: 1;
 }
 
 h2 {
-  font-size: clamp(28px, 3vw, 40px);
-  line-height: 1.06;
+  font-size: clamp(24px, 3vw, 36px);
+  line-height: 1.08;
 }
 
 h3 {
@@ -143,9 +147,17 @@ h3 {
   color: var(--text-muted);
 }
 
+.lead {
+  font-size: 16px;
+  line-height: 1.65;
+  margin-top: 12px;
+}
+
+/* ── Section Grids ── */
 .module-grid {
   display: grid;
   gap: var(--space-5);
+  margin-bottom: var(--space-5);
 }
 
 .module-grid.two-col {
@@ -173,11 +185,12 @@ h3 {
   scroll-margin-top: 112px;
 }
 
+/* ── Footer ── */
 .site-footer {
   display: grid;
-  gap: 4px;
-  margin-top: var(--space-7);
-  padding: 0 4px;
+  gap: 6px;
+  margin-top: var(--space-8);
+  padding: 0 4px var(--space-5);
   color: var(--text-soft);
   font-size: 14px;
 }
@@ -186,6 +199,37 @@ h3 {
   font-size: 13px;
 }
 
+/* ── Auth slot in top bar ── */
+.auth-slot {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-slot .auth-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-weight: 800;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-slot .auth-link {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--blue);
+}
+
+.auth-slot .auth-link:hover {
+  text-decoration: underline;
+}
+
+/* ── Responsive ── */
 @media (max-width: 980px) {
   .top-app-bar {
     grid-template-columns: 1fr;

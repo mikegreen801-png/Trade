@@ -153,7 +153,7 @@
 
   function tradingViewEmbedUrl(rawSymbol) {
     const symbol = encodeURIComponent(tradingViewSymbol(rawSymbol));
-    return `https://s.tradingview.com/widgetembed/?symbol=${symbol}&interval=60&hidesidetoolbar=1&symboledit=1&saveimage=0&toolbarbg=050a12&theme=dark&style=1&timezone=America%2FNew_York&withdateranges=1&hideideas=1&locale=en`;
+    return `https://s.tradingview.com/widgetembed/?symbol=${symbol}&interval=60&hidesidetoolbar=1&symboledit=1&saveimage=0&toolbarbg=ffffff&theme=light&style=1&timezone=America%2FNew_York&withdateranges=1&hideideas=1&locale=en`;
   }
 
   function sourceUrls(rawSymbol) {

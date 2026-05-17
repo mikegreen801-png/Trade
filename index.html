@@ -46,6 +46,9 @@
       <span data-session-label>Loading</span>
       <strong data-et-clock>--:-- ET</strong>
     </div>
+    <div class="auth-slot" id="authSlot">
+      <a class="auth-link" href="login.html">Sign in</a>
+    </div>
   </div>
 </header>
 
@@ -101,18 +104,22 @@
       </div>
       <button class="secondary-btn" id="homeAddWatchlist" type="button">Add to watchlist</button>
     </div>
-    <div id="homeAnalysisCard" class="empty-state">Analyze one symbol to get a quick read, save the setup, and keep the rest of the workflow in sync.</div>
+    <div id="homeAnalysisCard" class="empty-state">Analyze a symbol to see the price, levels, rationale, and chart.</div>
+    <div id="homeChartContainer" class="home-chart-section" style="display:none">
+      <div class="chart-container loading-chart" id="homeChart"></div>
+    </div>
   </article>
 
   <article class="surface stack">
     <div class="section-header">
       <div>
-        <span class="eyebrow">Watchlist</span>
-        <h2>Shared names to keep an eye on</h2>
+        <span class="eyebrow">Paper equity</span>
+        <h2>Your trading curve</h2>
       </div>
-      <a class="secondary-btn" href="market_intel.html#watchlist">Open Market</a>
+      <a class="secondary-btn" href="execution_workbench.html#portfolio">Open Execute</a>
     </div>
-    <div id="homeWatchlist" class="simple-list empty-state">No symbols saved yet.</div>
+    <div id="homePaperChart" class="equity-curve empty-state" style="border-style:solid">No closed trades to chart yet. Open and close a paper trade to start tracking.</div>
+    <div id="homeWatchlist" class="simple-list empty-state" style="margin-top:16px">No symbols saved yet.</div>
   </article>
 </section>
 
@@ -121,7 +128,7 @@
     <div>
       <span class="eyebrow">Next step</span>
       <h2>Move through the workflow</h2>
-      <p class="section-copy">The product is intentionally smaller now: Market for context, Plan for the setup, Execute for paper trades and broker checks, Review for lessons.</p>
+      <p class="section-copy">Market for context, Plan for the setup, Execute for paper trades, Review for lessons.</p>
     </div>
     <a class="action-tile" href="market_intel.html">
       <strong>Market</strong>
@@ -149,11 +156,11 @@
     <div>
       <span class="eyebrow">Review</span>
       <h2>Make the next session better</h2>
-      <p class="section-copy">Review only matters if it is easy to do. The new Review hub keeps stats, rules, and lessons together.</p>
+      <p class="section-copy">Review only matters if it is easy to do. The Review hub keeps stats, rules, and lessons together.</p>
     </div>
     <a class="action-tile" href="review_workbench.html">
       <strong>Review</strong>
-      <p>Log the trade, tag the mistake, and set tomorrow’s rule.</p>
+      <p>Log the trade, tag the mistake, and set tomorrow's rule.</p>
     </a>
   </article>
 </section>

@@ -114,3 +114,22 @@
     <div id="patternGrid" class="pattern-grid"></div>
   </article>
 </section>
+
+<dialog class="site-dialog" id="presetDialog">
+  <div class="dialog-body">
+    <div class="dialog-header">
+      <div>
+        <span class="eyebrow" id="dialogEyebrow">Preset</span>
+        <h2 id="dialogTitle">Breakout</h2>
+      </div>
+      <button class="dialog-close" id="dialogClose" type="button">&times;</button>
+    </div>
+    <p class="dialog-pattern-desc" id="dialogDesc"></p>
+    <div class="dialog-rules" id="dialogRules"></div>
+    <div id="dialogChart" class="chart-container loading-chart" style="margin-bottom:16px"></div>
+    <div class="button-row">
+      <button class="primary-btn" id="dialogUsePreset" type="button">Use this preset</button>
+      <button class="secondary-btn" id="dialogDismiss" type="button">Close</button>
+    </div>
+  </div>
+</dialog>

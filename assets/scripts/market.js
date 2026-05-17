@@ -25,6 +25,14 @@
       var r = D.analyzeCandles(sym, candles); currentResult = r;
       S.saveSetup({ symbol: r.symbol, rating: r.rating, confidence: r.confidence, price: r.raw.price, entry: r.raw.price, stop: r.raw.stop, target: r.raw.target, support: r.raw.support, resistance: r.raw.resistance, rr: r.raw.rr, side: r.rating === "SELL" ? "short" : "long", thesis: r.rationale[0] || "" });
       renderAnalysis(card, r); renderContext(ctx, r);
+      // Show TradingView chart
+      var chartWrap = document.getElementById("marketChartContainer");
+      var chartBox = document.getElementById("marketChart");
+      if (chartWrap && chartBox) {
+        chartWrap.style.display = "";
+        chartBox.className = "chart-container";
+        chartBox.innerHTML = '<iframe src="' + D.tradingViewEmbedUrl(sym) + '" allowfullscreen></iframe>';
+      }
     }).catch(function (err) { card.className = "empty-state"; card.textContent = "Error: " + err.message; ctx.className = "empty-state"; ctx.textContent = "Context unavailable."; });
   }
 

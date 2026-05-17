@@ -1,0 +1,101 @@
+.login-shell {
+  display: grid;
+  place-items: center;
+  min-height: 80vh;
+}
+
+.login-card {
+  width: min(440px, 100%);
+}
+
+.login-card h1 {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.login-card .lead {
+  margin-top: 0;
+  margin-bottom: var(--space-5);
+}
+
+.login-form {
+  display: grid;
+  gap: 16px;
+}
+
+.login-form .field {
+  grid-column: 1 / -1;
+}
+
+.login-form input {
+  width: 100%;
+  min-height: 50px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: white;
+  font-size: 15px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.login-form input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.12);
+}
+
+.login-form .primary-btn {
+  width: 100%;
+  min-height: 50px;
+  font-size: 15px;
+}
+
+.login-toggle {
+  text-align: center;
+  margin-top: var(--space-4);
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.login-toggle a {
+  color: var(--blue);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.login-toggle a:hover {
+  text-decoration: underline;
+}
+
+.alpaca-config {
+  margin-top: var(--space-6);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--line);
+}
+
+.alpaca-config h3 {
+  font-size: 18px;
+  margin-bottom: var(--space-4);
+}
+
+.user-greeting {
+  text-align: center;
+  margin-bottom: var(--space-5);
+}
+
+.user-greeting .auth-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-weight: 800;
+  font-size: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.logout-btn {
+  margin-top: var(--space-4);
+}

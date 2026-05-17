@@ -11,6 +11,20 @@
   border: 1px solid var(--line);
   border-radius: 20px;
   background: var(--surface-soft);
+  cursor: pointer;
+}
+
+.preset-card:hover,
+.pattern-card:hover {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+  box-shadow: var(--shadow-1);
+  transform: translateY(-2px);
+}
+
+.preset-card:hover strong,
+.pattern-card:hover strong {
+  color: var(--blue);
 }
 
 .preset-card p,
@@ -18,11 +32,53 @@
   margin: 10px 0 0;
   color: var(--text-muted);
   font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── Dialog content inside preset/pattern modal ── */
+.dialog-pattern-desc {
+  margin: 0 0 var(--space-4);
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.dialog-rules {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: var(--space-4);
+}
+
+.dialog-rule-card {
+  padding: 14px;
+  border-radius: 16px;
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+}
+
+.dialog-rule-card span {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dialog-rule-card strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 14px;
 }
 
 @media (max-width: 980px) {
   .preset-grid,
   .pattern-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dialog-rules {
     grid-template-columns: 1fr;
   }
 }

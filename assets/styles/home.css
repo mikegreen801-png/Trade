@@ -4,7 +4,7 @@
 }
 
 .home-hero .metric-card strong {
-  font-size: 28px;
+  font-size: 26px;
 }
 
 .workspace-actions {
@@ -19,9 +19,29 @@
   border: 1px solid var(--line);
   border-radius: 22px;
   background: var(--surface-soft);
+  cursor: pointer;
+}
+
+.action-tile:hover {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+  box-shadow: var(--shadow-lift);
+  transform: translateY(-2px);
+}
+
+.action-tile:hover strong {
+  color: var(--blue);
 }
 
 .action-tile p {
   margin: 0;
   font-size: 14px;
+}
+
+.home-chart-section {
+  margin-top: var(--space-5);
+}
+
+.paper-pnl-section {
+  margin-top: var(--space-5);
 }

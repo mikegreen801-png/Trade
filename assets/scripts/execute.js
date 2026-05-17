@@ -20,6 +20,47 @@
     S.toast("Setup loaded into ticket.", "success");
   });
 
+  // ── Auto-price / Symbol lookup ──
+  var symbolInput = document.getElementById("paperSymbol");
+  var symbolHint = document.getElementById("paperSymbolHint");
+  var lookupTimeout;
+
+  if (symbolInput) {
+    symbolInput.addEventListener("input", function() {
+      var sym = D.cleanSymbol(symbolInput.value);
+      if (!sym) {
+        if (symbolHint) { symbolHint.textContent = "Type a symbol to fetch the latest price."; symbolHint.className = "symbol-hint"; }
+        return;
+      }
+      
+      if (symbolHint) { symbolHint.textContent = "Fetching " + sym + "…"; symbolHint.className = "symbol-hint fetching"; }
+      
+      clearTimeout(lookupTimeout);
+      lookupTimeout = setTimeout(function() {
+        D.fetchCandles(sym).then(function(candles) {
+          if (!candles || !candles.length) throw new Error("No data");
+          var r = D.analyzeCandles(sym, candles);
+          
+          setVal("paperEntry", r.raw.price);
+          // Only auto-populate stop/target if they are currently empty so we don't overwrite user input unnecessarily
+          if (!val("paperStop")) setVal("paperStop", r.raw.stop);
+          if (!val("paperTarget")) setVal("paperTarget", r.raw.target);
+          if (!val("paperSide")) setVal("paperSide", r.rating === "SELL" ? "short" : "long");
+          
+          if (symbolHint) {
+            symbolHint.textContent = "Current price: " + D.fmtPrice(r.raw.price) + " (" + r.rating + ")";
+            symbolHint.className = "symbol-hint";
+          }
+        }).catch(function(err) {
+          if (symbolHint) {
+            symbolHint.textContent = "Could not fetch price for " + sym + ".";
+            symbolHint.className = "symbol-hint";
+          }
+        });
+      }, 500); // 500ms debounce
+    });
+  }
+
   // ── Paper trade form ──
   var form = document.getElementById("paperTicketForm");
   if (form) form.addEventListener("submit", function (e) {
@@ -101,20 +142,36 @@
   var brokerBtn = document.getElementById("checkBrokerStatus");
   if (brokerBtn) brokerBtn.addEventListener("click", function () {
     var box = document.getElementById("brokerStatusBox");
+    var keys = S.getAlpacaKeys();
+    
+    if (!keys || !keys.keyId || !keys.secret) {
+      box.innerHTML = "<div>Server: Checking…</div><div>Alpaca: ✗ Not configured. <a href='login.html' style='color:var(--blue);font-weight:bold'>Sign in</a> to add keys.</div>";
+      return;
+    }
+
     box.textContent = "Checking…";
+    var headers = {
+      "APCA-API-KEY-ID": keys.keyId,
+      "APCA-API-SECRET-KEY": keys.secret
+    };
+    
     Promise.all([
       fetch("/api/health").then(function (r) { return r.json(); }).catch(function () { return { ok: false }; }),
-      fetch("/api/alpaca-account").then(function (r) { return r.json(); }).catch(function () { return null; })
+      fetch("/api/alpaca-account", { headers: headers }).then(function (r) { return r.json(); }).catch(function () { return null; })
     ]).then(function (results) {
       var health = results[0], acct = results[1];
       var lines = [];
       lines.push("Server: " + (health && health.ok !== false ? "✓ online" : "✗ offline"));
       if (acct && acct.id) {
-        lines.push("Alpaca: ✓ connected");
+        lines.push("Alpaca (" + keys.env + "): ✓ connected");
         lines.push("Account: " + (acct.account_number || acct.id));
         lines.push("Buying power: " + D.formatMoney(parseFloat(acct.buying_power || 0)));
         lines.push("Equity: " + D.formatMoney(parseFloat(acct.equity || 0)));
-      } else { lines.push("Alpaca: ✗ not connected or keys missing"); }
+      } else if (acct && acct.error) {
+        lines.push("Alpaca: ✗ API Error: " + acct.error);
+      } else {
+        lines.push("Alpaca: ✗ connection failed");
+      }
       box.innerHTML = lines.map(function (l) { return "<div>" + D.escapeHtml(l) + "</div>"; }).join("");
     });
   });

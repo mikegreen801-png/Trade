@@ -176,6 +176,56 @@
     return { now: now, phase: phase, time: formatET(now) };
   }
 
+  // ── Auth helpers ──
+  var AUTH_KEY = "dto_auth_user";
+  var ALPACA_KEY = "dto_alpaca_keys";
+
+  function isLoggedIn() {
+    return !!readStore(AUTH_KEY, null);
+  }
+
+  function currentUser() {
+    return readStore(AUTH_KEY, null);
+  }
+
+  function loginUser(email, passHash) {
+    var users = readStore("dto_users", {});
+    if (users[email]) {
+      if (users[email].passHash !== passHash) return { ok: false, error: "Wrong password." };
+    } else {
+      users[email] = { email: email, passHash: passHash, createdAt: new Date().toISOString() };
+      writeStore("dto_users", users);
+    }
+    writeStore(AUTH_KEY, { email: email, loggedInAt: new Date().toISOString() });
+    return { ok: true };
+  }
+
+  function logout() {
+    localStorage.removeItem(AUTH_KEY);
+  }
+
+  function getAlpacaKeys() {
+    return readStore(ALPACA_KEY, null);
+  }
+
+  function saveAlpacaKeys(keyId, secret, env) {
+    writeStore(ALPACA_KEY, { keyId: keyId, secret: secret, env: env || "paper" });
+  }
+
+  // ── Update auth slot in top bar ──
+  function updateAuthSlot() {
+    var slot = document.getElementById("authSlot");
+    if (!slot) return;
+    var user = currentUser();
+    if (user) {
+      var initial = (user.email || "?")[0].toUpperCase();
+      slot.innerHTML = '<a class="auth-avatar" href="login.html" title="' + user.email + '">' + initial + '</a>';
+    } else {
+      slot.innerHTML = '<a class="auth-link" href="login.html">Sign in</a>';
+    }
+  }
+  updateAuthSlot();
+
   // ── Expose ──
   window.Site = {
     KEYS: KEYS,
@@ -201,6 +251,12 @@
     toast: toast,
     sessionInfo: sessionInfo,
     etNow: etNow,
-    marketPhase: marketPhase
+    marketPhase: marketPhase,
+    isLoggedIn: isLoggedIn,
+    currentUser: currentUser,
+    loginUser: loginUser,
+    logout: logout,
+    getAlpacaKeys: getAlpacaKeys,
+    saveAlpacaKeys: saveAlpacaKeys
   };
 })();

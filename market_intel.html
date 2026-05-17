@@ -46,6 +46,9 @@
       <span data-session-label>Loading</span>
       <strong data-et-clock>--:-- ET</strong>
     </div>
+    <div class="auth-slot" id="authSlot">
+      <a class="auth-link" href="login.html">Sign in</a>
+    </div>
   </div>
 </header>
 
@@ -100,6 +103,9 @@
       <button class="secondary-btn" id="marketAddWatchlist" type="button">Add to watchlist</button>
     </div>
     <div id="marketAnalysisCard" class="empty-state">Analyze a symbol to load price, levels, rationale, and next step.</div>
+    <div id="marketChartContainer" class="market-chart-section" style="display:none">
+      <div class="chart-container loading-chart" id="marketChart"></div>
+    </div>
   </article>
 
   <article id="context" class="surface section-anchor stack">

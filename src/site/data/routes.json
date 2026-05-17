@@ -39,6 +39,14 @@
       "title": "Day Trader OS | Review",
       "description": "Journal trades, study performance, and set better rules for the next session.",
       "scripts": ["assets/scripts/review.js"]
+    },
+    {
+      "id": "login",
+      "file": "login.html",
+      "template": "login.njk",
+      "title": "Day Trader OS | Sign In",
+      "description": "Sign in to connect your Alpaca account and save your trading workspace.",
+      "scripts": ["assets/scripts/login.js"]
     }
   ],
   "redirects": [

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day Trader OS | Sign In</title>
+  <meta name="description" content="Sign in to connect your Alpaca account and save your trading workspace.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/app.css?v=20260516">
+</head>
+<body class="app-shell page-login" data-dto-shell="modern" data-page-id="login">
+  <header class="top-app-bar">
+  <div class="brand-lockup">
+    <a class="brand-mark" href="index.html">Day Trader <span>OS</span></a>
+    <p class="brand-subtitle">A calmer trading workspace</p>
+  </div>
+  <nav class="top-nav" aria-label="Primary navigation">
+    <a class="top-nav-link" href="index.html">Home</a><a class="top-nav-link" href="market_intel.html">Market</a><a class="top-nav-link" href="trade_planner.html">Plan</a><a class="top-nav-link" href="execution_workbench.html">Execute</a><a class="top-nav-link" href="review_workbench.html">Review</a>
+  </nav>
+  <div class="top-app-actions">
+    <details class="more-menu">
+      <summary>More</summary>
+      <div class="more-panel">
+        
+    <a class="more-link" href="bot_dashboard.html">
+      <strong>Automation</strong>
+      <span>Bot Engine and automation tools.</span>
+    </a>
+    <a class="more-link" href="polymarket.html">
+      <strong>Prediction Markets</strong>
+      <span>Secondary market context and sentiment tools.</span>
+    </a>
+    <a class="more-link" href="backtest_simulator.html">
+      <strong>Backtesting</strong>
+      <span>Archived advanced replay and simulation.</span>
+    </a>
+    <a class="more-link" href="tradingview_course.html">
+      <strong>Learning</strong>
+      <span>Archived education and course material.</span>
+    </a>
+      </div>
+    </details>
+    <div class="session-pill">
+      <span data-session-label>Loading</span>
+      <strong data-et-clock>--:-- ET</strong>
+    </div>
+    <div class="auth-slot" id="authSlot">
+      <a class="auth-link" href="login.html">Sign in</a>
+    </div>
+  </div>
+</header>
+
+  <main class="page-shell">
+    <section class="login-shell">
+  <article class="surface login-card stack">
+    <!-- Sign-in state (shown when not logged in) -->
+    <div id="loginFormState">
+      <span class="eyebrow">Account</span>
+      <h1 id="loginHeading">Sign in</h1>
+      <p class="lead" id="loginSubtext">Sign in to save your Alpaca keys and keep your workspace in sync.</p>
+      <form class="login-form" id="loginForm">
+        <div class="field">
+          <label for="loginEmail">Email</label>
+          <input id="loginEmail" type="email" placeholder="trader@example.com" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="loginPassword">Password</label>
+          <input id="loginPassword" type="password" placeholder="Your password" autocomplete="current-password" required>
+        </div>
+        <button class="primary-btn" type="submit" id="loginSubmitBtn">Sign in</button>
+      </form>
+      <div class="login-toggle">
+        <span id="loginToggleText">Don't have an account?</span>
+        <a id="loginToggleLink">Create one</a>
+      </div>
+    </div>
+
+    <!-- Logged-in state -->
+    <div id="loginLoggedInState" style="display:none">
+      <div class="user-greeting">
+        <div class="auth-avatar" id="loginUserAvatar">M</div>
+        <h2 id="loginUserName">Welcome back</h2>
+        <p class="lead">You're signed in. Manage your Alpaca keys below.</p>
+      </div>
+
+      <div class="alpaca-config">
+        <span class="eyebrow">Broker</span>
+        <h3>Alpaca API keys</h3>
+        <p class="lead" style="margin-top:0; margin-bottom:16px">Your keys are stored locally in this browser. They never leave your machine.</p>
+        <form class="login-form" id="alpacaForm">
+          <div class="field">
+            <label for="alpacaKeyId">API Key ID</label>
+            <input id="alpacaKeyId" type="text" placeholder="PK…" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="alpacaSecret">Secret Key</label>
+            <input id="alpacaSecret" type="password" placeholder="Your Alpaca secret" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="alpacaEnv">Environment</label>
+            <select id="alpacaEnv">
+              <option value="paper">Paper (sandbox)</option>
+              <option value="live">Live</option>
+            </select>
+          </div>
+          <button class="primary-btn" type="submit">Save keys</button>
+        </form>
+        <div id="alpacaStatus" class="analysis-note" style="margin-top:16px">No keys saved yet.</div>
+      </div>
+
+      <button class="secondary-btn logout-btn" id="logoutBtn" type="button" style="width:100%">Sign out</button>
+    </div>
+  </article>
+</section>
+
+    <footer class="site-footer">
+  <p>Designed for active retail traders who need a cleaner workflow, not more dashboard noise.</p>
+  <p class="footer-note">Educational tools only. Verify prices, news, and risk with your broker before trading.</p>
+</footer>
+
+  </main>
+  <nav class="bottom-nav" aria-label="Mobile navigation">
+  <a class="bottom-nav-link" href="index.html">Home</a><a class="bottom-nav-link" href="market_intel.html">Market</a><a class="bottom-nav-link" href="trade_planner.html">Plan</a><a class="bottom-nav-link" href="execution_workbench.html">Execute</a><a class="bottom-nav-link" href="review_workbench.html">Review</a>
+</nav>
+
+  <script src="assets/dto-core.js" defer></script>
+<script src="assets/scripts/site.js" defer></script>
+<script src="assets/scripts/login.js" defer></script>
+</body>
+</html>

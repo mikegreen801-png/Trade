@@ -88,7 +88,8 @@ function cssBundle() {
     "market.css",
     "plan.css",
     "execute.css",
-    "review.css"
+    "review.css",
+    "login.css"
   ];
 
   const output = [

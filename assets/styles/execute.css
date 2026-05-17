@@ -2,18 +2,25 @@
   display: grid;
   grid-template-columns: 1.1fr 0.9fr;
   gap: 24px;
+  margin-bottom: var(--space-5);
 }
 
 .position-list .list-row {
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
 }
 
 .status-box {
-  padding: 16px;
+  padding: 16px 18px;
   border-radius: 18px;
   background: var(--surface-soft);
   border: 1px solid var(--line);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.status-box div {
+  padding: 4px 0;
 }
 
 @media (max-width: 980px) {
@@ -23,5 +30,6 @@
 
   .position-list .list-row {
     grid-template-columns: 1fr;
+    gap: 10px;
   }
 }
