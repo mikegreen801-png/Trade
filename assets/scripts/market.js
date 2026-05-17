@@ -20,7 +20,8 @@
     var card = document.getElementById("marketAnalysisCard");
     var ctx = document.getElementById("marketContextCard");
     card.className = "loading-state"; card.textContent = "Analyzing " + sym + "…";
-    ctx.className = "loading-state"; ctx.textContent = "Loading context…";
+    // Render source links immediately — no candle data needed for URLs
+    renderContext(ctx, { marketContext: D.marketContextForSymbol(sym, []) });
     D.fetchCandles(sym).then(function (candles) {
       var r = D.analyzeCandles(sym, candles); currentResult = r;
       S.saveSetup({ symbol: r.symbol, rating: r.rating, confidence: r.confidence, price: r.raw.price, entry: r.raw.price, stop: r.raw.stop, target: r.raw.target, support: r.raw.support, resistance: r.raw.resistance, rr: r.raw.rr, side: r.rating === "SELL" ? "short" : "long", thesis: r.rationale[0] || "" });

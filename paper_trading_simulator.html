@@ -3,33 +3,207 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Paper Trading Simulator | Redirect</title>
-  <meta name="description" content="Open the Execute hub for the paper trade ticket and portfolio view.">
+  <title>Day Trader OS | Live Simulator</title>
+  <meta name="description" content="Paper trade with live prices, TradingView charts, and full position tracking.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/app.css?v=20260516">
+  <link rel="stylesheet" href="assets/app.css?v=20260517">
+  <style>
+    .sim-grid { display: grid; grid-template-columns: 1fr 380px; gap: 20px; align-items: start; }
+    @media (max-width: 900px) { .sim-grid { grid-template-columns: 1fr; } }
+    .sim-chart-wrap { padding: 0; overflow: hidden; }
+    #simChartContainer { height: 460px; border-radius: 20px; overflow: hidden; background: var(--surface-soft); }
+    .sim-panel { padding: 20px; gap: 0; }
+    .sim-price-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+    .sim-live-price { font-family: var(--font-mono); font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+    .sim-sym-label { font-size: 13px; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.05em; }
+    .sim-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .sim-stat { background: var(--surface-soft); border-radius: 12px; padding: 10px 14px; }
+    .sim-stat span { font-size: 11px; font-weight: 600; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px; }
+    .sim-stat strong { font-family: var(--font-mono); font-size: 15px; font-weight: 700; }
+    .side-toggle { display: flex; gap: 8px; margin-bottom: 14px; }
+    .side-toggle button { flex: 1; padding: 10px; border-radius: 10px; border: 2px solid var(--line); background: transparent; font: 600 13px/1 var(--font-ui); color: var(--text-soft); cursor: pointer; transition: all .15s; }
+    .side-toggle button.active[data-side="long"] { border-color: var(--green); color: var(--green); background: color-mix(in srgb, var(--green) 10%, transparent); }
+    .side-toggle button.active[data-side="short"] { border-color: var(--red); color: var(--red); background: color-mix(in srgb, var(--red) 10%, transparent); }
+    .sim-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+    .sim-fields .field-full { grid-column: 1 / -1; }
+    .sim-section-label { font-size: 11px; font-weight: 700; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.06em; margin: 20px 0 10px; }
+    #simPositions, #simTradeLog { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+    .sim-reset-row { margin-top: 20px; text-align: center; }
+    .sim-reset-row button { font-size: 12px; color: var(--text-soft); background: none; border: none; cursor: pointer; text-decoration: underline; padding: 4px 8px; }
+    .mini-chip.win { background: color-mix(in srgb, var(--green) 15%, transparent); color: var(--green); }
+    .mini-chip.loss { background: color-mix(in srgb, var(--red) 15%, transparent); color: var(--red); }
+  </style>
 </head>
-<body class="app-shell page-redirect" data-dto-shell="modern" data-page-id="redirect">
-  
-  <main class="page-shell">
-    <section class="legacy-redirect">
-  <article class="surface redirect-card stack">
-    <span class="eyebrow">Moved</span>
-    <h1>Paper trading moved into Execute.</h1>
-    <p class="lead">Open the Execute hub for the paper trade ticket and portfolio view.</p>
-    <div class="button-row" style="justify-content:center">
-      <a class="primary-btn" href="execution_workbench.html#paper">Open current page</a>
-      <a class="secondary-btn" href="index.html">Go home</a>
+<body class="app-shell page-sim-live" data-dto-shell="modern" data-page-id="live-sim">
+  <header class="top-app-bar">
+  <div class="brand-lockup">
+    <a class="brand-mark" href="index.html">Day Trader <span>OS</span></a>
+    <p class="brand-subtitle">A calmer trading workspace</p>
+  </div>
+  <nav class="top-nav" aria-label="Primary navigation">
+    <a class="top-nav-link" href="index.html">Home</a><a class="top-nav-link" href="market_intel.html">Market</a><a class="top-nav-link" href="trade_planner.html">Plan</a><a class="top-nav-link" href="execution_workbench.html">Execute</a><a class="top-nav-link" href="review_workbench.html">Review</a>
+  </nav>
+  <div class="top-app-actions">
+    <details class="more-menu">
+      <summary>More</summary>
+      <div class="more-panel">
+        <a class="more-link" href="bot_dashboard.html">
+          <strong>Automation</strong>
+          <span>Bot Engine and automation tools.</span>
+        </a>
+        <a class="more-link" href="polymarket.html">
+          <strong>Prediction Markets</strong>
+          <span>Secondary market context and sentiment tools.</span>
+        </a>
+        <a class="more-link" href="paper_trading_simulator.html">
+          <strong>Live Simulator</strong>
+          <span>Paper trade with live prices and TradingView charts.</span>
+        </a>
+        <a class="more-link" href="backtest_simulator.html">
+          <strong>Backtesting</strong>
+          <span>Archived advanced replay and simulation.</span>
+        </a>
+        <a class="more-link" href="tradingview_course.html">
+          <strong>Learning</strong>
+          <span>Archived education and course material.</span>
+        </a>
+      </div>
+    </details>
+    <div class="session-pill">
+      <span data-session-label>Loading</span>
+      <strong data-et-clock>--:-- ET</strong>
     </div>
-    <p class="footer-note">Redirecting now. Query parameters will be preserved.</p>
-  </article>
-</section>
+    <div class="auth-slot" id="authSlot">
+      <a class="auth-link" href="login.html">Sign in</a>
+    </div>
+  </div>
+</header>
 
-    
+  <main class="page-shell">
+
+    <section class="page-hero">
+      <div class="hero-block">
+        <span class="eyebrow">Live Simulator</span>
+        <h1>Paper trade with live prices.</h1>
+        <p class="lead">Load any symbol, get a live TradingView chart, and paper trade with real prices. Your $100k account persists across sessions.</p>
+        <form class="search-bar" id="simLoadForm">
+          <input id="simSymbolInput" type="text" placeholder="AAPL, NVDA, BTC, ETH" autocomplete="off">
+          <button class="primary-btn" type="submit">Load</button>
+        </form>
+        <div class="quick-symbol-row">
+          <button class="chip-btn" type="button" data-symbol="AAPL">AAPL</button>
+          <button class="chip-btn" type="button" data-symbol="NVDA">NVDA</button>
+          <button class="chip-btn" type="button" data-symbol="TSLA">TSLA</button>
+          <button class="chip-btn" type="button" data-symbol="BTC">BTC</button>
+          <button class="chip-btn" type="button" data-symbol="ETH">ETH</button>
+          <button class="chip-btn" type="button" data-symbol="SOL">SOL</button>
+        </div>
+      </div>
+      <aside class="hero-aside">
+        <div class="metric-card">
+          <span>Cash</span>
+          <strong id="simCash">$100,000.00</strong>
+          <small>Available buying power</small>
+        </div>
+        <div class="metric-card">
+          <span>Equity</span>
+          <strong id="simEquity">$100,000.00</strong>
+          <small>Cash + open positions</small>
+        </div>
+        <div class="metric-card">
+          <span>Open P&amp;L</span>
+          <strong id="simOpenPnl" style="color:var(--text-soft)">+$0.00</strong>
+          <small>Unrealized gain / loss</small>
+        </div>
+        <div class="metric-card">
+          <span>Win rate</span>
+          <strong id="simWinRate">0% (0 trades)</strong>
+          <small>Closed trade record</small>
+        </div>
+      </aside>
+    </section>
+
+    <section class="module-grid sim-grid">
+
+      <!-- Chart -->
+      <article class="surface sim-chart-wrap">
+        <div id="simChartContainer">
+          <div style="height:100%;display:grid;place-items:center;font-size:14px;color:var(--text-soft)">Load a symbol to see the live chart.</div>
+        </div>
+      </article>
+
+      <!-- Trading Panel -->
+      <article class="surface sim-panel stack">
+
+        <!-- Live price header -->
+        <div class="sim-price-header">
+          <div>
+            <div class="sim-sym-label" id="simCurrentSym">—</div>
+            <div class="sim-live-price" id="simLivePrice">—</div>
+          </div>
+          <div style="text-align:right;font-size:12px;color:var(--text-soft)">Live price</div>
+        </div>
+
+        <!-- Trade Form -->
+        <form id="simTradeForm">
+          <div class="side-toggle">
+            <button type="button" data-side="long" class="active">Long</button>
+            <button type="button" data-side="short">Short</button>
+          </div>
+          <div class="sim-fields">
+            <div class="field field-full">
+              <label for="simEntry">Entry price</label>
+              <input id="simEntry" type="number" step="0.01" min="0" placeholder="Auto-filled from live price" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="simQty">Shares / qty</label>
+              <input id="simQty" type="number" min="1" step="1" placeholder="100" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="simStop">Stop</label>
+              <input id="simStop" type="number" step="0.01" min="0" placeholder="Optional" autocomplete="off">
+            </div>
+            <div class="field field-full">
+              <label for="simTarget">Target</label>
+              <input id="simTarget" type="number" step="0.01" min="0" placeholder="Optional" autocomplete="off">
+            </div>
+          </div>
+          <button class="primary-btn" type="submit" style="width:100%">Open Trade</button>
+        </form>
+
+        <!-- Open Positions -->
+        <div class="sim-section-label">Open Positions</div>
+        <div id="simPositions">
+          <div class="empty-state" style="padding:16px;font-size:13px">No open positions.</div>
+        </div>
+
+        <!-- Trade History -->
+        <div class="sim-section-label">Trade History</div>
+        <div id="simTradeLog">
+          <div class="empty-state" style="padding:16px;font-size:13px">No closed trades yet.</div>
+        </div>
+
+        <div class="sim-reset-row">
+          <button id="simReset" type="button">Reset account to $100k</button>
+        </div>
+
+      </article>
+    </section>
+
+    <footer class="page-footer">
+      <p class="footer-note">Educational tools only. Paper trading uses real prices but no real money. Verify levels with your broker before live trading.</p>
+    </footer>
+
   </main>
-  
-  <script>window.__redirectTarget = "execution_workbench.html#paper";</script>
-<script src="assets/scripts/redirect.js" defer></script>
+
+  <nav class="bottom-nav" aria-label="Mobile navigation">
+  <a class="bottom-nav-link" href="index.html">Home</a><a class="bottom-nav-link" href="market_intel.html">Market</a><a class="bottom-nav-link" href="trade_planner.html">Plan</a><a class="bottom-nav-link" href="execution_workbench.html">Execute</a><a class="bottom-nav-link" href="review_workbench.html">Review</a>
+</nav>
+
+  <script src="assets/dto-core.js" defer></script>
+  <script src="assets/scripts/site.js" defer></script>
+  <script src="assets/scripts/live_sim.js" defer></script>
 </body>
 </html>

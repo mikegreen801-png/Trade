@@ -93,14 +93,35 @@
 
   // Handle Alpaca Keys
   var alpacaForm = document.getElementById("alpacaForm");
+  var alpacaEnvSelect = document.getElementById("alpacaEnv");
+
+  function updateSecretHint() {
+    var env = alpacaEnvSelect ? alpacaEnvSelect.value : "paper";
+    var hint = document.getElementById("alpacaSecretHint");
+    if (!hint) {
+      hint = document.createElement("span");
+      hint.id = "alpacaSecretHint";
+      hint.style.cssText = "display:block;font-size:12px;color:var(--text-soft);margin-top:4px";
+      var secretField = document.getElementById("alpacaSecret");
+      if (secretField && secretField.parentNode) secretField.parentNode.appendChild(hint);
+    }
+    hint.textContent = env === "live" ? "Required for Live trading." : "Optional for Paper (sandbox) mode.";
+  }
+
+  if (alpacaEnvSelect) {
+    alpacaEnvSelect.addEventListener("change", updateSecretHint);
+    updateSecretHint();
+  }
+
   if (alpacaForm) {
     alpacaForm.addEventListener("submit", function(e) {
       e.preventDefault();
       var keyId = document.getElementById("alpacaKeyId").value.trim();
       var secret = document.getElementById("alpacaSecret").value.trim();
       var env = document.getElementById("alpacaEnv").value;
-      if (!keyId || !secret) return S.toast("Both Key ID and Secret are required.", "error");
-      
+      if (!keyId) return S.toast("API Key ID is required.", "error");
+      if (env === "live" && !secret) return S.toast("Secret Key is required for Live environment.", "error");
+
       S.saveAlpacaKeys(keyId, secret, env);
       S.toast("Alpaca keys saved locally.", "success");
       updateUI();

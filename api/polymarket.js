@@ -55,6 +55,11 @@ async function handleMarkets(req, res) {
       raw = raw.filter(m => (m.question || "").toLowerCase().includes(ql));
       raw = raw.slice(0, limit);
     }
+    // Exclude sports markets from non-sports category filters (Gamma API tag filter is unreliable)
+    const SPORTS_RE = /\b(fc|united|city|arsenal|chelsea|liverpool|tottenham|manchester|premier league|nfl|nba|nhl|mlb|la liga|serie a|bundesliga|ligue 1|soccer|basketball|baseball|hockey|tennis|ufc|mma|golf|formula 1|f1|racing|wimbledon|euros|world cup|champions league)\b/i;
+    if (category && category !== "sports") {
+      raw = raw.filter(m => !SPORTS_RE.test(m.question || ""));
+    }
     const markets = raw.map(m => ({
       id:            m.id,
       conditionId:   m.conditionId,
