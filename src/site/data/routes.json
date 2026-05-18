@@ -103,14 +103,6 @@
       "title": "Day Trader OS | God Mode",
       "description": "Institutional Monte Carlo Simulation and probability engine.",
       "scripts": ["assets/scripts/god_mode.js"]
-    },
-    {
-      "id": "terminal",
-      "file": "terminal.html",
-      "template": "terminal.njk",
-      "title": "Day Trader OS | Terminal",
-      "description": "Headless API Terminal control.",
-      "scripts": ["assets/scripts/terminal.js"]
     }
   ],
   "redirects": [
