@@ -176,23 +176,40 @@
     syncAlertsToServer();
   }
 
-  // ── Toast Notification ──
-  function toast(message, type) {
-    var el = document.createElement("div");
-    el.className = "site-toast " + (type || "info");
-    el.textContent = message;
-    el.style.cssText = "position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:100;" +
-      "padding:12px 20px;border-radius:14px;font:600 14px/1.4 var(--font-ui);" +
-      "background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow-2);" +
-      "color:var(--text);opacity:0;transition:opacity .2s ease;max-width:400px;text-align:center;";
-    if (type === "success") el.style.borderColor = "var(--green)";
-    if (type === "error") el.style.borderColor = "var(--red)";
-    document.body.appendChild(el);
-    requestAnimationFrame(function () { el.style.opacity = "1"; });
-    setTimeout(function () {
-      el.style.opacity = "0";
-      setTimeout(function () { el.remove(); }, 250);
-    }, 2400);
+  // ── Stackable Toast Notifications ──
+  function toast(message, type, durationMs) {
+    var stack = document.getElementById('toastStack');
+    if (!stack) return;
+    var el = document.createElement('div');
+    el.className = 'site-toast' + (type ? ' ' + type : '');
+    el.innerHTML =
+      '<span class="toast-msg">' + message + '</span>' +
+      '<button class="toast-dismiss" aria-label="Dismiss">&#215;</button>';
+    stack.appendChild(el);
+    requestAnimationFrame(function() {
+      requestAnimationFrame(function() { el.classList.add('toast-visible'); });
+    });
+    var timer = setTimeout(function() { dismiss(el); }, durationMs || 4000);
+    el.querySelector('.toast-dismiss').addEventListener('click', function() { dismiss(el); });
+    function dismiss(t) {
+      clearTimeout(timer);
+      t.classList.add('toast-out');
+      t.classList.remove('toast-visible');
+      setTimeout(function() { if (t.parentNode) t.remove(); }, 280);
+    }
+  }
+
+  // ── Global Modal ──
+  function openModal(title, htmlContent) {
+    var d = document.getElementById('globalModal');
+    if (!d) return;
+    document.getElementById('globalModalTitle').textContent = title || '';
+    document.getElementById('globalModalBody').innerHTML = htmlContent || '';
+    d.showModal();
+  }
+  function closeModal() {
+    var d = document.getElementById('globalModal');
+    if (d) d.close();
   }
 
   // ── Hash scroll ──
@@ -398,6 +415,14 @@
     }
   }
 
+  // ── Modal close wiring ──
+  var _gm = document.getElementById('globalModal');
+  var _gmClose = document.getElementById('globalModalClose');
+  if (_gm && _gmClose) {
+    _gmClose.addEventListener('click', closeModal);
+    _gm.addEventListener('click', function(e) { if (e.target === _gm) _gm.close(); });
+  }
+
   // ── Startup ──
   _hydrateFromDb();
   _updateAlertBadge();
@@ -429,6 +454,8 @@
     checkAlerts: checkAlerts,
     syncAlertsToServer: syncAlertsToServer,
     toast: toast,
+    openModal: openModal,
+    closeModal: closeModal,
     sessionInfo: sessionInfo,
     etNow: etNow,
     marketPhase: marketPhase,

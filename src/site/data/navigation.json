@@ -1,6 +1,6 @@
 {
   "primary": [
-    { "id": "home", "label": "Home", "shortLabel": "Home", "href": "index.html" },
+    { "id": "dashboard", "label": "Home", "shortLabel": "Home", "href": "dashboard.html" },
     { "id": "market", "label": "Market", "shortLabel": "Market", "href": "market_intel.html" },
     { "id": "plan", "label": "Plan", "shortLabel": "Plan", "href": "trade_planner.html" },
     { "id": "execute", "label": "Execute", "shortLabel": "Execute", "href": "execution_workbench.html" },

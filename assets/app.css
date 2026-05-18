@@ -1173,6 +1173,104 @@ dialog.site-dialog::backdrop {
 .price-tick-up   { animation: tick-up   1.2s ease forwards; }
 .price-tick-down { animation: tick-down 1.2s ease forwards; }
 
+/* ── Stackable toast notifications ── */
+.toast-stack {
+  position: fixed;
+  bottom: 80px;
+  right: 20px;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+.site-toast {
+  pointer-events: all;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-lift);
+  color: var(--text);
+  font: 500 13px/1.4 var(--font-ui);
+  max-width: 320px;
+  transform: translateX(120%);
+  opacity: 0;
+  transition: transform 0.25s cubic-bezier(0.2,0,0,1), opacity 0.25s ease;
+}
+.site-toast.toast-visible {
+  transform: translateX(0);
+  opacity: 1;
+}
+.site-toast.toast-out {
+  transform: translateX(120%);
+  opacity: 0;
+}
+.site-toast.success { border-left: 3px solid var(--green); }
+.site-toast.error   { border-left: 3px solid var(--red); }
+.site-toast.warning { border-left: 3px solid var(--yellow); }
+.toast-msg { flex: 1; }
+.toast-dismiss {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  line-height: 1;
+  padding: 0 0 2px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.toast-dismiss:hover { color: var(--text); }
+
+/* ── Welcome / landing page ── */
+.welcome-hero {
+  background: linear-gradient(135deg, var(--blue-soft, #e8f0fe) 0%, var(--bg) 60%);
+  padding: var(--space-7, 64px) var(--space-5, 32px);
+  text-align: center;
+}
+.welcome-hero-inner {
+  max-width: 640px;
+  margin: 0 auto;
+}
+.welcome-hero h1 {
+  font-size: clamp(32px, 5.5vw, 54px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin: var(--space-2) 0 var(--space-3);
+  color: var(--text);
+}
+.welcome-lead {
+  color: var(--text-muted);
+  font-size: 17px;
+  line-height: 1.6;
+  max-width: 520px;
+  margin: 0 auto var(--space-5);
+}
+.welcome-features {
+  padding: var(--space-6, 48px) var(--space-4);
+}
+.welcome-workflow {
+  padding: 0 var(--space-4) var(--space-7, 64px);
+}
+.action-tile-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background: var(--blue-soft, #e8f0fe);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--blue);
+  margin-bottom: var(--space-3);
+  flex-shrink: 0;
+}
+
 
 .home-hero .hero-aside {
   display: grid;

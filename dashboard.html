@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Day Trader OS | Dashboard</title>
+  <meta name="description" content="A calmer trading workspace for scanning, planning, execution, and review.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="dns-prefetch" href="https://query1.finance.yahoo.com">
+  <link rel="dns-prefetch" href="https://data-api.binance.vision">
+  <link rel="dns-prefetch" href="https://stream.binance.com">
+  <link rel="dns-prefetch" href="https://gamma-api.polymarket.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/app.css?v=20260517">
+  <link rel="manifest" href="manifest.json">
+  <script>if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(function(){});</script></head>
+<body class="app-shell page-dashboard" data-dto-shell="modern" data-page-id="dashboard">
+  <header class="top-app-bar">
+  <div class="brand-lockup">
+    <a class="brand-mark" href="index.html">Day Trader <span>OS</span></a>
+    <p class="brand-subtitle">A calmer trading workspace</p>
+  </div>
+  <nav class="top-nav" aria-label="Primary navigation">
+    <a class="top-nav-link is-active" href="dashboard.html">Home</a><a class="top-nav-link" href="market_intel.html">Market</a><a class="top-nav-link" href="trade_planner.html">Plan</a><a class="top-nav-link" href="execution_workbench.html">Execute</a><a class="top-nav-link" href="review_workbench.html">Review</a>
+  </nav>
+  <div class="top-app-actions">
+    <details class="more-menu">
+      <summary>More</summary>
+      <div class="more-panel">
+        
+    <a class="more-link" href="bot_dashboard.html">
+      <strong>Automation</strong>
+      <span>Bot Engine and automation tools.</span>
+    </a>
+    <a class="more-link" href="terminal.html">
+      <strong>Terminal</strong>
+      <span>Headless API Terminal control.</span>
+    </a>
+    <a class="more-link" href="god_mode.html">
+      <strong>God Mode</strong>
+      <span>Institutional Monte Carlo simulation.</span>
+    </a>
+    <a class="more-link" href="polymarket.html">
+      <strong>Prediction Markets</strong>
+      <span>Secondary market context and sentiment tools.</span>
+    </a>
+    <a class="more-link" href="backtest_simulator.html">
+      <strong>Backtesting</strong>
+      <span>Archived advanced replay and simulation.</span>
+    </a>
+    <a class="more-link" href="analytics.html">
+      <strong>Analytics</strong>
+      <span>Portfolio performance breakdown, equity curve, and trade patterns.</span>
+    </a>
+    <a class="more-link" href="tradingview_course.html">
+      <strong>Learning</strong>
+      <span>Archived education and course material.</span>
+    </a>
+      </div>
+    </details>
+    <div class="session-pill">
+      <span data-session-label>Loading</span>
+      <strong data-et-clock>--:-- ET</strong>
+    </div>
+    <a class="alert-nav-btn" href="market_intel.html#alerts" title="Price alerts" aria-label="Alerts">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span id="alertNavBadge" class="alert-badge" style="display:none">0</span>
+    </a>
+    <div class="auth-slot" id="authSlot">
+      <a class="auth-link" href="login.html">Sign in</a>
+    </div>
+  </div>
+</header>
+
+  <main class="page-shell">
+    <section class="page-hero home-hero">
+  <div class="hero-block">
+    <span class="eyebrow">Home</span>
+    <h1>Start with one good idea.</h1>
+    <p class="lead">Check the session, analyze a symbol, and move into planning, execution, or review without fighting the interface.</p>
+    <form class="search-bar" id="homeAnalyzeForm">
+      <input id="homeSymbolInput" type="text" placeholder="AAPL, NVDA, BTC, ETH" autocomplete="off">
+      <button class="primary-btn" type="submit">Analyze</button>
+    </form>
+    <div class="quick-symbol-row">
+      <button class="chip-btn" type="button" data-symbol="AAPL">AAPL</button>
+      <button class="chip-btn" type="button" data-symbol="NVDA">NVDA</button>
+      <button class="chip-btn" type="button" data-symbol="SPY">SPY</button>
+      <button class="chip-btn" type="button" data-symbol="BTC">BTC</button>
+      <button class="chip-btn" type="button" data-symbol="ETH">ETH</button>
+      <button class="chip-btn" type="button" data-symbol="SOL">SOL</button>
+    </div>
+  </div>
+  <aside class="hero-aside">
+    <div class="metric-card">
+      <span>Session</span>
+      <strong id="homeSessionState">Loading</strong>
+      <small id="homeSessionNote">Checking market phase.</small>
+    </div>
+    <div class="metric-card">
+      <span>Active setup</span>
+      <strong id="homeActiveSetup">None</strong>
+      <small id="homeActiveSetupNote">Analyze a symbol to create one.</small>
+    </div>
+    <div class="metric-card">
+      <span>Paper P&amp;L</span>
+      <strong id="homePaperPnl">$0.00</strong>
+      <small id="homePaperNote">No open paper positions yet.</small>
+    </div>
+    <div class="metric-card">
+      <span>Journal edge</span>
+      <strong id="homeJournalEdge">0%</strong>
+      <small id="homeJournalNote">No review history yet.</small>
+    </div>
+  </aside>
+</section>
+
+<section class="module-grid two-col">
+  <article class="surface stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Analyze</span>
+        <h2>Current symbol read</h2>
+      </div>
+      <button class="secondary-btn" id="homeAddWatchlist" type="button">Add to watchlist</button>
+    </div>
+    <div id="homeAnalysisCard" class="empty-state">Analyze a symbol to see the price, levels, rationale, and chart.</div>
+    <div id="homeChartContainer" class="home-chart-section" style="display:none">
+      <div class="chart-container loading-chart" id="homeChart"></div>
+    </div>
+  </article>
+
+  <article class="surface stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Paper equity</span>
+        <h2>Your trading curve</h2>
+      </div>
+      <a class="secondary-btn" href="execution_workbench.html#portfolio">Open Execute</a>
+    </div>
+    <div id="homePaperChart" class="equity-curve empty-state" style="border-style:solid">No closed trades to chart yet. Open and close a paper trade to start tracking.</div>
+    <div id="homeWatchlist" class="simple-list empty-state" style="margin-top:16px">No symbols saved yet.</div>
+  </article>
+</section>
+
+<section class="module-grid three-col">
+  <article class="surface workspace-actions">
+    <div>
+      <span class="eyebrow">Next step</span>
+      <h2>Move through the workflow</h2>
+      <p class="section-copy">Market for context, Plan for the setup, Execute for paper trades, Review for lessons.</p>
+    </div>
+    <a class="action-tile" href="market_intel.html">
+      <strong>Market</strong>
+      <p>Scan the tape, update your watchlist, and collect context before committing.</p>
+    </a>
+    <a class="action-tile" id="homePlanLink" href="trade_planner.html">
+      <strong>Plan</strong>
+      <p>Build a setup, check the levels, and save the idea in one clean form.</p>
+    </a>
+  </article>
+
+  <article class="surface workspace-actions">
+    <div>
+      <span class="eyebrow">Execution</span>
+      <h2>Keep risk visible</h2>
+      <p class="section-copy">Use paper trading first, then review the outcome before touching anything real.</p>
+    </div>
+    <a class="action-tile" id="homeExecuteLink" href="execution_workbench.html">
+      <strong>Execute</strong>
+      <p>Paper order ticket, open positions, and broker readiness checks.</p>
+    </a>
+  </article>
+
+  <article class="surface workspace-actions">
+    <div>
+      <span class="eyebrow">Review</span>
+      <h2>Make the next session better</h2>
+      <p class="section-copy">Review only matters if it is easy to do. The Review hub keeps stats, rules, and lessons together.</p>
+    </div>
+    <a class="action-tile" href="review_workbench.html">
+      <strong>Review</strong>
+      <p>Log the trade, tag the mistake, and set tomorrow's rule.</p>
+    </a>
+  </article>
+</section>
+
+    <footer class="site-footer">
+  <p>Designed for active retail traders who need a cleaner workflow, not more dashboard noise.</p>
+  <p class="footer-note">Educational tools only. Verify prices, news, and risk with your broker before trading.</p>
+</footer>
+
+  </main>
+  <nav class="bottom-nav" aria-label="Mobile navigation">
+  <a class="bottom-nav-link is-active" href="dashboard.html">Home</a><a class="bottom-nav-link" href="market_intel.html">Market</a><a class="bottom-nav-link" href="trade_planner.html">Plan</a><a class="bottom-nav-link" href="execution_workbench.html">Execute</a><a class="bottom-nav-link" href="review_workbench.html">Review</a>
+</nav>
+
+  <script src="assets/dto-core.js" defer></script>
+<script src="assets/scripts/site.js" defer></script>
+<script src="assets/scripts/home.js" defer></script>
+  <dialog id="globalModal" class="site-dialog">
+    <div class="dialog-body">
+      <div class="dialog-header">
+        <h2 id="globalModalTitle" class="h3"></h2>
+        <button class="dialog-close" id="globalModalClose" aria-label="Close">&#215;</button>
+      </div>
+      <div id="globalModalBody"></div>
+    </div>
+  </dialog>
+  <div id="toastStack" class="toast-stack"></div>
+</body>
+</html>

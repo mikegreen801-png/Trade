@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Day Trader OS | Home</title>
-  <meta name="description" content="A calmer trading workspace for scanning, planning, execution, and review.">
+  <title>Day Trader OS | Welcome</title>
+  <meta name="description" content="Institutional-grade trading tools. God Mode simulation, Swarm AI, Market Intel, and more.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="dns-prefetch" href="https://query1.finance.yahoo.com">
@@ -15,14 +15,14 @@
   <link rel="stylesheet" href="assets/app.css?v=20260517">
   <link rel="manifest" href="manifest.json">
   <script>if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(function(){});</script></head>
-<body class="app-shell page-home" data-dto-shell="modern" data-page-id="home">
+<body class="app-shell page-welcome" data-dto-shell="modern" data-page-id="welcome">
   <header class="top-app-bar">
   <div class="brand-lockup">
     <a class="brand-mark" href="index.html">Day Trader <span>OS</span></a>
     <p class="brand-subtitle">A calmer trading workspace</p>
   </div>
   <nav class="top-nav" aria-label="Primary navigation">
-    <a class="top-nav-link is-active" href="index.html">Home</a><a class="top-nav-link" href="market_intel.html">Market</a><a class="top-nav-link" href="trade_planner.html">Plan</a><a class="top-nav-link" href="execution_workbench.html">Execute</a><a class="top-nav-link" href="review_workbench.html">Review</a>
+    <a class="top-nav-link" href="dashboard.html">Home</a><a class="top-nav-link" href="market_intel.html">Market</a><a class="top-nav-link" href="trade_planner.html">Plan</a><a class="top-nav-link" href="execution_workbench.html">Execute</a><a class="top-nav-link" href="review_workbench.html">Review</a>
   </nav>
   <div class="top-app-actions">
     <details class="more-menu">
@@ -74,116 +74,85 @@
 </header>
 
   <main class="page-shell">
-    <section class="page-hero home-hero">
-  <div class="hero-block">
-    <span class="eyebrow">Home</span>
-    <h1>Start with one good idea.</h1>
-    <p class="lead">Check the session, analyze a symbol, and move into planning, execution, or review without fighting the interface.</p>
-    <form class="search-bar" id="homeAnalyzeForm">
-      <input id="homeSymbolInput" type="text" placeholder="AAPL, NVDA, BTC, ETH" autocomplete="off">
-      <button class="primary-btn" type="submit">Analyze</button>
-    </form>
-    <div class="quick-symbol-row">
-      <button class="chip-btn" type="button" data-symbol="AAPL">AAPL</button>
-      <button class="chip-btn" type="button" data-symbol="NVDA">NVDA</button>
-      <button class="chip-btn" type="button" data-symbol="SPY">SPY</button>
-      <button class="chip-btn" type="button" data-symbol="BTC">BTC</button>
-      <button class="chip-btn" type="button" data-symbol="ETH">ETH</button>
-      <button class="chip-btn" type="button" data-symbol="SOL">SOL</button>
+    <section class="welcome-hero">
+  <div class="welcome-hero-inner">
+    <p class="eyebrow">Day Trader OS</p>
+    <h1>Institutional-grade tools.<br>Zero noise.</h1>
+    <p class="welcome-lead">A complete trading workspace built for disciplined day traders — from pre-market prep to post-session review. Powered by real data, local AI, and Monte Carlo probability.</p>
+    <div class="button-row">
+      <a class="primary-btn" href="login.html">Sign In</a>
+      <a class="secondary-btn" href="dashboard.html">Go to Dashboard &rarr;</a>
     </div>
   </div>
-  <aside class="hero-aside">
-    <div class="metric-card">
-      <span>Session</span>
-      <strong id="homeSessionState">Loading</strong>
-      <small id="homeSessionNote">Checking market phase.</small>
-    </div>
-    <div class="metric-card">
-      <span>Active setup</span>
-      <strong id="homeActiveSetup">None</strong>
-      <small id="homeActiveSetupNote">Analyze a symbol to create one.</small>
-    </div>
-    <div class="metric-card">
-      <span>Paper P&amp;L</span>
-      <strong id="homePaperPnl">$0.00</strong>
-      <small id="homePaperNote">No open paper positions yet.</small>
-    </div>
-    <div class="metric-card">
-      <span>Journal edge</span>
-      <strong id="homeJournalEdge">0%</strong>
-      <small id="homeJournalNote">No review history yet.</small>
-    </div>
-  </aside>
 </section>
 
-<section class="module-grid two-col">
-  <article class="surface stack">
-    <div class="section-header">
-      <div>
-        <span class="eyebrow">Analyze</span>
-        <h2>Current symbol read</h2>
-      </div>
-      <button class="secondary-btn" id="homeAddWatchlist" type="button">Add to watchlist</button>
-    </div>
-    <div id="homeAnalysisCard" class="empty-state">Analyze a symbol to see the price, levels, rationale, and chart.</div>
-    <div id="homeChartContainer" class="home-chart-section" style="display:none">
-      <div class="chart-container loading-chart" id="homeChart"></div>
-    </div>
-  </article>
+<section class="welcome-features page-shell">
+  <div class="section-header">
+    <p class="eyebrow">What's inside</p>
+    <h2>Every tool you need. Nothing you don't.</h2>
+  </div>
 
-  <article class="surface stack">
-    <div class="section-header">
-      <div>
-        <span class="eyebrow">Paper equity</span>
-        <h2>Your trading curve</h2>
+  <div class="module-grid three-col" style="margin-top:var(--space-5)">
+    <a class="action-tile" href="god_mode.html">
+      <div class="action-tile-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
       </div>
-      <a class="secondary-btn" href="execution_workbench.html#portfolio">Open Execute</a>
-    </div>
-    <div id="homePaperChart" class="equity-curve empty-state" style="border-style:solid">No closed trades to chart yet. Open and close a paper trade to start tracking.</div>
-    <div id="homeWatchlist" class="simple-list empty-state" style="margin-top:16px">No symbols saved yet.</div>
-  </article>
-</section>
+      <strong>God Mode Simulator</strong>
+      <span>Monte Carlo stress-test your strategy across 1,000 parallel realities. Know your probability of ruin before you risk a dollar.</span>
+    </a>
 
-<section class="module-grid three-col">
-  <article class="surface workspace-actions">
-    <div>
-      <span class="eyebrow">Next step</span>
-      <h2>Move through the workflow</h2>
-      <p class="section-copy">Market for context, Plan for the setup, Execute for paper trades, Review for lessons.</p>
-    </div>
+    <a class="action-tile" href="bot_dashboard.html">
+      <div class="action-tile-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1"/></svg>
+      </div>
+      <strong>Swarm AI</strong>
+      <span>Three parallel agents — Technical, Macro, and Sentiment — reach a consensus rating on any symbol in seconds.</span>
+    </a>
+
     <a class="action-tile" href="market_intel.html">
-      <strong>Market</strong>
-      <p>Scan the tape, update your watchlist, and collect context before committing.</p>
+      <div class="action-tile-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <strong>Market Intel</strong>
+      <span>Live scanner, watchlist, price alerts, and news sentiment — all unified in one pre-market command center.</span>
     </a>
-    <a class="action-tile" id="homePlanLink" href="trade_planner.html">
-      <strong>Plan</strong>
-      <p>Build a setup, check the levels, and save the idea in one clean form.</p>
-    </a>
-  </article>
 
-  <article class="surface workspace-actions">
-    <div>
-      <span class="eyebrow">Execution</span>
-      <h2>Keep risk visible</h2>
-      <p class="section-copy">Use paper trading first, then review the outcome before touching anything real.</p>
-    </div>
-    <a class="action-tile" id="homeExecuteLink" href="execution_workbench.html">
-      <strong>Execute</strong>
-      <p>Paper order ticket, open positions, and broker readiness checks.</p>
+    <a class="action-tile" href="market_intel.html#context">
+      <div class="action-tile-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <strong>AI Take</strong>
+      <span>Free local AI (Groq or Ollama) reads candle data and delivers a buy/hold/sell thesis with confidence scoring.</span>
     </a>
-  </article>
 
-  <article class="surface workspace-actions">
-    <div>
-      <span class="eyebrow">Review</span>
-      <h2>Make the next session better</h2>
-      <p class="section-copy">Review only matters if it is easy to do. The Review hub keeps stats, rules, and lessons together.</p>
-    </div>
-    <a class="action-tile" href="review_workbench.html">
-      <strong>Review</strong>
-      <p>Log the trade, tag the mistake, and set tomorrow's rule.</p>
+    <a class="action-tile" href="trade_planner.html">
+      <div class="action-tile-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+      </div>
+      <strong>Trade Planner</strong>
+      <span>Build a setup, grade the idea, size the risk, and save it — all before you touch an order ticket.</span>
     </a>
-  </article>
+
+    <a class="action-tile" href="terminal.html">
+      <div class="action-tile-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+      </div>
+      <strong>Web Terminal</strong>
+      <span>Headless CLI control — analyze symbols, trigger the bot engine, and run swarm analysis from a browser terminal.</span>
+    </a>
+  </div>
+</section>
+
+<section class="welcome-workflow page-shell">
+  <div class="surface" style="text-align:center;padding:var(--space-6) var(--space-5)">
+    <p class="eyebrow">Workflow</p>
+    <h2 style="margin-bottom:var(--space-3)">Scan &rarr; Plan &rarr; Execute &rarr; Review</h2>
+    <p style="color:var(--text-muted);max-width:520px;margin:0 auto var(--space-5)">Four focused hubs keep you in the right headspace at every stage of the session. No tab sprawl. No context switching.</p>
+    <div class="button-row" style="justify-content:center">
+      <a class="primary-btn" href="dashboard.html">Open Dashboard</a>
+      <a class="ghost-btn" href="login.html">Sign In to save your data</a>
+    </div>
+  </div>
 </section>
 
     <footer class="site-footer">
@@ -193,11 +162,21 @@
 
   </main>
   <nav class="bottom-nav" aria-label="Mobile navigation">
-  <a class="bottom-nav-link is-active" href="index.html">Home</a><a class="bottom-nav-link" href="market_intel.html">Market</a><a class="bottom-nav-link" href="trade_planner.html">Plan</a><a class="bottom-nav-link" href="execution_workbench.html">Execute</a><a class="bottom-nav-link" href="review_workbench.html">Review</a>
+  <a class="bottom-nav-link" href="dashboard.html">Home</a><a class="bottom-nav-link" href="market_intel.html">Market</a><a class="bottom-nav-link" href="trade_planner.html">Plan</a><a class="bottom-nav-link" href="execution_workbench.html">Execute</a><a class="bottom-nav-link" href="review_workbench.html">Review</a>
 </nav>
 
   <script src="assets/dto-core.js" defer></script>
 <script src="assets/scripts/site.js" defer></script>
-<script src="assets/scripts/home.js" defer></script>
+<script src="assets/scripts/welcome.js" defer></script>
+  <dialog id="globalModal" class="site-dialog">
+    <div class="dialog-body">
+      <div class="dialog-header">
+        <h2 id="globalModalTitle" class="h3"></h2>
+        <button class="dialog-close" id="globalModalClose" aria-label="Close">&#215;</button>
+      </div>
+      <div id="globalModalBody"></div>
+    </div>
+  </dialog>
+  <div id="toastStack" class="toast-stack"></div>
 </body>
 </html>

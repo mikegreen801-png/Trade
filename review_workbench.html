@@ -22,7 +22,7 @@
     <p class="brand-subtitle">A calmer trading workspace</p>
   </div>
   <nav class="top-nav" aria-label="Primary navigation">
-    <a class="top-nav-link" href="index.html">Home</a><a class="top-nav-link" href="market_intel.html">Market</a><a class="top-nav-link" href="trade_planner.html">Plan</a><a class="top-nav-link" href="execution_workbench.html">Execute</a><a class="top-nav-link is-active" href="review_workbench.html">Review</a>
+    <a class="top-nav-link" href="dashboard.html">Home</a><a class="top-nav-link" href="market_intel.html">Market</a><a class="top-nav-link" href="trade_planner.html">Plan</a><a class="top-nav-link" href="execution_workbench.html">Execute</a><a class="top-nav-link is-active" href="review_workbench.html">Review</a>
   </nav>
   <div class="top-app-actions">
     <details class="more-menu">
@@ -232,11 +232,21 @@
 
   </main>
   <nav class="bottom-nav" aria-label="Mobile navigation">
-  <a class="bottom-nav-link" href="index.html">Home</a><a class="bottom-nav-link" href="market_intel.html">Market</a><a class="bottom-nav-link" href="trade_planner.html">Plan</a><a class="bottom-nav-link" href="execution_workbench.html">Execute</a><a class="bottom-nav-link is-active" href="review_workbench.html">Review</a>
+  <a class="bottom-nav-link" href="dashboard.html">Home</a><a class="bottom-nav-link" href="market_intel.html">Market</a><a class="bottom-nav-link" href="trade_planner.html">Plan</a><a class="bottom-nav-link" href="execution_workbench.html">Execute</a><a class="bottom-nav-link is-active" href="review_workbench.html">Review</a>
 </nav>
 
   <script src="assets/dto-core.js" defer></script>
 <script src="assets/scripts/site.js" defer></script>
 <script src="assets/scripts/review.js" defer></script>
+  <dialog id="globalModal" class="site-dialog">
+    <div class="dialog-body">
+      <div class="dialog-header">
+        <h2 id="globalModalTitle" class="h3"></h2>
+        <button class="dialog-close" id="globalModalClose" aria-label="Close">&#215;</button>
+      </div>
+      <div id="globalModalBody"></div>
+    </div>
+  </dialog>
+  <div id="toastStack" class="toast-stack"></div>
 </body>
 </html>

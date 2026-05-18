@@ -1,10 +1,18 @@
 {
   "canonical": [
     {
-      "id": "home",
+      "id": "welcome",
       "file": "index.html",
+      "template": "welcome.njk",
+      "title": "Day Trader OS | Welcome",
+      "description": "Institutional-grade trading tools. God Mode simulation, Swarm AI, Market Intel, and more.",
+      "scripts": ["assets/scripts/welcome.js"]
+    },
+    {
+      "id": "dashboard",
+      "file": "dashboard.html",
       "template": "home.njk",
-      "title": "Day Trader OS | Home",
+      "title": "Day Trader OS | Dashboard",
       "description": "A calmer trading workspace for scanning, planning, execution, and review.",
       "scripts": ["assets/scripts/home.js"]
     },
