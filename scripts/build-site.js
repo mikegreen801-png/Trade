@@ -93,7 +93,8 @@ function cssBundle() {
     "bot.css",
     "poly.css",
     "sim.css",
-    "course.css"
+    "course.css",
+    "analytics.css"
   ];
 
   const output = [

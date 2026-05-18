@@ -82,7 +82,25 @@
       if (chartContainer && chartBox) {
         chartContainer.style.display = "";
         chartBox.className = "chart-container";
-        chartBox.innerHTML = '<iframe src="' + DTO.tradingViewEmbedUrl(sym) + '" allowfullscreen></iframe>';
+        chartBox.innerHTML = '<iframe src="' + DTO.tradingViewEmbedUrl(sym) + '" allowfullscreen loading="lazy"></iframe>';
+      }
+
+      // Start live price stream
+      DTO.stopStream();
+      var priceEl = card.querySelector(".metric-card strong");
+      var lastStreamPrice = a.raw.price;
+      function onPriceTick(newPrice) {
+        if (!priceEl || newPrice === lastStreamPrice) return;
+        priceEl.textContent = DTO.fmtPrice(newPrice);
+        priceEl.className = newPrice > lastStreamPrice ? "price-tick-up" : "price-tick-down";
+        lastStreamPrice = newPrice;
+        // Check alerts
+        Site.checkAlerts(sym, newPrice);
+      }
+      if (DTO.isCryptoSymbol(sym)) {
+        DTO.streamCryptoPrice(sym, onPriceTick);
+      } else {
+        DTO.streamStockPrice(sym, onPriceTick);
       }
     }).catch(function (err) {
       card.innerHTML = '<div class="empty-state">Could not analyze ' + sym + ': ' + (err.message || err) + '</div>';

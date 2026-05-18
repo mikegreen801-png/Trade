@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -7,9 +7,14 @@
   <meta name="description" content="Journal trades, study performance, and set better rules for the next session.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="dns-prefetch" href="https://query1.finance.yahoo.com">
+  <link rel="dns-prefetch" href="https://data-api.binance.vision">
+  <link rel="dns-prefetch" href="https://stream.binance.com">
+  <link rel="dns-prefetch" href="https://gamma-api.polymarket.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/app.css?v=20260516">
-</head>
+  <link rel="stylesheet" href="assets/app.css?v=20260517">
+  <link rel="manifest" href="manifest.json">
+  <script>if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(function(){});</script></head>
 <body class="app-shell page-review" data-dto-shell="modern" data-page-id="review">
   <header class="top-app-bar">
   <div class="brand-lockup">
@@ -36,9 +41,9 @@
       <strong>Backtesting</strong>
       <span>Archived advanced replay and simulation.</span>
     </a>
-    <a class="more-link" href="paper_trading_simulator.html">
-      <strong>Live Simulator</strong>
-      <span>Paper trade with live prices and TradingView charts.</span>
+    <a class="more-link" href="analytics.html">
+      <strong>Analytics</strong>
+      <span>Portfolio performance breakdown, equity curve, and trade patterns.</span>
     </a>
     <a class="more-link" href="tradingview_course.html">
       <strong>Learning</strong>
@@ -50,6 +55,10 @@
       <span data-session-label>Loading</span>
       <strong data-et-clock>--:-- ET</strong>
     </div>
+    <a class="alert-nav-btn" href="market_intel.html#alerts" title="Price alerts" aria-label="Alerts">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span id="alertNavBadge" class="alert-badge" style="display:none">0</span>
+    </a>
     <div class="auth-slot" id="authSlot">
       <a class="auth-link" href="login.html">Sign in</a>
     </div>
@@ -159,6 +168,53 @@
     </form>
     <div id="ruleList" class="simple-list empty-state">No daily rule saved yet.</div>
   </article>
+</section>
+
+<section id="analytics" class="surface section-anchor stack">
+  <div class="section-header">
+    <div>
+      <span class="eyebrow">Analytics</span>
+      <h2>Performance insights</h2>
+    </div>
+  </div>
+
+  <div class="metric-grid" style="margin-bottom:20px">
+    <div class="metric-card">
+      <span>Win Rate</span>
+      <strong id="analyticsWinRate">--</strong>
+      <small>From reviewed trades.</small>
+    </div>
+    <div class="metric-card">
+      <span>Avg R:R Achieved</span>
+      <strong id="analyticsAvgRR">--</strong>
+      <small>Actual risk/reward.</small>
+    </div>
+    <div class="metric-card">
+      <span>Best Streak</span>
+      <strong id="analyticsBestStreak">--</strong>
+      <small>Consecutive wins.</small>
+    </div>
+    <div class="metric-card">
+      <span>Worst Streak</span>
+      <strong id="analyticsWorstStreak">--</strong>
+      <small>Consecutive losses.</small>
+    </div>
+  </div>
+
+  <div style="margin-bottom:20px">
+    <span class="eyebrow">Equity Curve</span>
+    <div id="analyticsEquityCurve" class="equity-curve empty-state" style="height:180px;border-style:solid;margin-top:8px">Log reviewed trades to build your equity curve.</div>
+  </div>
+
+  <div style="margin-bottom:20px">
+    <span class="eyebrow">Win Rate by Symbol</span>
+    <div id="analyticsSymbolBreakdown" class="empty-state" style="margin-top:8px">No data yet.</div>
+  </div>
+
+  <div>
+    <span class="eyebrow">P&amp;L Calendar (last 30 days)</span>
+    <div id="analyticsPnlCalendar" class="pnl-calendar" style="margin-top:8px"></div>
+  </div>
 </section>
 
     <footer class="site-footer">

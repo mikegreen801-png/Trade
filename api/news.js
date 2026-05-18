@@ -7,6 +7,17 @@
 const AlpacaClient = require('./alpaca-client');
 const cache = require('./cache');
 
+const BULL_WORDS = ['surge','rally','beat','growth','bull','outperform','upgrade','buy','positive','gains','record','strong','boost','soar','jump','breakout','momentum','high','raises'];
+const BEAR_WORDS = ['fall','drop','miss','concern','bear','downgrade','sell','negative','loss','decline','cut','weak','crash','plunge','slump','breakdown','risk','low','cuts','lowers'];
+
+function sentimentScore(text) {
+  const t = (text || '').toLowerCase();
+  let s = 0;
+  BULL_WORDS.forEach(w => { if (t.includes(w)) s++; });
+  BEAR_WORDS.forEach(w => { if (t.includes(w)) s--; });
+  return s;
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'public, max-age=120'); // Cache 2 minutes
 
@@ -45,7 +56,8 @@ module.exports = async function handler(req, res) {
       author:    article.author || '',
       createdAt: article.created_at || article.updated_at || null,
       symbols:   article.symbols || [symbol],
-      images:    (article.images || []).slice(0, 1)
+      images:    (article.images || []).slice(0, 1),
+      sentiment: sentimentScore((article.headline || '') + ' ' + (article.summary || ''))
     }));
 
     const payload = { ok: true, symbol, articles };

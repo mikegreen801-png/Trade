@@ -73,6 +73,14 @@
       "scripts": ["assets/scripts/sim.js"]
     },
     {
+      "id": "analytics",
+      "file": "analytics.html",
+      "template": "analytics.njk",
+      "title": "Day Trader OS | Analytics",
+      "description": "Portfolio performance breakdown, equity curve, win rates, and P&L calendar.",
+      "scripts": ["assets/scripts/analytics.js"]
+    },
+    {
       "id": "course",
       "file": "tradingview_course.html",
       "template": "course.njk",

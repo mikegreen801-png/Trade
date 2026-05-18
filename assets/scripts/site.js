@@ -42,7 +42,6 @@
   }
 
   tickClock();
-  // Start the repeating tick after first paint so it doesn't compete with initial render
   requestAnimationFrame(function () { setInterval(tickClock, 15000); });
 
   // ── LocalStorage Helpers ──
@@ -64,11 +63,30 @@
     localStorage.setItem(key, JSON.stringify(value));
   }
 
-  // Active setup
-  function getSetup() { return readStore(KEYS.SETUP, null); }
-  function saveSetup(setup) { writeStore(KEYS.SETUP, setup); }
+  // ── SQLite Write-Through ──
+  // All writes go to localStorage first (fast sync), then to SQLite (async backup).
+  function _dbPost(collection, item) {
+    fetch('/api/data?collection=' + collection + '&action=upsert', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item)
+    }).catch(function () {});
+  }
 
-  // Saved setups list
+  function _dbDelete(collection, id) {
+    fetch('/api/data?collection=' + collection + '&action=delete&id=' + encodeURIComponent(id), {
+      method: 'POST'
+    }).catch(function () {});
+  }
+
+  // ── Active setup ──
+  function getSetup() { return readStore(KEYS.SETUP, null); }
+  function saveSetup(setup) {
+    writeStore(KEYS.SETUP, setup);
+    if (setup) _dbPost('setups', Object.assign({ id: 'active_setup_v1' }, setup));
+  }
+
+  // ── Saved setups list ──
   function getSavedSetups() { return readStore(KEYS.SETUPS, []); }
   function saveSetupToList(setup) {
     var list = getSavedSetups();
@@ -77,13 +95,15 @@
     list.unshift(setup);
     if (list.length > 50) list = list.slice(0, 50);
     writeStore(KEYS.SETUPS, list);
+    _dbPost('setups', setup);
     return setup;
   }
   function deleteSetupFromList(id) {
     writeStore(KEYS.SETUPS, getSavedSetups().filter(function (s) { return s.id !== id; }));
+    _dbDelete('setups', id);
   }
 
-  // Watchlist
+  // ── Watchlist ──
   function getWatchlist() { return readStore(KEYS.WATCHLIST, []); }
   function addToWatchlist(symbol) {
     var list = getWatchlist();
@@ -91,21 +111,26 @@
     if (!clean || list.includes(clean)) return list;
     list.unshift(clean);
     writeStore(KEYS.WATCHLIST, list);
+    _dbPost('watchlist', { id: 'watchlist_v1', symbols: list });
     return list;
   }
   function removeFromWatchlist(symbol) {
     var list = getWatchlist().filter(function (s) { return s !== symbol; });
     writeStore(KEYS.WATCHLIST, list);
+    _dbPost('watchlist', { id: 'watchlist_v1', symbols: list });
     return list;
   }
 
-  // Paper portfolio
+  // ── Paper portfolio ──
   function getPortfolio() {
     return readStore(KEYS.PORTFOLIO, { cash: 100000, positions: [], closed: [] });
   }
-  function savePortfolio(p) { writeStore(KEYS.PORTFOLIO, p); }
+  function savePortfolio(p) {
+    writeStore(KEYS.PORTFOLIO, p);
+    _dbPost('portfolio', Object.assign({ id: 'portfolio_v1' }, p));
+  }
 
-  // Reviews
+  // ── Reviews ──
   function getReviews() { return readStore(KEYS.REVIEWS, []); }
   function saveReview(review) {
     var list = getReviews();
@@ -114,10 +139,11 @@
     list.unshift(review);
     if (list.length > 200) list = list.slice(0, 200);
     writeStore(KEYS.REVIEWS, list);
+    _dbPost('reviews', review);
     return review;
   }
 
-  // Rules
+  // ── Rules ──
   function getRules() { return readStore(KEYS.RULES, []); }
   function saveRule(rule) {
     var list = getRules();
@@ -126,10 +152,11 @@
     list.unshift(rule);
     if (list.length > 50) list = list.slice(0, 50);
     writeStore(KEYS.RULES, list);
+    _dbPost('rules', rule);
     return rule;
   }
 
-  // Alerts
+  // ── Alerts ──
   function getAlerts() { return readStore(KEYS.ALERTS, []); }
   function saveAlert(alert) {
     var list = getAlerts();
@@ -137,10 +164,16 @@
     alert.savedAt = new Date().toISOString();
     list.unshift(alert);
     writeStore(KEYS.ALERTS, list);
+    _dbPost('alerts', alert);
+    _updateAlertBadge();
+    syncAlertsToServer();
     return alert;
   }
   function deleteAlert(id) {
     writeStore(KEYS.ALERTS, getAlerts().filter(function (a) { return a.id !== id; }));
+    _dbDelete('alerts', id);
+    _updateAlertBadge();
+    syncAlertsToServer();
   }
 
   // ── Toast Notification ──
@@ -181,13 +214,8 @@
   var AUTH_KEY = "dto_auth_user";
   var ALPACA_KEY = "dto_alpaca_keys";
 
-  function isLoggedIn() {
-    return !!readStore(AUTH_KEY, null);
-  }
-
-  function currentUser() {
-    return readStore(AUTH_KEY, null);
-  }
+  function isLoggedIn() { return !!readStore(AUTH_KEY, null); }
+  function currentUser() { return readStore(AUTH_KEY, null); }
 
   function loginUser(email, passHash) {
     var users = readStore("dto_users", {});
@@ -201,22 +229,14 @@
     return { ok: true };
   }
 
-  function logout() {
-    localStorage.removeItem(AUTH_KEY);
-  }
+  function logout() { localStorage.removeItem(AUTH_KEY); }
 
-  function getAlpacaKeys() {
-    return readStore(ALPACA_KEY, null);
-  }
-
+  function getAlpacaKeys() { return readStore(ALPACA_KEY, null); }
   function saveAlpacaKeys(keyId, secret, env) {
     writeStore(ALPACA_KEY, { keyId: keyId, secret: secret, env: env || "paper" });
   }
 
-  function getPolyKeys() {
-    return readStore("dto_poly_keys", null);
-  }
-
+  function getPolyKeys() { return readStore("dto_poly_keys", null); }
   function savePolyKeys(apiKey, secret, passphrase) {
     writeStore("dto_poly_keys", { apiKey: apiKey, secret: secret, passphrase: passphrase });
   }
@@ -234,6 +254,155 @@
     }
   }
   updateAuthSlot();
+
+  // ── Alert badge ──
+  function _updateAlertBadge() {
+    var count = getAlerts().length;
+    var badge = document.getElementById("alertNavBadge");
+    if (!badge) return;
+    badge.textContent = count;
+    badge.style.display = count > 0 ? "inline-flex" : "none";
+  }
+
+  // ── Sync alerts to server (for SSE polling) ──
+  function syncAlertsToServer() {
+    var alerts = getAlerts();
+    if (!alerts.length) return;
+    fetch('/api/alerts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ alerts: alerts })
+    }).catch(function () {});
+  }
+
+  // ── SSE Alert Stream ──
+  var _alertStream = null;
+  function _connectAlertStream() {
+    if (!window.EventSource || !getAlerts().length) return;
+    if (_alertStream && _alertStream.readyState !== EventSource.CLOSED) return;
+    _alertStream = new EventSource('/api/alerts/stream');
+    _alertStream.onmessage = function (event) {
+      try {
+        var data = JSON.parse(event.data);
+        var msg = (data.symbol || '') + ' hit $' + (data.price ? data.price.toFixed(2) : '?');
+        if (data.alerts && data.alerts.length) {
+          msg = data.symbol + ' triggered ' + data.alerts.length + ' alert' + (data.alerts.length !== 1 ? 's' : '') + ' at $' + data.price.toFixed(2);
+        }
+        toast(msg, 'success');
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('Price Alert — ' + (data.symbol || ''), { body: msg, icon: 'assets/icon.svg' });
+        }
+      } catch (e) {}
+    };
+    _alertStream.onerror = function () {
+      _alertStream = null;
+      setTimeout(_connectAlertStream, 30000);
+    };
+  }
+
+  // ── Live Alert Checking (called from price stream callbacks) ──
+  var firedAlerts = {};
+  function checkAlerts(symbol, price) {
+    var alerts = getAlerts();
+    alerts.forEach(function (a) {
+      if (a.symbol !== symbol || firedAlerts[a.id]) return;
+      var triggered = false;
+      if (a.direction === "above" && price >= a.price) triggered = true;
+      if (a.direction === "below" && price <= a.price) triggered = true;
+      if (triggered) {
+        firedAlerts[a.id] = true;
+        var msg = a.symbol + " hit " + a.direction + " $" + a.price + " (now $" + price.toFixed(2) + ")";
+        toast(msg, "success");
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification("Price Alert — " + a.symbol, { body: msg, icon: "assets/icon.svg" });
+        }
+      }
+    });
+  }
+
+  // Request notification permission on first interaction
+  document.addEventListener("click", function requestNotif() {
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+    document.removeEventListener("click", requestNotif);
+  }, { once: true });
+
+  // ── SQLite Hydration ──
+  // On startup: if localStorage is empty, pull from SQLite to recover from browser clear.
+  function _hydrateFromDb() {
+    if (!getReviews().length) {
+      fetch('/api/data?collection=reviews&action=list&limit=500')
+        .then(function (r) { return r.json(); })
+        .then(function (d) { if (d.ok && d.items.length) writeStore(KEYS.REVIEWS, d.items); })
+        .catch(function () {});
+    }
+    if (!getRules().length) {
+      fetch('/api/data?collection=rules&action=list&limit=200')
+        .then(function (r) { return r.json(); })
+        .then(function (d) { if (d.ok && d.items.length) writeStore(KEYS.RULES, d.items); })
+        .catch(function () {});
+    }
+    if (!getSavedSetups().length) {
+      fetch('/api/data?collection=setups&action=list&limit=200')
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (!d.ok) return;
+          var saved = d.items.filter(function (i) { return i.id !== 'active_setup_v1'; });
+          if (saved.length) writeStore(KEYS.SETUPS, saved);
+          var active = d.items.find(function (i) { return i.id === 'active_setup_v1'; });
+          if (active && !getSetup()) writeStore(KEYS.SETUP, active);
+        })
+        .catch(function () {});
+    }
+    if (!getAlerts().length) {
+      fetch('/api/data?collection=alerts&action=list&limit=200')
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (d.ok && d.items.length) {
+            writeStore(KEYS.ALERTS, d.items);
+            _updateAlertBadge();
+            syncAlertsToServer();
+            _connectAlertStream();
+          }
+        })
+        .catch(function () {});
+    }
+    if (!getWatchlist().length) {
+      fetch('/api/data?collection=watchlist&action=get&id=watchlist_v1')
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (d.ok && d.item && d.item.symbols && d.item.symbols.length) {
+            writeStore(KEYS.WATCHLIST, d.item.symbols);
+          }
+        })
+        .catch(function () {});
+    }
+    var p = getPortfolio();
+    if (!p.positions.length && !p.closed.length) {
+      fetch('/api/data?collection=portfolio&action=get&id=portfolio_v1')
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (d.ok && d.item && (
+            (d.item.positions && d.item.positions.length) ||
+            (d.item.closed && d.item.closed.length)
+          )) {
+            writeStore(KEYS.PORTFOLIO, {
+              cash: d.item.cash || 100000,
+              positions: d.item.positions || [],
+              closed: d.item.closed || []
+            });
+          }
+        })
+        .catch(function () {});
+    }
+  }
+
+  // ── Startup ──
+  _hydrateFromDb();
+  _updateAlertBadge();
+  _connectAlertStream();
+  syncAlertsToServer();
 
   // ── Expose ──
   window.Site = {
@@ -257,6 +426,8 @@
     getAlerts: getAlerts,
     saveAlert: saveAlert,
     deleteAlert: deleteAlert,
+    checkAlerts: checkAlerts,
+    syncAlertsToServer: syncAlertsToServer,
     toast: toast,
     sessionInfo: sessionInfo,
     etNow: etNow,

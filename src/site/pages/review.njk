@@ -101,3 +101,50 @@
     <div id="ruleList" class="simple-list empty-state">No daily rule saved yet.</div>
   </article>
 </section>
+
+<section id="analytics" class="surface section-anchor stack">
+  <div class="section-header">
+    <div>
+      <span class="eyebrow">Analytics</span>
+      <h2>Performance insights</h2>
+    </div>
+  </div>
+
+  <div class="metric-grid" style="margin-bottom:20px">
+    <div class="metric-card">
+      <span>Win Rate</span>
+      <strong id="analyticsWinRate">--</strong>
+      <small>From reviewed trades.</small>
+    </div>
+    <div class="metric-card">
+      <span>Avg R:R Achieved</span>
+      <strong id="analyticsAvgRR">--</strong>
+      <small>Actual risk/reward.</small>
+    </div>
+    <div class="metric-card">
+      <span>Best Streak</span>
+      <strong id="analyticsBestStreak">--</strong>
+      <small>Consecutive wins.</small>
+    </div>
+    <div class="metric-card">
+      <span>Worst Streak</span>
+      <strong id="analyticsWorstStreak">--</strong>
+      <small>Consecutive losses.</small>
+    </div>
+  </div>
+
+  <div style="margin-bottom:20px">
+    <span class="eyebrow">Equity Curve</span>
+    <div id="analyticsEquityCurve" class="equity-curve empty-state" style="height:180px;border-style:solid;margin-top:8px">Log reviewed trades to build your equity curve.</div>
+  </div>
+
+  <div style="margin-bottom:20px">
+    <span class="eyebrow">Win Rate by Symbol</span>
+    <div id="analyticsSymbolBreakdown" class="empty-state" style="margin-top:8px">No data yet.</div>
+  </div>
+
+  <div>
+    <span class="eyebrow">P&amp;L Calendar (last 30 days)</span>
+    <div id="analyticsPnlCalendar" class="pnl-calendar" style="margin-top:8px"></div>
+  </div>
+</section>

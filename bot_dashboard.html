@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -7,9 +7,14 @@
   <meta name="description" content="Bot Engine and automation tools.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="dns-prefetch" href="https://query1.finance.yahoo.com">
+  <link rel="dns-prefetch" href="https://data-api.binance.vision">
+  <link rel="dns-prefetch" href="https://stream.binance.com">
+  <link rel="dns-prefetch" href="https://gamma-api.polymarket.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="assets/app.css?v=20260516">
-</head>
+  <link rel="stylesheet" href="assets/app.css?v=20260517">
+  <link rel="manifest" href="manifest.json">
+  <script>if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(function(){});</script></head>
 <body class="app-shell page-bot" data-dto-shell="modern" data-page-id="bot">
   <header class="top-app-bar">
   <div class="brand-lockup">
@@ -36,9 +41,9 @@
       <strong>Backtesting</strong>
       <span>Archived advanced replay and simulation.</span>
     </a>
-    <a class="more-link" href="paper_trading_simulator.html">
-      <strong>Live Simulator</strong>
-      <span>Paper trade with live prices and TradingView charts.</span>
+    <a class="more-link" href="analytics.html">
+      <strong>Analytics</strong>
+      <span>Portfolio performance breakdown, equity curve, and trade patterns.</span>
     </a>
     <a class="more-link" href="tradingview_course.html">
       <strong>Learning</strong>
@@ -50,6 +55,10 @@
       <span data-session-label>Loading</span>
       <strong data-et-clock>--:-- ET</strong>
     </div>
+    <a class="alert-nav-btn" href="market_intel.html#alerts" title="Price alerts" aria-label="Alerts">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span id="alertNavBadge" class="alert-badge" style="display:none">0</span>
+    </a>
     <div class="auth-slot" id="authSlot">
       <a class="auth-link" href="login.html">Sign in</a>
     </div>

@@ -1,0 +1,52 @@
+<div class="page-content analytics-page">
+
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Analytics</h1>
+      <p class="page-subtitle">Performance breakdown from your trade journal and paper portfolio.</p>
+    </div>
+    <button id="analyticsRefresh" class="ghost-btn" style="align-self:flex-start">Refresh</button>
+  </div>
+
+  <!-- Stats overview -->
+  <section class="page-section" id="analytics-stats">
+    <div id="analyticsStats" class="analytics-stats-grid">
+      <div class="analytics-stat-card loading-state" style="grid-column:1/-1">Loading trade data…</div>
+    </div>
+  </section>
+
+  <!-- Equity curve -->
+  <section class="page-section" id="analytics-equity">
+    <h2 class="section-title">Equity Curve</h2>
+    <div id="analyticsEquity" class="analytics-chart-wrap empty-state">No closed trades yet.</div>
+  </section>
+
+  <!-- Breakdown -->
+  <section class="page-section" id="analytics-breakdown">
+    <div class="analytics-cols">
+      <div class="analytics-col">
+        <h2 class="section-title">Win Rate by Day</h2>
+        <div id="analyticsDayBars" class="analytics-day-bars empty-state">No data yet.</div>
+      </div>
+      <div class="analytics-col">
+        <h2 class="section-title">By Symbol</h2>
+        <div id="analyticsSymbols" class="analytics-symbols-list empty-state">No data yet.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Calendar heatmap -->
+  <section class="page-section" id="analytics-calendar-section">
+    <h2 class="section-title">P&amp;L Calendar <span class="section-subtitle">— last 52 weeks</span></h2>
+    <div id="analyticsCalendar" class="analytics-calendar-wrap empty-state">No trades in the last year.</div>
+  </section>
+
+  <!-- Streaks -->
+  <section class="page-section" id="analytics-streaks">
+    <h2 class="section-title">Patterns &amp; Streaks</h2>
+    <div id="analyticsStreaks" class="analytics-stats-grid">
+      <div class="analytics-stat-card empty-state" style="grid-column:1/-1">No data yet.</div>
+    </div>
+  </section>
+
+</div>

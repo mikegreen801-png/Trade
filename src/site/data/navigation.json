@@ -23,6 +23,11 @@
       "description": "Archived advanced replay and simulation."
     },
     {
+      "label": "Analytics",
+      "href": "analytics.html",
+      "description": "Portfolio performance breakdown, equity curve, and trade patterns."
+    },
+    {
       "label": "Learning",
       "href": "tradingview_course.html",
       "description": "Archived education and course material."

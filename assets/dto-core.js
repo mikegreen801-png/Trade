@@ -300,12 +300,13 @@
     throw lastError || new Error(`${label} unavailable`);
   }
 
-  async function fetchBackendCandles(rawSymbol) {
+  async function fetchBackendCandles(rawSymbol, interval) {
     if (!/^https?:$/.test(location.protocol)) {
       throw new Error("Backend candle proxy is only available when the app is hosted, not from file://.");
     }
     const symbol = cleanSymbol(rawSymbol);
-    const data = await fetchPublicApiJson(`candles?symbol=${encodeURIComponent(symbol)}&limit=160`, "Public candle proxy");
+    const intParam = interval ? `&interval=${encodeURIComponent(interval)}` : '';
+    const data = await fetchPublicApiJson(`candles?symbol=${encodeURIComponent(symbol)}&limit=160${intParam}`, "Public candle proxy");
     const candles = (data?.candles || []).map(candle => ({
       time: candle.time,
       open: Number(candle.open),
@@ -413,12 +414,12 @@
     throw lastError || new Error("Crypto candle feed unavailable");
   }
 
-  async function fetchCandles(rawSymbol) {
+  async function fetchCandles(rawSymbol, interval) {
     const symbol = cleanSymbol(rawSymbol);
     let backendError = null;
     const shouldPreferBackendError = /^https?:$/.test(location.protocol) && !isStaticOnlyHost();
     try {
-      return await fetchBackendCandles(symbol);
+      return await fetchBackendCandles(symbol, interval);
     } catch (error) {
       backendError = error;
     }
@@ -428,6 +429,14 @@
     } catch (error) {
       throw backendError && shouldPreferBackendError ? backendError : error;
     }
+  }
+
+  async function fetchNews(rawSymbol) {
+    const symbol = cleanSymbol(rawSymbol);
+    try {
+      const data = await fetchJson(`/api/news?symbol=${encodeURIComponent(symbol)}&limit=6`);
+      return (data.articles || []);
+    } catch (e) { return []; }
   }
 
   function nearestLevel(values, price, direction) {
@@ -729,6 +738,7 @@
     fetchJsonWithFallback,
     fetchBackendCandles,
     fetchCandles,
+    fetchNews,
     analyzeCandles,
     marketContextForSymbol,
     nearestLevel,

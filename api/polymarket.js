@@ -5,6 +5,7 @@
  */
 
 const https = require("https");
+const cache = require("./cache");
 
 const GAMMA_BASE = "https://gamma-api.polymarket.com";
 const CLOB_BASE  = "https://clob.polymarket.com";
@@ -46,6 +47,10 @@ async function handleMarkets(req, res) {
   });
   if (category && CATEGORY_TAG_MAP[category]) params.set("tag", CATEGORY_TAG_MAP[category]);
 
+  const cacheKey = `poly:markets:${limit}:${category}:${q}`;
+  const cached = cache.get(cacheKey);
+  if (cached) return res.json(cached);
+
   try {
     const data = await fetchJson(`${GAMMA_BASE}/markets?${params}`);
     let raw = (Array.isArray(data) ? data : data.markets || []);
@@ -85,7 +90,9 @@ async function handleMarkets(req, res) {
       featured:      m.featured || false,
       imageOptimized: m.imageOptimized || null,
     }));
-    return res.json({ ok: true, markets, count: markets.length });
+    const payload = { ok: true, markets, count: markets.length };
+    cache.set(cacheKey, payload, 60_000);
+    return res.json(payload);
   } catch (err) {
     console.error("[API/polymarket] markets error:", err.message);
     return res.json({ ok: false, markets: [], error: err.message });
@@ -99,6 +106,10 @@ async function handleEvents(req, res) {
 
   const params = new URLSearchParams({ active: "true", closed: "false", limit: String(limit) });
   if (category && CATEGORY_TAG_MAP[category]) params.set("tag", CATEGORY_TAG_MAP[category]);
+
+  const evCacheKey = `poly:events:${limit}:${category}`;
+  const evCached = cache.get(evCacheKey);
+  if (evCached) return res.json(evCached);
 
   try {
     const data = await fetchJson(`${GAMMA_BASE}/events?${params}`);
@@ -117,7 +128,9 @@ async function handleEvents(req, res) {
         clobTokenIds:  safeJson(m.clobTokenIds, []),
       })),
     }));
-    return res.json({ ok: true, events, count: events.length });
+    const evPayload = { ok: true, events, count: events.length };
+    cache.set(evCacheKey, evPayload, 120_000);
+    return res.json(evPayload);
   } catch (err) {
     console.error("[API/polymarket] events error:", err.message);
     return res.json({ ok: false, events: [], error: err.message });
