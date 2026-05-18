@@ -491,6 +491,7 @@
 
   <script src="assets/dto-core.js" defer></script>
 <script src="assets/scripts/site.js" defer></script>
+<script src="assets/scripts/chat.js" defer></script>
 <script src="assets/scripts/course.js" defer></script>
   <dialog id="globalModal" class="site-dialog">
     <div class="dialog-body">
@@ -502,5 +503,28 @@
     </div>
   </dialog>
   <div id="toastStack" class="toast-stack"></div>
+
+  <button id="aiChatFab" class="ai-chat-fab" aria-label="Ask AI assistant" aria-expanded="false" title="Ask AI">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  </button>
+
+  <aside id="aiChatPanel" class="ai-chat-panel" aria-label="AI Trading Assistant" hidden>
+    <div class="ai-chat-header">
+      <div class="ai-chat-header-left">
+        <span class="ai-chat-title">AI Assistant</span>
+        <span id="aiChatProvider" class="mini-chip hold" style="font-size:11px">Ready</span>
+      </div>
+      <div class="ai-chat-header-right">
+        <button class="ghost-btn" id="aiChatClear" title="Clear chat" style="font-size:12px;padding:4px 8px">Clear</button>
+        <button class="dialog-close" id="aiChatClose" aria-label="Close">&#215;</button>
+      </div>
+    </div>
+    <div id="aiChatMessages" class="ai-chat-messages"></div>
+    <form id="aiChatForm" class="ai-chat-input-row">
+      <input id="aiChatInput" class="ai-chat-input" type="text"
+        placeholder="Ask about setups, risk, entries…" autocomplete="off" maxlength="500">
+      <button type="submit" class="primary-btn ai-chat-send">Send</button>
+    </form>
+  </aside>
 </body>
 </html>

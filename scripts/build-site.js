@@ -73,7 +73,8 @@ function bottomNavHtml(items, activeId) {
 function scriptTags(files = []) {
   const shared = [
     "assets/dto-core.js",
-    "assets/scripts/site.js"
+    "assets/scripts/site.js",
+    "assets/scripts/chat.js"
   ];
   return [...shared, ...files].map(src => `<script src="${src}" defer></script>`).join("\n");
 }

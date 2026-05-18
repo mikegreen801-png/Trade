@@ -78,6 +78,7 @@
     S.saveSetup(setup); S.saveSetupToList(setup); computeRisk(); gradeSetup(); renderSaved();
     setText("planSavedCount", String(S.getSavedSetups().length));
     S.toast("Setup saved.", "success");
+    window._chatContext = { page: 'plan', symbol: setup.symbol, side: setup.side, entry: setup.entry, stop: setup.stop, target: setup.target };
   });
 
   var resetBtn = document.getElementById("planResetForm");

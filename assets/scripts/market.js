@@ -50,6 +50,7 @@
 
       renderMultiTimeframe(sym);
       fetchAiTake(r);
+      window._chatContext = { page: 'market', symbol: r.symbol, rating: r.rating, price: r.metrics.price };
     }).catch(function (err) { card.className = "empty-state"; card.textContent = "Error: " + err.message; ctx.className = "empty-state"; ctx.textContent = "Context unavailable."; });
 
     D.fetchNews(sym).then(function (articles) {
