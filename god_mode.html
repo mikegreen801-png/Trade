@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Day Trader OS | Prediction Markets</title>
-  <meta name="description" content="Live event contracts and sentiment odds.">
+  <title>Day Trader OS | God Mode</title>
+  <meta name="description" content="Institutional Monte Carlo Simulation and probability engine.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="dns-prefetch" href="https://query1.finance.yahoo.com">
@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="assets/app.css?v=20260517">
   <link rel="manifest" href="manifest.json">
   <script>if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js').catch(function(){});</script></head>
-<body class="app-shell page-poly" data-dto-shell="modern" data-page-id="poly">
+<body class="app-shell page-god_mode" data-dto-shell="modern" data-page-id="god_mode">
   <header class="top-app-bar">
   <div class="brand-lockup">
     <a class="brand-mark" href="index.html">Day Trader <span>OS</span></a>
@@ -76,63 +76,116 @@
   <main class="page-shell">
     <section class="page-hero">
   <div class="hero-block">
-    <span class="eyebrow">Prediction Markets</span>
-    <h1>Polymarket</h1>
-    <p class="lead">View live prediction markets and event contracts. Prices represent the probability (0–1 USDC) of the event occurring.</p>
+    <span class="eyebrow">Institutional</span>
+    <h1>God Mode Simulation</h1>
+    <p class="lead">Monte Carlo stress testing. Remove emotion. See the statistical probability of ruin over 1,000 parallel realities.</p>
   </div>
-  <aside class="hero-aside stack">
-    <div class="metric-card">
-      <span>Polymarket API</span>
-      <strong id="polyApiStatus" class="status-warning">Read-only</strong>
-      <small>L2 keys not found in local storage.</small>
-    </div>
-    <div class="metric-card">
-      <span>Market count</span>
-      <strong id="polyMarketCount">0</strong>
-      <small>Active liquid markets tracked.</small>
-    </div>
-  </aside>
 </section>
 
-<section class="market-grid">
-  <article id="polyConfig" class="surface section-anchor stack">
+<section class="module-grid two-col" style="grid-template-columns: 350px 1fr; align-items: start;">
+  <!-- Configuration Sidebar -->
+  <article class="surface stack">
     <div class="section-header">
       <div>
-        <span class="eyebrow">Credentials</span>
-        <h2>L2 Key Configuration</h2>
+        <span class="eyebrow">Parameters</span>
+        <h2>Stress Test Setup</h2>
       </div>
     </div>
-    <form class="field-grid" id="polyKeyForm">
-      <div class="field"><label>API Key</label><input id="polyApiKey" type="password" placeholder="Paste your API key"></div>
-      <div class="field"><label>Secret</label><input id="polyApiSecret" type="password" placeholder="Paste your Secret key"></div>
-      <div class="field"><label>Passphrase</label><input id="polyApiPassphrase" type="password" placeholder="Paste your Passphrase"></div>
-      <div class="field full">
-        <button class="primary-btn" type="submit">Save Polymarket Keys locally</button>
+    <form id="godModeForm" class="stack">
+      <div class="field">
+        <label for="simCapital">Initial Capital ($)</label>
+        <input type="number" id="simCapital" value="100000" step="1000">
+      </div>
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="field">
+          <label for="simWinRate">Win Rate (%)</label>
+          <input type="number" id="simWinRate" value="45" step="1" max="100">
+        </div>
+        <div class="field">
+          <label for="simIterations">Iterations</label>
+          <input type="number" id="simIterations" value="1000" step="100">
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="field">
+          <label for="simAvgWin">Avg Win (%)</label>
+          <input type="number" id="simAvgWin" value="3.5" step="0.1">
+        </div>
+        <div class="field">
+          <label for="simAvgLoss">Avg Loss (%)</label>
+          <input type="number" id="simAvgLoss" value="1.5" step="0.1">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="simSlippage">Slippage & Fees (%)</label>
+        <input type="number" id="simSlippage" value="0.1" step="0.05">
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="field">
+          <label for="simSwanProb">Black Swan Risk (%)</label>
+          <input type="number" id="simSwanProb" value="0.5" step="0.1" title="Probability of a black swan per trade">
+        </div>
+        <div class="field">
+          <label for="simSwanDrop">Swan Drop (%)</label>
+          <input type="number" id="simSwanDrop" value="20" step="1" title="Percentage drop during a black swan">
+        </div>
+      </div>
+
+      <div class="button-row" style="margin-top:8px">
+        <button type="submit" class="primary-btn" id="runSimBtn" style="width:100%">Run Simulation</button>
       </div>
     </form>
-    <div class="analysis-note">
-      Your Polymarket L2 keys are stored securely in your browser's local storage. They are only sent to your local backend proxy to sign orders. If you leave these blank, you can still view live market probabilities in read-only mode.
-    </div>
   </article>
 
-  <article id="polyFeed" class="surface section-anchor stack" style="grid-column: span 2;">
+  <!-- Results Dashboard -->
+  <article class="surface stack" id="simResultsWrapper">
     <div class="section-header">
       <div>
-        <span class="eyebrow">Live Feed</span>
-        <h2>Active Markets</h2>
-      </div>
-      <div style="display: flex; gap: 8px;">
-        <select id="polyCategory" style="padding: 6px 12px; border: 1px solid var(--border); border-radius: 6px; font-family: var(--font-sans); background: var(--bg-main);">
-          <option value="">Top Volume</option>
-          <option value="politics">Politics</option>
-          <option value="crypto">Crypto</option>
-          <option value="sports">Sports</option>
-          <option value="macro">Economics</option>
-        </select>
-        <button class="secondary-btn" id="polyRefreshBtn" type="button">Refresh</button>
+        <span class="eyebrow">Outcome</span>
+        <h2>Probability Engine</h2>
       </div>
     </div>
-    <div id="polyMarketGrid" class="benchmark-grid loading-state" style="grid-template-columns: 1fr;">Loading Polymarket events...</div>
+    
+    <div id="simEmptyState" class="empty-state">Configure parameters and run simulation to generate Monte Carlo distributions.</div>
+    
+    <div id="simResultsData" style="display:none" class="stack">
+      <div class="metric-grid">
+        <div class="metric-card" style="border-left: 3px solid var(--red)">
+          <span>Prob of Ruin (90% DD)</span>
+          <strong id="resRuin" style="color:var(--red)">--</strong>
+        </div>
+        <div class="metric-card">
+          <span>Median Final Equity</span>
+          <strong id="resMedian">--</strong>
+        </div>
+        <div class="metric-card">
+          <span>Best Case</span>
+          <strong id="resMax">--</strong>
+        </div>
+        <div class="metric-card">
+          <span>Worst Case</span>
+          <strong id="resMin">--</strong>
+        </div>
+      </div>
+      
+      <div style="margin-top:20px;">
+        <span class="eyebrow">Equity Paths (Spaghetti Chart)</span>
+        <div id="spaghettiChart" style="height:250px; border:1px solid var(--line); border-radius:8px; margin-top:8px; background:var(--bg); position:relative; overflow:hidden">
+          <!-- Canvas injected here -->
+        </div>
+      </div>
+      
+      <div style="margin-top:20px;">
+        <span class="eyebrow">Return Distribution (Bell Curve)</span>
+        <div id="bellCurveChart" style="height:200px; border:1px solid var(--line); border-radius:8px; margin-top:8px; background:var(--bg); position:relative; overflow:hidden">
+          <!-- Canvas injected here -->
+        </div>
+      </div>
+    </div>
   </article>
 </section>
 
@@ -148,6 +201,6 @@
 
   <script src="assets/dto-core.js" defer></script>
 <script src="assets/scripts/site.js" defer></script>
-<script src="assets/scripts/poly.js" defer></script>
+<script src="assets/scripts/god_mode.js" defer></script>
 </body>
 </html>

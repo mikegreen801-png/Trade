@@ -145,3 +145,34 @@ def update_watchlist(payload: dict):
 def get_trades(db: Session = Depends(get_db), limit: int = 50):
     trades = db.query(TradeRecord).order_by(TradeRecord.timestamp.desc()).limit(limit).all()
     return trades
+
+@app.post("/api/bot/simulate")
+def run_simulation(payload: dict):
+    from simulator import MonteCarloSimulator
+    try:
+        sim = MonteCarloSimulator(
+            initial_capital=float(payload.get("initial_capital", 100000)),
+            iterations=int(payload.get("iterations", 1000)),
+            periods=int(payload.get("periods", 252))
+        )
+        result = sim.simulate(
+            win_rate=float(payload.get("win_rate", 0.5)),
+            avg_win_pct=float(payload.get("avg_win_pct", 0.02)),
+            avg_loss_pct=float(payload.get("avg_loss_pct", 0.01)),
+            slippage_pct=float(payload.get("slippage_pct", 0.001)),
+            black_swan_prob=float(payload.get("black_swan_prob", 0.005)),
+            black_swan_drop_pct=float(payload.get("black_swan_drop_pct", 0.20))
+        )
+        return result
+    except Exception as e:
+        return {"error": str(e)}, 400
+
+@app.get("/api/bot/swarm")
+async def run_swarm_analysis(symbol: str = "SPY"):
+    from swarm import SwarmOrchestrator
+    try:
+        orchestrator = SwarmOrchestrator(symbol.upper())
+        result = await orchestrator.run_swarm()
+        return result
+    except Exception as e:
+        return {"error": str(e)}, 500

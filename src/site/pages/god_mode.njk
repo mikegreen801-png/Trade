@@ -1,0 +1,114 @@
+<section class="page-hero">
+  <div class="hero-block">
+    <span class="eyebrow">Institutional</span>
+    <h1>God Mode Simulation</h1>
+    <p class="lead">Monte Carlo stress testing. Remove emotion. See the statistical probability of ruin over 1,000 parallel realities.</p>
+  </div>
+</section>
+
+<section class="module-grid two-col" style="grid-template-columns: 350px 1fr; align-items: start;">
+  <!-- Configuration Sidebar -->
+  <article class="surface stack">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Parameters</span>
+        <h2>Stress Test Setup</h2>
+      </div>
+    </div>
+    <form id="godModeForm" class="stack">
+      <div class="field">
+        <label for="simCapital">Initial Capital ($)</label>
+        <input type="number" id="simCapital" value="100000" step="1000">
+      </div>
+      
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="field">
+          <label for="simWinRate">Win Rate (%)</label>
+          <input type="number" id="simWinRate" value="45" step="1" max="100">
+        </div>
+        <div class="field">
+          <label for="simIterations">Iterations</label>
+          <input type="number" id="simIterations" value="1000" step="100">
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="field">
+          <label for="simAvgWin">Avg Win (%)</label>
+          <input type="number" id="simAvgWin" value="3.5" step="0.1">
+        </div>
+        <div class="field">
+          <label for="simAvgLoss">Avg Loss (%)</label>
+          <input type="number" id="simAvgLoss" value="1.5" step="0.1">
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="simSlippage">Slippage & Fees (%)</label>
+        <input type="number" id="simSlippage" value="0.1" step="0.05">
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="field">
+          <label for="simSwanProb">Black Swan Risk (%)</label>
+          <input type="number" id="simSwanProb" value="0.5" step="0.1" title="Probability of a black swan per trade">
+        </div>
+        <div class="field">
+          <label for="simSwanDrop">Swan Drop (%)</label>
+          <input type="number" id="simSwanDrop" value="20" step="1" title="Percentage drop during a black swan">
+        </div>
+      </div>
+
+      <div class="button-row" style="margin-top:8px">
+        <button type="submit" class="primary-btn" id="runSimBtn" style="width:100%">Run Simulation</button>
+      </div>
+    </form>
+  </article>
+
+  <!-- Results Dashboard -->
+  <article class="surface stack" id="simResultsWrapper">
+    <div class="section-header">
+      <div>
+        <span class="eyebrow">Outcome</span>
+        <h2>Probability Engine</h2>
+      </div>
+    </div>
+    
+    <div id="simEmptyState" class="empty-state">Configure parameters and run simulation to generate Monte Carlo distributions.</div>
+    
+    <div id="simResultsData" style="display:none" class="stack">
+      <div class="metric-grid">
+        <div class="metric-card" style="border-left: 3px solid var(--red)">
+          <span>Prob of Ruin (90% DD)</span>
+          <strong id="resRuin" style="color:var(--red)">--</strong>
+        </div>
+        <div class="metric-card">
+          <span>Median Final Equity</span>
+          <strong id="resMedian">--</strong>
+        </div>
+        <div class="metric-card">
+          <span>Best Case</span>
+          <strong id="resMax">--</strong>
+        </div>
+        <div class="metric-card">
+          <span>Worst Case</span>
+          <strong id="resMin">--</strong>
+        </div>
+      </div>
+      
+      <div style="margin-top:20px;">
+        <span class="eyebrow">Equity Paths (Spaghetti Chart)</span>
+        <div id="spaghettiChart" style="height:250px; border:1px solid var(--line); border-radius:8px; margin-top:8px; background:var(--bg); position:relative; overflow:hidden">
+          <!-- Canvas injected here -->
+        </div>
+      </div>
+      
+      <div style="margin-top:20px;">
+        <span class="eyebrow">Return Distribution (Bell Curve)</span>
+        <div id="bellCurveChart" style="height:200px; border:1px solid var(--line); border-radius:8px; margin-top:8px; background:var(--bg); position:relative; overflow:hidden">
+          <!-- Canvas injected here -->
+        </div>
+      </div>
+    </div>
+  </article>
+</section>

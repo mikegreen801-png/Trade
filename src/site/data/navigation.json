@@ -13,6 +13,16 @@
       "description": "Bot Engine and automation tools."
     },
     {
+      "label": "Terminal",
+      "href": "terminal.html",
+      "description": "Headless API Terminal control."
+    },
+    {
+      "label": "God Mode",
+      "href": "god_mode.html",
+      "description": "Institutional Monte Carlo simulation."
+    },
+    {
       "label": "Prediction Markets",
       "href": "polymarket.html",
       "description": "Secondary market context and sentiment tools."

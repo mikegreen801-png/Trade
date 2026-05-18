@@ -360,5 +360,27 @@
       .catch(function () { return []; });
   };
 
-  renderWatchlist(); renderAlerts(); updateCounts(); loadOverview();
+  function loadMacro() {
+    var fgEl = document.getElementById("marketFearGreed");
+    if (!fgEl) return;
+    
+    fetch("/api/macro")
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (!data.ok || !data.data || !data.data.fearGreed) {
+          fgEl.textContent = "Unavailable";
+          return;
+        }
+        var val = data.data.fearGreed.value;
+        var name = data.data.fearGreed.name;
+        fgEl.textContent = val + " (" + name + ")";
+        if (val > 60) fgEl.className = "price-tick-up";
+        else if (val < 40) fgEl.className = "price-tick-down";
+      })
+      .catch(function() {
+        fgEl.textContent = "Error";
+      });
+  }
+
+  renderWatchlist(); renderAlerts(); updateCounts(); loadOverview(); loadMacro();
 })();
