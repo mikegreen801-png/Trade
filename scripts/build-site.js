@@ -105,10 +105,27 @@ function cssBundle() {
   write(path.join(projectRoot, "assets", "app.css"), output);
 }
 
+/* Auto-bump the CSS cache-buster version and SW cache name on every build */
+function bumpVersion() {
+  const v = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+
+  // Update service worker cache name + versioned CSS entry in STATIC
+  const swPath = path.join(projectRoot, "sw.js");
+  let sw = read(swPath);
+  sw = sw.replace(/const CACHE = 'dto-v[^']*'/, `const CACHE = 'dto-v${v}'`);
+  sw = sw.replace(/'\/assets\/app\.css(\?v=\d+)?'/, `'/assets/app.css?v=${v}'`);
+  write(swPath, sw);
+
+  return v;
+}
+
 function buildCanonicalPages() {
   const navigation = readJson("navigation.json");
   const routes = readJson("routes.json");
-  const base = read(path.join(layoutRoot, "base.njk"));
+  const version = bumpVersion();
+  // Inject fresh version into base template at render time (no source file mutation)
+  const base = read(path.join(layoutRoot, "base.njk"))
+    .replace(/app\.css\?v=\d+/g, `app.css?v=${version}`);
 
   routes.canonical.forEach(route => {
     const content = read(path.join(pageRoot, route.template));

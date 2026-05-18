@@ -1,14 +1,15 @@
 /* Day Trader OS — Service Worker */
-const CACHE = 'dto-v2';
+const CACHE = 'dto-v20260518';
 const STATIC = [
   '/',
   '/index.html',
+  '/dashboard.html',
   '/market_intel.html',
   '/trade_planner.html',
   '/execution_workbench.html',
   '/review_workbench.html',
   '/analytics.html',
-  '/assets/app.css',
+  '/assets/app.css?v=20260518',
   '/assets/dto-core.js',
   '/assets/scripts/site.js',
   '/assets/icon.svg',
